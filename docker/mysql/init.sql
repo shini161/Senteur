@@ -35,6 +35,27 @@ CREATE TABLE users (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
+CREATE TABLE products (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+
+    brand_id INT NOT NULL,
+    fragrance_type_id INT NULL,
+
+    name VARCHAR(150) NOT NULL,
+    slug VARCHAR(180) UNIQUE NOT NULL,
+    description TEXT,
+    gender ENUM('male', 'female', 'unisex') NOT NULL,
+
+    deleted_at TIMESTAMP NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (brand_id) REFERENCES brands(id) ON DELETE RESTRICT,
+    FOREIGN KEY (fragrance_type_id) REFERENCES fragrance_types(id),
+
+    FULLTEXT INDEX idx_products_name_description (name, description)
+);
+
 -- ======================
 -- INDEXES
 -- ======================
