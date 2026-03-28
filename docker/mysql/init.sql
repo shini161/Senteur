@@ -275,6 +275,8 @@ CREATE INDEX idx_payments_status ON payments(status);
 
 CREATE INDEX idx_reviews_product_id ON reviews(product_id);
 
+CREATE INDEX idx_cart_items_variant_id ON cart_items(product_variant_id);
+
 -- ======================
 
 SET FOREIGN_KEY_CHECKS = 1;
