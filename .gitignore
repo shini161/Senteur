@@ -27,3 +27,6 @@ Thumbs.db
 
 # Optional local Docker overrides
 docker-compose.override.yml
+
+# Personal Notes
+notes.md
