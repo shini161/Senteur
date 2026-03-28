@@ -136,6 +136,30 @@ CREATE TABLE user_addresses (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+CREATE TABLE orders (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+
+    public_id CHAR(10) UNIQUE NOT NULL,
+
+    user_id INT NOT NULL,
+    shipping_address_id INT NOT NULL,
+
+    status ENUM('pending','processing','shipped','delivered','cancelled') NOT NULL DEFAULT 'pending',
+
+    subtotal_amount DECIMAL(10,2) NOT NULL CHECK (subtotal_amount >= 0),
+    shipping_cost DECIMAL(10,2) NOT NULL CHECK (shipping_cost >= 0),
+    total_amount DECIMAL(10,2) NOT NULL CHECK (total_amount >= 0),
+
+	paid_at TIMESTAMP NULL,
+	shipped_at TIMESTAMP NULL,
+	delivered_at TIMESTAMP NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE RESTRICT,
+    FOREIGN KEY (shipping_address_id) REFERENCES user_addresses(id)
+);
+
 -- ======================
 -- INDEXES
 -- ======================
