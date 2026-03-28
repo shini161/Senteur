@@ -70,15 +70,15 @@ Defined in `.env` (see `.env.example`):
 
 Entity-relationship overview of the Senteur schema.
 
-* Interactive: https://dbdiagram.io/d/SenteurDB-69c288c3fb2db18e3bf07cf6
+* Interactive: https://dbdiagram.io/d/SenteurSQLDiagram-69c288c3fb2db18e3bf07cf6
 * Local files:
 
-  * `docs/diagrams/SQLDiagram.png`
-  * `docs/diagrams/SQLDiagram.svg`
+  * `docs/diagrams/SenteurSQLDiagram.png`
+  * `docs/diagrams/SenteurSQLDiagram.svg`
 
 > The diagram is generated from the current schema defined in `docker/mysql/init.sql`.
 
-![Senteur Database Diagram](docs/diagrams/SQLDiagram.png)
+![Senteur Database Diagram](docs/diagrams/SenteurSQLDiagram.png)
 
 ---
 

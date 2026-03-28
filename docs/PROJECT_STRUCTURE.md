@@ -48,11 +48,11 @@ The database schema is defined in:
 
 The current entity-relationship diagram is available:
 
-* PNG: `docs/diagrams/SQLDiagram.png`
-* SVG: `docs/diagrams/SQLDiagram.svg` (recommended for zoom)
+* PNG: `docs/diagrams/SQLDiaSenteurSQLDiagramgram.png`
+* SVG: `docs/diagrams/SenteurSQLDiagram.svg` (recommended for zoom)
 
 You can also explore it interactively:
 
-* https://dbdiagram.io/d/SenteurDB-69c288c3fb2db18e3bf07cf6
+* https://dbdiagram.io/d/SenteurSQLDiagram-69c288c3fb2db18e3bf07cf6
 
 The diagram reflects the current production schema (kept in sync with `init.sql`).
