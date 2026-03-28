@@ -91,6 +91,12 @@ CREATE TABLE categories (
     name VARCHAR(100) UNIQUE NOT NULL CHECK (name <> '')
 );
 
+CREATE TABLE notes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) UNIQUE NOT NULL CHECK (name <> ''),
+    image_url VARCHAR(255) NOT NULL
+);
+
 -- ======================
 -- INDEXES
 -- ======================
