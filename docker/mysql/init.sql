@@ -265,6 +265,10 @@ CREATE INDEX idx_product_categories_category ON product_categories(category_id);
 CREATE INDEX idx_product_notes_product ON product_notes(product_id);
 CREATE INDEX idx_product_notes_note ON product_notes(note_id);
 
+CREATE INDEX idx_orders_user_id ON orders(user_id);
+CREATE INDEX idx_orders_status ON orders(status);
+CREATE INDEX idx_orders_address_id ON orders(shipping_address_id);
+
 -- ======================
 
 SET FOREIGN_KEY_CHECKS = 1;
