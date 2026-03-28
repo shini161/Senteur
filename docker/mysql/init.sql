@@ -251,6 +251,10 @@ CREATE INDEX idx_products_gender ON products(gender);
 CREATE INDEX idx_products_brand_gender ON products(brand_id, gender);
 CREATE INDEX idx_products_fragrance_type ON products(fragrance_type_id);
 
+CREATE INDEX idx_variants_price ON product_variants(price);
+CREATE INDEX idx_variants_stock ON product_variants(stock);
+CREATE INDEX idx_variants_product_price ON product_variants(product_id, price);
+
 -- ======================
 
 SET FOREIGN_KEY_CHECKS = 1;
