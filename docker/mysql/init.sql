@@ -8,6 +8,11 @@ SET FOREIGN_KEY_CHECKS = 0;
 -- SCHEMA
 -- ======================
 
+CREATE TABLE brands (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) UNIQUE NOT NULL
+);
+
 -- ======================
 -- INDEXES
 -- ======================
