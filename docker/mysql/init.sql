@@ -13,6 +13,11 @@ CREATE TABLE brands (
     name VARCHAR(100) UNIQUE NOT NULL
 );
 
+CREATE TABLE fragrance_types (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(50) UNIQUE NOT NULL
+);
+
 -- ======================
 -- INDEXES
 -- ======================
