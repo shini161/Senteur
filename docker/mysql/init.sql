@@ -107,6 +107,17 @@ CREATE TABLE product_categories (
     FOREIGN KEY (category_id) REFERENCES categories(id)
 );
 
+CREATE TABLE product_notes (
+    product_id INT NOT NULL,
+    note_id INT NOT NULL,
+    note_type ENUM('top', 'middle', 'base') NOT NULL,
+
+    PRIMARY KEY (product_id, note_id, note_type),
+
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
+    FOREIGN KEY (note_id) REFERENCES notes(id)
+);
+
 -- ======================
 -- INDEXES
 -- ======================
