@@ -247,6 +247,10 @@ CREATE TABLE cart_items (
 -- INDEXES
 -- ======================
 
+CREATE INDEX idx_products_gender ON products(gender);
+CREATE INDEX idx_products_brand_gender ON products(brand_id, gender);
+CREATE INDEX idx_products_fragrance_type ON products(fragrance_type_id);
+
 -- ======================
 
 SET FOREIGN_KEY_CHECKS = 1;
