@@ -160,6 +160,26 @@ CREATE TABLE orders (
     FOREIGN KEY (shipping_address_id) REFERENCES user_addresses(id)
 );
 
+CREATE TABLE order_items (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+
+    order_id INT NOT NULL,
+    product_variant_id INT NOT NULL,
+
+    product_name_snapshot VARCHAR(150) NOT NULL,
+    size_ml_snapshot INT NOT NULL,
+
+    quantity INT NOT NULL CHECK (quantity > 0),
+    price_at_purchase DECIMAL(10,2) NOT NULL CHECK (price_at_purchase >= 0),
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    UNIQUE (order_id, product_variant_id),
+
+    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+    FOREIGN KEY (product_variant_id) REFERENCES product_variants(id)
+);
+
 -- ======================
 -- INDEXES
 -- ======================
