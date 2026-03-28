@@ -271,6 +271,8 @@ CREATE INDEX idx_orders_address_id ON orders(shipping_address_id);
 
 CREATE INDEX idx_order_items_order_id ON order_items(order_id);
 
+CREATE INDEX idx_payments_status ON payments(status);
+
 -- ======================
 
 SET FOREIGN_KEY_CHECKS = 1;
