@@ -218,6 +218,19 @@ CREATE TABLE reviews (
     FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
 );
 
+CREATE TABLE carts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+
+    session_id VARCHAR(255) UNIQUE NULL,
+    user_id INT UNIQUE NULL,
+
+	expires_at TIMESTAMP NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
 -- ======================
 -- INDEXES
 -- ======================
