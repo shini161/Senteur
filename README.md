@@ -68,11 +68,17 @@ Defined in `.env` (see `.env.example`):
 
 ## Database diagram
 
-Entity-relationship overview
+Entity-relationship overview of the Senteur schema.
 
-**[Open the Senteur schema on dbdiagram.io](https://dbdiagram.io/e/69c288c3fb2db18e3bf07cf6/69c66591fb2db18e3b1d2378)** (Old Schema)
+* Interactive: https://dbdiagram.io/d/SenteurDB-69c288c3fb2db18e3bf07cf6
+* Local files:
 
-*This section will be fixed later*
+  * `docs/diagrams/SQLDiagram.png`
+  * `docs/diagrams/SQLDiagram.svg`
+
+> The diagram is generated from the current schema defined in `docker/mysql/init.sql`.
+
+![Senteur Database Diagram](docs/diagrams/SQLDiagram.png)
 
 ---
 

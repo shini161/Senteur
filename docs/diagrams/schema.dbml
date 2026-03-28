@@ -1,0 +1,305 @@
+Enum orders_status_enum {
+  pending
+  processing
+  shipped
+  delivered
+  cancelled
+}
+
+Enum payments_status_enum {
+  pending
+  paid
+  failed
+}
+
+Enum product_notes_note_type_enum {
+  top
+  middle
+  base
+}
+
+Enum products_gender_enum {
+  male
+  female
+  unisex
+}
+
+Enum users_role_enum {
+  admin
+  user
+}
+
+Table brands {
+  id int [pk, not null, increment]
+  name varchar(100) [not null]
+
+  Indexes {
+    name [unique]
+  }
+}
+
+Table cart_items {
+  cart_id int [not null]
+  product_variant_id int [not null]
+  quantity int [not null, check: `quantity > 0`]
+
+  Indexes {
+    (cart_id, product_variant_id) [pk]
+    product_variant_id [name: "idx_cart_items_variant_id"]
+  }
+}
+
+Table carts {
+  id int [pk, not null, increment]
+  session_id varchar(255)
+  user_id int
+  expires_at timestamp
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+
+  Indexes {
+    session_id [unique]
+    user_id [unique]
+  }
+}
+
+Table categories {
+  id int [pk, not null, increment]
+  name varchar(100) [not null, check: `name <> ''`]
+
+  Indexes {
+    name [unique]
+  }
+}
+
+Table fragrance_types {
+  id int [pk, not null, increment]
+  name varchar(50) [not null]
+
+  Indexes {
+    name [unique]
+  }
+}
+
+Table notes {
+  id int [pk, not null, increment]
+  name varchar(100) [not null, check: `name <> ''`]
+  image_url varchar(255) [not null]
+
+  Indexes {
+    name [unique]
+  }
+}
+
+Table order_items {
+  id int [pk, not null, increment]
+  order_id int [not null]
+  product_variant_id int [not null]
+  product_name_snapshot varchar(150) [not null]
+  size_ml_snapshot int [not null]
+  quantity int [not null, check: `quantity > 0`]
+  price_at_purchase decimal(10,2) [not null, check: `price_at_purchase >= 0`]
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+
+  Indexes {
+    (order_id, product_variant_id) [unique, name: "uq_order_item"]
+    product_variant_id [name: "idx_order_items_variant_id"]
+    order_id [name: "idx_order_items_order_id"]
+  }
+}
+
+Table orders {
+  id int [pk, not null, increment]
+  public_id char(10) [not null]
+  user_id int [not null]
+  shipping_address_id int [not null]
+  status orders_status_enum [not null, default: 'pending']
+  subtotal_amount decimal(10,2) [not null, check: `subtotal_amount >= 0`]
+  shipping_cost decimal(10,2) [not null, check: `shipping_cost >= 0`]
+  total_amount decimal(10,2) [not null, check: `total_amount >= 0`]
+  paid_at timestamp
+  shipped_at timestamp
+  delivered_at timestamp
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+
+  Indexes {
+    public_id [unique]
+    user_id [name: "idx_orders_user_id"]
+    status [name: "idx_orders_status"]
+    shipping_address_id [name: "idx_orders_shipping_address_id"]
+  }
+}
+
+Table payments {
+  id int [pk, not null, increment]
+  order_id int [not null]
+  provider varchar(50) [not null]
+  provider_payload json
+  status payments_status_enum [not null, default: 'pending']
+  amount decimal(10,2) [not null, check: `amount >= 0`]
+  currency varchar(10) [not null, default: 'EUR']
+  transaction_id varchar(255)
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  paid_at timestamp
+
+  Indexes {
+    order_id [unique]
+    transaction_id [unique]
+    status [name: "idx_payments_status"]
+  }
+}
+
+Table product_categories {
+  product_id int [not null]
+  category_id int [not null]
+
+  Indexes {
+    (product_id, category_id) [pk]
+    product_id [name: "idx_product_categories_product"]
+    category_id [name: "idx_product_categories_category"]
+  }
+}
+
+Table product_images {
+  id int [pk, not null, increment]
+  product_id int [not null]
+  image_url varchar(255) [not null]
+  position int [not null, default: 0]
+
+  Indexes {
+    (product_id, position) [unique, name: "uq_product_position"]
+    (product_id, position) [name: "idx_images_product_position"]
+  }
+}
+
+Table product_notes {
+  product_id int [not null]
+  note_id int [not null]
+  note_type product_notes_note_type_enum [not null]
+
+  Indexes {
+    (product_id, note_id, note_type) [pk]
+    product_id [name: "idx_product_notes_product"]
+    note_id [name: "idx_product_notes_note"]
+  }
+}
+
+Table product_variants {
+  id int [pk, not null, increment]
+  product_id int [not null]
+  size_ml int [not null]
+  price decimal(10,2) [not null, check: `price >= 0`]
+  stock int [not null, check: `stock >= 0`]
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+
+  Indexes {
+    (product_id, size_ml) [unique, name: "uq_product_size"]
+    price [name: "idx_variants_price"]
+    stock [name: "idx_variants_stock"]
+    (product_id, price) [name: "idx_variants_product_price"]
+  }
+}
+
+Table products {
+  id int [pk, not null, increment]
+  brand_id int [not null]
+  fragrance_type_id int
+  name varchar(150) [not null]
+  slug varchar(180) [not null]
+  description text
+  gender products_gender_enum [not null]
+  deleted_at timestamp
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+
+  Indexes {
+    slug [unique]
+    gender [name: "idx_products_gender"]
+    (brand_id, gender) [name: "idx_products_brand_gender"]
+    fragrance_type_id [name: "idx_products_fragrance_type"]
+    (name, description) [name: "idx_products_name_description"]
+  }
+}
+
+Table reviews {
+  id int [pk, not null, increment]
+  user_id int [not null]
+  product_id int [not null]
+  rating int [not null, check: `rating BETWEEN 1 AND 5`]
+  title varchar(150)
+  comment text
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+
+  Indexes {
+    (user_id, product_id) [unique]
+    product_id [name: "idx_reviews_product_id"]
+  }
+}
+
+Table user_addresses {
+  id int [pk, not null, increment]
+  user_id int [not null]
+  full_name varchar(150) [not null]
+  address_line varchar(255) [not null]
+  city varchar(100) [not null]
+  postal_code varchar(20) [not null]
+  country varchar(100) [not null]
+  is_default tinyint(1) [not null, default: 0]
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+
+  Indexes {
+    user_id [name: "idx_user_addresses_user_id"]
+  }
+}
+
+Table users {
+  id int [pk, not null, increment]
+  public_id char(10) [not null]
+  role users_role_enum [not null, default: 'user']
+  username varchar(50) [not null]
+  email varchar(255) [not null]
+  phone varchar(20)
+  password_hash text [not null]
+  email_verified_at timestamp
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+
+  Indexes {
+    public_id [unique]
+    username [unique]
+    email [unique]
+  }
+}
+
+Ref cart_items_cart_id_fk: carts.id < cart_items.cart_id [delete: cascade]
+Ref cart_items_variant_fk: product_variants.id < cart_items.product_variant_id [delete: cascade]
+
+Ref carts_user_fk: users.id < carts.user_id [delete: set null]
+
+Ref order_items_order_fk: orders.id < order_items.order_id [delete: cascade]
+Ref order_items_variant_fk: product_variants.id < order_items.product_variant_id
+
+Ref orders_user_fk: users.id < orders.user_id [delete: restrict]
+Ref orders_address_fk: user_addresses.id < orders.shipping_address_id
+
+Ref payments_order_fk: orders.id < payments.order_id [delete: cascade]
+
+Ref product_categories_product_fk: products.id < product_categories.product_id [delete: cascade]
+Ref product_categories_category_fk: categories.id < product_categories.category_id
+
+Ref product_images_product_fk: products.id < product_images.product_id [delete: cascade]
+
+Ref product_notes_product_fk: products.id < product_notes.product_id [delete: cascade]
+Ref product_notes_note_fk: notes.id < product_notes.note_id
+
+Ref product_variants_product_fk: products.id < product_variants.product_id [delete: cascade]
+
+Ref products_brand_fk: brands.id < products.brand_id [delete: restrict]
+Ref products_fragrance_fk: fragrance_types.id < products.fragrance_type_id
+
+Ref reviews_user_fk: users.id < reviews.user_id
+Ref reviews_product_fk: products.id < reviews.product_id [delete: cascade]
+
+Ref user_addresses_user_fk: users.id < user_addresses.user_id [delete: cascade]

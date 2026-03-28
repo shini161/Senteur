@@ -39,5 +39,20 @@ This file mirrors the layout of the repository so a reviewer (for example a teac
 6. Controller renders a **view** (HTML) or returns JSON, redirect, etc.
 
 ## Database
-Schema and migrations live in `docker/mysql/init.sql` for local Docker MySQL.
-The entity-relationship diagram is stored `docs/SQLDiagram.png`
+
+The database schema is defined in:
+
+* `docker/mysql/init.sql` → full schema used by Docker
+
+### Diagram
+
+The current entity-relationship diagram is available:
+
+* PNG: `docs/diagrams/SQLDiagram.png`
+* SVG: `docs/diagrams/SQLDiagram.svg` (recommended for zoom)
+
+You can also explore it interactively:
+
+* https://dbdiagram.io/d/SenteurDB-69c288c3fb2db18e3bf07cf6
+
+The diagram reflects the current production schema (kept in sync with `init.sql`).
