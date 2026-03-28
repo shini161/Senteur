@@ -73,6 +73,19 @@ CREATE TABLE product_variants (
     UNIQUE (product_id, size_ml)
 );
 
+CREATE TABLE product_images (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+
+    product_id INT NOT NULL,
+
+    image_url VARCHAR(255) NOT NULL,
+    position INT NOT NULL DEFAULT 0,
+
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
+
+    UNIQUE (product_id, position)
+);
+
 -- ======================
 -- INDEXES
 -- ======================
