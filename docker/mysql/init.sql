@@ -118,6 +118,24 @@ CREATE TABLE product_notes (
     FOREIGN KEY (note_id) REFERENCES notes(id)
 );
 
+CREATE TABLE user_addresses (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+
+    user_id INT NOT NULL,
+
+    full_name VARCHAR(150) NOT NULL,
+    address_line VARCHAR(255) NOT NULL,
+    city VARCHAR(100) NOT NULL,
+    postal_code VARCHAR(20) NOT NULL,
+    country VARCHAR(100) NOT NULL,
+
+    is_default BOOLEAN NOT NULL DEFAULT FALSE,
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
 -- ======================
 -- INDEXES
 -- ======================
