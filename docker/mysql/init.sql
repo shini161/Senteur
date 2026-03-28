@@ -255,6 +255,8 @@ CREATE INDEX idx_variants_price ON product_variants(price);
 CREATE INDEX idx_variants_stock ON product_variants(stock);
 CREATE INDEX idx_variants_product_price ON product_variants(product_id, price);
 
+CREATE INDEX idx_images_product_position ON product_images(product_id, position);
+
 -- ======================
 
 SET FOREIGN_KEY_CHECKS = 1;
