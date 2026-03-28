@@ -231,6 +231,18 @@ CREATE TABLE carts (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
 );
 
+CREATE TABLE cart_items (
+    cart_id INT NOT NULL,
+    product_variant_id INT NOT NULL,
+
+    quantity INT NOT NULL CHECK (quantity > 0),
+
+    PRIMARY KEY (cart_id, product_variant_id),
+
+    FOREIGN KEY (cart_id) REFERENCES carts(id) ON DELETE CASCADE,
+    FOREIGN KEY (product_variant_id) REFERENCES product_variants(id) ON DELETE CASCADE
+);
+
 -- ======================
 -- INDEXES
 -- ======================
