@@ -1,0 +1,29 @@
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Composer
+/vendor/
+
+# Uploaded files (keep directory via .gitkeep)
+/public/uploads/*
+!/public/uploads/.gitkeep
+
+# Logs & caches
+*.log
+/storage/
+/var/
+.phpunit.result.cache
+.php-cs-fixer.cache
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+*.swp
+*.swo
+*~
+
+# Optional local Docker overrides
+docker-compose.override.yml
