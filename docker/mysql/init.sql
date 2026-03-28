@@ -56,6 +56,23 @@ CREATE TABLE products (
     FULLTEXT INDEX idx_products_name_description (name, description)
 );
 
+CREATE TABLE product_variants (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+
+    product_id INT NOT NULL,
+
+    size_ml INT NOT NULL,
+    price DECIMAL(10,2) NOT NULL CHECK (price >= 0),
+    stock INT NOT NULL CHECK (stock >= 0),
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
+
+    UNIQUE (product_id, size_ml)
+);
+
 -- ======================
 -- INDEXES
 -- ======================
