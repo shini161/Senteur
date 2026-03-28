@@ -86,6 +86,11 @@ CREATE TABLE product_images (
     UNIQUE (product_id, position)
 );
 
+CREATE TABLE categories (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) UNIQUE NOT NULL CHECK (name <> '')
+);
+
 -- ======================
 -- INDEXES
 -- ======================
