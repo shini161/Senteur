@@ -180,6 +180,26 @@ CREATE TABLE order_items (
     FOREIGN KEY (product_variant_id) REFERENCES product_variants(id)
 );
 
+CREATE TABLE payments (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+
+    order_id INT UNIQUE NOT NULL,
+
+    provider VARCHAR(50) NOT NULL,
+	provider_payload JSON NULL,
+    status ENUM('pending','paid','failed') NOT NULL DEFAULT 'pending',
+
+    amount DECIMAL(10,2) NOT NULL CHECK (amount >= 0),
+    currency VARCHAR(10) NOT NULL DEFAULT 'EUR',
+
+    transaction_id VARCHAR(255) UNIQUE,
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    paid_at TIMESTAMP NULL,
+
+    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
+);
+
 -- ======================
 -- INDEXES
 -- ======================
