@@ -60,7 +60,7 @@ POST /register
 
 ## Request Flow
 
-![Register Flow](../../flows/register.png)
+![Register Flow](../../flows/auth/register.png)
 
 ---
 

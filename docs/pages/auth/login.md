@@ -39,7 +39,7 @@ POST /login
 
 ## Request Flow
 
-![Login Flow](../../flows/login.png)
+![Login Flow](../../flows/auth//login.png)
 
 ---
 
