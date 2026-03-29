@@ -22,6 +22,12 @@ POST /register
 
 ---
 
+## Additional UI Elements
+
+- Link to `/login`
+
+---
+
 ## Validation Rules
 - username:
 > - required
@@ -54,7 +60,7 @@ POST /register
 
 ## Request Flow
 
-![Register Flow](../../flows/register_flow.png)
+![Register Flow](../../flows/register.png)
 
 ---
 
@@ -82,9 +88,7 @@ AuthService::register(array $data): User
 ---
 
 ## Database Actions
-
 ### Insert into `users`
-
 ```sql
 INSERT INTO users (
     public_id,
@@ -105,7 +109,6 @@ INSERT INTO users (
 --- 
 
 ## Session Handling
-
 After successful registration:
 ```php
 $_SESSION['user_id'] = $user->id;
@@ -114,15 +117,12 @@ $_SESSION['user_id'] = $user->id;
 ---
 
 ## Response
-
 ### Success
-
 ```
 302 Redirect ⟶ /
 ```
 
 ### Errors
-
 Return to `/register` with:
 - old input
 - validation errors
