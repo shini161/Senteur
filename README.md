@@ -82,6 +82,18 @@ Entity-relationship overview of the Senteur schema.
 
 ---
 
+## Application architecture
+
+High-level MVC flow of the application.
+
+- Router → Controller → Service → View
+- Thin controllers, business logic in services
+- Models handle DB interaction (PDO)
+
+![Senteur MVC Architecture](docs/diagrams/architecture.png)
+
+---
+
 ## Project layout
 
 ```
