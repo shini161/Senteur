@@ -30,3 +30,4 @@ docker-compose.override.yml
 
 # Personal Notes
 notes.md
+!docs/pages/admin/notes.md
