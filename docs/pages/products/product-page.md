@@ -8,7 +8,7 @@ Display detailed information about a single product, including images, variants,
 
 ## Route
 
-```bash id="6n2k9f"
+```bash
 GET /product/{slug}
 ```
 
@@ -52,7 +52,7 @@ GET /product/{slug}
 
 ## Controller
 
-```php id="h3y7df"
+```php
 ProductController::show(string $slug)
 ```
 
@@ -60,7 +60,7 @@ ProductController::show(string $slug)
 
 ## Service Layer
 
-```php id="p8k3mz"
+```php
 ProductService::getBySlug(string $slug): Product
 ```
 
@@ -88,7 +88,7 @@ ProductService::getBySlug(string $slug): Product
 
 ### Get product
 
-```sql id="v7s4ax"
+```sql
 SELECT 
     p.id,
     p.name,
@@ -108,7 +108,7 @@ LIMIT 1;
 
 ### Get images
 
-```sql id="q2k8zj"
+```sql
 SELECT image_url, position
 FROM product_images
 WHERE product_id = ?
@@ -119,7 +119,7 @@ ORDER BY position ASC;
 
 ### Get variants
 
-```sql id="n9f3lz"
+```sql
 SELECT id, size_ml, price, stock
 FROM product_variants
 WHERE product_id = ?
@@ -130,7 +130,7 @@ ORDER BY size_ml ASC;
 
 ### Get notes
 
-```sql id="z4p8xs"
+```sql
 SELECT n.name, n.image_url, pn.note_type
 FROM product_notes pn
 JOIN notes n ON pn.note_id = n.id
@@ -141,7 +141,7 @@ WHERE pn.product_id = ?;
 
 ### Get reviews (optional)
 
-```sql id="b7m2ke"
+```sql
 SELECT r.rating, r.title, r.comment, u.username
 FROM reviews r
 JOIN users u ON r.user_id = u.id
@@ -179,7 +179,7 @@ ORDER BY r.created_at DESC;
 
 If not found:
 
-```txt id="k3z9lm"
+```txt
 404 Not Found
 ```
 

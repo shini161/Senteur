@@ -8,7 +8,7 @@ Display a list of products with support for search, filtering, sorting, and pagi
 
 ## Route
 
-```bash id="m1s9ko"
+```bash
 GET /products
 ```
 
@@ -50,7 +50,7 @@ GET /products
 
 ## Controller
 
-```php id="w7y4sl"
+```php
 ProductController::index()
 ```
 
@@ -58,7 +58,7 @@ ProductController::index()
 
 ## Service Layer
 
-```php id="y8x4qp"
+```php
 ProductService::getProducts(array $filters): array
 ```
 
@@ -95,7 +95,7 @@ ProductService::getProducts(array $filters): array
 
 ### Base query
 
-```sql id="h3qk9e"
+```sql
 SELECT 
     p.id,
     p.name,
@@ -112,7 +112,7 @@ WHERE p.deleted_at IS NULL
 
 ### Search (optional)
 
-```sql id="x9sk3a"
+```sql
 AND MATCH(p.name, p.description) AGAINST (? IN BOOLEAN MODE)
 ```
 
@@ -120,7 +120,7 @@ AND MATCH(p.name, p.description) AGAINST (? IN BOOLEAN MODE)
 
 ### Filters (optional)
 
-```sql id="8kz2pt"
+```sql
 AND p.brand_id = ?
 AND p.gender = ?
 AND pv.price BETWEEN ? AND ?
@@ -130,7 +130,7 @@ AND pv.price BETWEEN ? AND ?
 
 ### Grouping
 
-```sql id="5b8kqz"
+```sql
 GROUP BY p.id
 ```
 
@@ -138,7 +138,7 @@ GROUP BY p.id
 
 ### Sorting
 
-```sql id="j7d2ma"
+```sql
 ORDER BY lowest_price ASC | DESC
 ```
 
@@ -146,7 +146,7 @@ ORDER BY lowest_price ASC | DESC
 
 ### Pagination
 
-```sql id="n4c9tx"
+```sql
 LIMIT ? OFFSET ?
 ```
 
@@ -156,7 +156,7 @@ LIMIT ? OFFSET ?
 
 ### Get main image (position = 0)
 
-```sql id="7c5j2w"
+```sql
 LEFT JOIN product_images pi 
 ON pi.product_id = p.id AND pi.position = 0
 ```
