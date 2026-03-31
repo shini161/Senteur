@@ -1,0 +1,173 @@
+:root {
+  --bg: #f8faf8;
+  --text: #1a1f1c;
+  --muted: #5f6b64;
+
+  --accent: #5a7d6c;
+  --accent-dark: #466457;
+
+  --border: #e3e8e5;
+
+  font-family: system-ui, "Segoe UI", Roboto, sans-serif;
+}
+
+/* RESET */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.55;
+}
+
+/* HEADER */
+
+.site-header {
+  border-bottom: 1px solid var(--border);
+  padding: 1rem 2rem;
+  background: #fff;
+}
+
+/* NAVBAR */
+
+.navbar {
+  max-width: 1100px;
+  margin: 0 auto;
+
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+}
+
+/* NAV SECTIONS */
+
+.nav-left {
+  justify-self: start;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.nav-center {
+  justify-self: center;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.nav-right {
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* LOGO */
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  font-weight: 700;
+  font-size: 1.1rem;
+  letter-spacing: 0.03em;
+
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.logo:hover {
+  color: var(--accent-dark);
+}
+
+.logo svg {
+  height: 28px;
+  width: auto;
+  display: block;
+}
+
+/* LINKS */
+
+.navbar a {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.navbar a:hover {
+  color: var(--accent-dark);
+}
+
+/* SEARCH */
+
+.search-form input {
+  padding: 0.4rem 0.6rem; /* slightly better */
+  border: 1px solid var(--border);
+  border-radius: 6px; /* softer */
+  background: #fff;
+  font-size: 0.9rem;
+  transition: border-color 0.15s ease;
+}
+
+.search-form input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+/* MAIN CONTENT */
+
+main {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+/* TYPOGRAPHY */
+
+h1 {
+  font-size: 1.75rem;
+  font-weight: 650;
+  margin: 0 0 1rem;
+}
+
+h2 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 1.75rem 0 0.5rem;
+  color: var(--muted);
+}
+
+p {
+  margin: 0 0 1rem;
+}
+
+.lead {
+  font-size: 1.05rem;
+  color: var(--muted);
+}
+
+/* CODE */
+
+code {
+  font-size: 0.9em;
+  background: #eef2ef;
+  padding: 0.15em 0.35em;
+  border-radius: 4px;
+}
+
+/* LISTS */
+
+ul {
+  margin: 0 0 1rem;
+  padding-left: 1.25rem;
+}
+
+li {
+  margin-bottom: 0.35rem;
+}
