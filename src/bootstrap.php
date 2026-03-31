@@ -25,6 +25,16 @@ spl_autoload_register(function (string $class): void {
 });
 
 // --------------------------------------------------
+// Load environment variables
+// --------------------------------------------------
+
+$env = parse_ini_file(__DIR__ . '/../.env');
+
+foreach ($env as $key => $value) {
+    $_ENV[$key] = $value;
+}
+
+// --------------------------------------------------
 // Application bootstrap
 // --------------------------------------------------
 
