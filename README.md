@@ -1,29 +1,44 @@
 # Senteur
 
-**Senteur** is a school project: a small web shop focused on **perfumes**, built with **plain PHP** (no full framework), **MySQL**, and **Docker** so the same environment runs everywhere.
+**Senteur** is a portfolio-level web application: a small e-commerce platform focused on **perfumes**, built with **plain PHP** (no full framework), **MySQL**, and **Docker**.
 
-The goal is to show you can structure a PHP app clearly (routing, controllers, models, views), persist data in a relational schema, and ship something a teacher can run with one command.
+The project emphasizes clean architecture (MVC), explicit infrastructure setup, and reproducibility across environments.
+
+> Originally developed in an academic context, but extended beyond requirements to demonstrate real-world backend architecture and deployment practices.
+
+---
+
+# Features
+
+* User authentication (register / login / logout)
+* Product catalog with filtering
+* Product variants (size, concentration)
+* Reviews and ratings system
+* Admin panel for product and brand management
+* Image uploads
+* MVC architecture (custom lightweight framework)
+* Dockerized environment (Nginx + PHP-FPM + MySQL)
 
 ---
 
 # What this repo contains
 
-- A **Docker** stack: **Nginx** (web server) → **PHP-FPM** (app) → **MySQL** (database).
-- A **custom “mini framework”** folder under `src/Core/` (router, request/response, database helper — to be wired as you implement features).
-- **MVC-style folders**: controllers, models, services, views.
-- A **database schema** in `docker/mysql/init.sql` (brands, products, variants, images, users, reviews, etc.).
+* A **Docker** stack: **Nginx** (web server) → **PHP-FPM** (app) → **MySQL** (database).
+* A **custom “mini framework”** folder under `src/Core/` (router, request/response, database helper).
+* **MVC-style folders**: controllers, models, services, views.
+* A **database schema** in `docker/mysql/init.sql` (brands, products, variants, images, users, reviews, etc.).
 
 ---
 
 ## Stack
 
-| Layer | Technology |
-|--------|------------|
-| Language | PHP 8.3 (see `docker/php/Dockerfile`) |
-| Web server | Nginx |
-| App server | PHP-FPM |
-| Database | MySQL 8 |
-| Containers | Docker Compose |
+| Layer      | Technology                            |
+| ---------- | ------------------------------------- |
+| Language   | PHP 8.3 (see `docker/php/Dockerfile`) |
+| Web server | Nginx                                 |
+| App server | PHP-FPM                               |
+| Database   | MySQL 8                               |
+| Containers | Docker Compose                        |
 
 ---
 
@@ -47,13 +62,42 @@ The goal is to show you can structure a PHP app clearly (routing, controllers, m
    docker compose up --build
    ```
 
-4. Open **http://localhost:8080**  
-   - Nginx listens on host **8080** and forwards PHP to the `app` container.  
-   - Until routing and views are implemented, you may see an **empty page** with HTTP 200 — that still means Nginx and PHP-FPM are working.
+4. Open **[http://localhost:8080](http://localhost:8080)**
 
-5. Stop: `Ctrl+C`, or in another terminal: `docker compose down`.
+   * Nginx listens on host **8080** and forwards PHP to the `app` container.
+   * If no routes are implemented yet, you may see an empty page with HTTP 200.
+
+5. Stop: `Ctrl+C`, or in another terminal:
+
+   ```bash
+   docker compose down
+   ```
 
 **MySQL note:** `init.sql` runs only when MySQL initializes a **new** data volume. If you change the schema later, you may need to reset the volume or apply migrations manually — see `docs/PROJECT_STRUCTURE.md`.
+
+---
+
+## Fedora / SELinux note
+
+On Fedora or other SELinux-enabled systems, Docker bind mounts may fail with permission errors.
+
+If you encounter errors like:
+
+```bash
+Permission denied
+```
+
+create a local override file:
+
+```bash
+cp docker-compose.override.example.yml docker-compose.override.yml
+```
+
+Then run:
+
+```bash
+docker compose up --build
+```
 
 ---
 
@@ -61,8 +105,8 @@ The goal is to show you can structure a PHP app clearly (routing, controllers, m
 
 Defined in `.env` (see `.env.example`):
 
-- `APP_ENV`, `APP_DEBUG` — local development flags (you can read them in `bootstrap.php` later).
-- `DB_*` — host `mysql` matches the Compose service name; use these when you connect with PDO in `Database.php`.
+* `APP_ENV`, `APP_DEBUG` — local development flags.
+* `DB_*` — host `mysql` matches the Compose service name; use these when connecting with PDO in `Database.php`.
 
 ---
 
@@ -70,7 +114,7 @@ Defined in `.env` (see `.env.example`):
 
 Entity-relationship overview of the Senteur schema.
 
-* Interactive: https://dbdiagram.io/d/SenteurSQLDiagram-69c288c3fb2db18e3bf07cf6
+* Interactive: [https://dbdiagram.io/d/SenteurSQLDiagram-69c288c3fb2db18e3bf07cf6](https://dbdiagram.io/d/SenteurSQLDiagram-69c288c3fb2db18e3bf07cf6)
 * Local files:
 
   * `docs/diagrams/SenteurSQLDiagram.png`
@@ -86,9 +130,9 @@ Entity-relationship overview of the Senteur schema.
 
 High-level MVC flow of the application.
 
-- Router → Controller → Service → View
-- Thin controllers, business logic in services
-- Models handle DB interaction (PDO)
+* Router → Controller → Service → View
+* Thin controllers, business logic in services
+* Models handle DB interaction (PDO)
 
 ![Senteur MVC Architecture](docs/diagrams/architecture.png)
 
@@ -121,4 +165,4 @@ More detail: **[docs/PROJECT_STRUCTURE.md](docs/PROJECT_STRUCTURE.md)**
 
 ## License
 
-This is a School project, so it has no License.
+This project is provided for educational and portfolio purposes.

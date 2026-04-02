@@ -1,0 +1,13 @@
+services:
+  app:
+    volumes:
+      - ./:/var/www:z
+
+  nginx:
+    volumes:
+      - ./:/var/www:z
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro,z
+
+  mysql:
+    volumes:
+      - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro,z

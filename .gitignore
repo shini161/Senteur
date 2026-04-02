@@ -31,3 +31,6 @@ docker-compose.override.yml
 # Personal Notes
 notes.md
 !docs/pages/admin/notes.md
+
+# Docker Override for SELinux
+docker-compose.override.yml
