@@ -10,5 +10,8 @@ return [
     ['GET', '/', [HomeController::class, 'index']],
 
     // Products page
-    ['GET', '/products', [ProductController::class, 'index']]
+    ['GET', '/products', [ProductController::class, 'index']],
+
+    // Product details page
+    ['GET', '/product/{id}', [ProductController::class, 'show']],
 ];

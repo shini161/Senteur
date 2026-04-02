@@ -6,7 +6,9 @@
     <ul>
         <?php foreach ($products as $product): ?>
             <li>
-                <strong><?= htmlspecialchars($product['name']) ?></strong>
+                <a href="/product/<?= htmlspecialchars((string) $product['id']) ?>">
+                    <strong><?= htmlspecialchars($product['name']) ?></strong>
+                </a>
                 - <?= number_format($product['price'], 2) ?>€
             </li>
         <?php endforeach; ?>

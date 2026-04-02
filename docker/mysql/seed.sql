@@ -1,6 +1,27 @@
 SET FOREIGN_KEY_CHECKS = 0;
 
 -- ======================
+-- RESET
+-- ======================
+TRUNCATE TABLE cart_items;
+TRUNCATE TABLE carts;
+TRUNCATE TABLE payments;
+TRUNCATE TABLE order_items;
+TRUNCATE TABLE orders;
+TRUNCATE TABLE reviews;
+TRUNCATE TABLE user_addresses;
+TRUNCATE TABLE product_notes;
+TRUNCATE TABLE product_categories;
+TRUNCATE TABLE product_images;
+TRUNCATE TABLE product_variants;
+TRUNCATE TABLE products;
+TRUNCATE TABLE notes;
+TRUNCATE TABLE categories;
+TRUNCATE TABLE users;
+TRUNCATE TABLE fragrance_types;
+TRUNCATE TABLE brands;
+
+-- ======================
 -- BRANDS
 -- ======================
 INSERT INTO brands (name) VALUES
@@ -18,36 +39,36 @@ INSERT INTO fragrance_types (name) VALUES
 ('Parfum');
 
 -- ======================
--- CATEGORIES
+-- USERS
 -- ======================
-INSERT INTO categories (name) VALUES
-('Fresh'),
-('Woody'),
-('Sweet'),
-('Spicy'),
-('Citrus');
+INSERT INTO users (public_id, role, username, email, phone, password_hash)
+VALUES
+('USR0000001', 'user', 'mario', 'mario@example.com', '+391111111111', '$2y$10$examplehash1');
 
 -- ======================
--- NOTES
+-- USER ADDRESSES (FIXED)
 -- ======================
-INSERT INTO notes (name, image_url) VALUES
-('Bergamot', 'notes/bergamot.png'),
-('Lemon', 'notes/lemon.png'),
-('Lavender', 'notes/lavender.png'),
-('Amber', 'notes/amber.png'),
-('Vanilla', 'notes/vanilla.png'),
-('Sandalwood', 'notes/sandalwood.png'),
-('Patchouli', 'notes/patchouli.png');
+INSERT INTO user_addresses (
+    user_id,
+    full_name,
+    address_line,
+    city,
+    postal_code,
+    country,
+    is_default
+)
+VALUES
+(1, 'Mario Rossi', 'Via Roma 10', 'Milan', '20100', 'Italy', TRUE);
 
 -- ======================
 -- PRODUCTS
 -- ======================
 INSERT INTO products (brand_id, fragrance_type_id, name, slug, description, gender)
 VALUES
-(1, 2, 'Dior Sauvage', 'dior-sauvage', 'Fresh spicy fragrance with bergamot and ambroxan.', 'male'),
-(2, 2, 'Chanel Bleu de Chanel', 'bleu-de-chanel', 'Woody aromatic fragrance, elegant and timeless.', 'male'),
-(3, 2, 'YSL Libre', 'ysl-libre', 'Floral lavender perfume with orange blossom.', 'female'),
-(4, 3, 'Creed Aventus', 'creed-aventus', 'Fruity smoky fragrance with pineapple and birch.', 'male');
+(1, 2, 'Dior Sauvage', 'dior-sauvage', 'Fresh spicy fragrance.', 'male'),
+(2, 2, 'Bleu de Chanel', 'bleu-de-chanel', 'Woody aromatic fragrance.', 'male'),
+(3, 2, 'YSL Libre', 'ysl-libre', 'Floral lavender perfume.', 'female'),
+(4, 3, 'Creed Aventus', 'creed-aventus', 'Fruity smoky fragrance.', 'male');
 
 -- ======================
 -- VARIANTS
@@ -71,55 +92,80 @@ VALUES
 -- ======================
 INSERT INTO product_images (product_id, image_url, position)
 VALUES
-(1, 'products/sauvage_1.jpg', 0),
-(1, 'products/sauvage_2.jpg', 1),
-
-(2, 'products/bleu_1.jpg', 0),
-(2, 'products/bleu_2.jpg', 1),
-
-(3, 'products/libre_1.jpg', 0),
-(3, 'products/libre_2.jpg', 1),
-
-(4, 'products/aventus_1.jpg', 0),
-(4, 'products/aventus_2.jpg', 1);
+(1, 'products/sauvage.jpg', 0),
+(2, 'products/bleu.jpg', 0),
+(3, 'products/libre.jpg', 0),
+(4, 'products/aventus.jpg', 0);
 
 -- ======================
--- PRODUCT CATEGORIES
+-- CARTS
 -- ======================
-INSERT INTO product_categories (product_id, category_id)
+INSERT INTO carts (session_id, user_id, expires_at)
 VALUES
-(1, 1), -- Fresh
-(1, 4), -- Spicy
-
-(2, 2), -- Woody
-(2, 1), -- Fresh
-
-(3, 3), -- Sweet
-
-(4, 2), -- Woody
-(4, 3); -- Sweet
+(NULL, 1, DATE_ADD(NOW(), INTERVAL 7 DAY));
 
 -- ======================
--- PRODUCT NOTES
+-- CART ITEMS
 -- ======================
-INSERT INTO product_notes (product_id, note_id, note_type)
+INSERT INTO cart_items (cart_id, product_variant_id, quantity)
 VALUES
--- Sauvage
-(1, 1, 'top'),
-(1, 3, 'middle'),
-(1, 4, 'base'),
+(1, 1, 2),
+(1, 4, 1);
 
--- Bleu
-(2, 1, 'top'),
-(2, 3, 'middle'),
-(2, 6, 'base'),
+-- ======================
+-- ORDERS
+-- ======================
+INSERT INTO orders (
+    public_id,
+    user_id,
+    shipping_address_id,
+    status,
+    subtotal_amount,
+    shipping_cost,
+    total_amount,
+    paid_at
+)
+VALUES
+('ORD0000001', 1, 1, 'processing', 300.00, 0.00, 300.00, NOW());
 
--- Libre
-(3, 3, 'middle'),
-(3, 5, 'base'),
+-- ======================
+-- ORDER ITEMS
+-- ======================
+INSERT INTO order_items (
+    order_id,
+    product_variant_id,
+    product_name_snapshot,
+    size_ml_snapshot,
+    quantity,
+    price_at_purchase
+)
+VALUES
+(1, 1, 'Dior Sauvage', 50, 2, 85.00),
+(1, 4, 'Bleu de Chanel', 100, 1, 130.00);
 
--- Aventus
-(4, 2, 'top'),
-(4, 7, 'base');
+-- ======================
+-- PAYMENTS
+-- ======================
+INSERT INTO payments (
+    order_id,
+    provider,
+    provider_payload,
+    status,
+    amount,
+    currency,
+    transaction_id,
+    paid_at
+)
+VALUES
+(
+    1,
+    'stripe',
+    JSON_OBJECT('payment_intent', 'pi_mock'),
+    'paid',
+    300.00,
+    'EUR',
+    'txn_mock',
+    NOW()
+);
 
 SET FOREIGN_KEY_CHECKS = 1;
