@@ -17,7 +17,7 @@ spl_autoload_register(function (string $class): void {
     // Convert namespace to file path
     $relative = str_replace('\\', '/', substr($class, strlen($prefix)));
     $file = __DIR__ . '/' . $relative . '.php'; // full path to file
-    
+
     // Include file if it exists
     if (is_file($file)) {
         require $file;
@@ -37,6 +37,11 @@ foreach ($env as $key => $value) {
 // --------------------------------------------------
 // Application bootstrap
 // --------------------------------------------------
+
+// Start session (needed for cart)
+if (session_status() !== PHP_SESSION_ACTIVE) {
+    session_start();
+}
 
 // Load all route definitions (array of routes)
 $routes = require __DIR__ . '/routes.php';
