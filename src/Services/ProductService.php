@@ -30,14 +30,15 @@ class ProductService
 
         // Fetch the main product data
         $productStmt = $pdo->prepare("
-        SELECT 
-            p.id,
-            p.name,
-            p.description
-        FROM products p
-        WHERE p.id = :id
-        LIMIT 1
-    ");
+            SELECT 
+                p.id,
+                p.name,
+                p.description
+            FROM products p
+            WHERE p.id = :id
+            AND p.deleted_at IS NULL
+            LIMIT 1
+        ");
 
         $productStmt->execute(['id' => $id]);
         $product = $productStmt->fetch();
@@ -48,15 +49,15 @@ class ProductService
 
         // Fetch all variants for this product
         $variantStmt = $pdo->prepare("
-        SELECT
-            v.id,
-            v.size_ml,
-            v.price,
-            v.stock
-        FROM product_variants v
-        WHERE v.product_id = :id
-        ORDER BY v.price ASC
-    ");
+            SELECT
+                v.id,
+                v.size_ml,
+                v.price,
+                v.stock
+            FROM product_variants v
+            WHERE v.product_id = :id
+            ORDER BY v.price ASC
+        ");
 
         $variantStmt->execute(['id' => $id]);
         $product['variants'] = $variantStmt->fetchAll();
