@@ -41,4 +41,8 @@
     </ul>
 
     <h2>Total: <?= number_format($total, 2) ?>€</h2>
+
+    <p>
+        <a href="/checkout">Proceed to checkout</a>
+    </p>
 <?php endif; ?>

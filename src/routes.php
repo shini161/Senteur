@@ -8,6 +8,7 @@ use App\Controllers\CartController;
 use App\Controllers\AuthController;
 use App\Controllers\ProfileController;
 use App\Controllers\AddressController;
+use App\Controllers\CheckoutController;
 
 return [
     // [HTTP METHOD, URL PATH, [Controller, Method]]
@@ -46,4 +47,9 @@ return [
     ['POST', '/addresses', [AddressController::class, 'store']],
     ['POST', '/addresses/delete', [AddressController::class, 'delete']],
     ['POST', '/addresses/default', [AddressController::class, 'setDefault']],
+
+    // Checkout
+    ['GET', '/checkout', [CheckoutController::class, 'index']],
+    ['POST', '/checkout', [CheckoutController::class, 'store']],
+    ['GET', '/order/success', [CheckoutController::class, 'success']],
 ];
