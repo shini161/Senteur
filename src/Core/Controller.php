@@ -15,7 +15,7 @@ class Controller
     protected function render(string $view, array $data = []): void
     {
         // Inject global data available in ALL views
-        $data['user'] = $_SESSION['user'] ?? null;
+        $data['user'] = Auth::user();
 
         // Convert array keys into variables for the view
         // ['title' => 'Home'] → $title = 'Home'

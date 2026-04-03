@@ -30,6 +30,30 @@ class UserRepository
         return $user ?: null;
     }
 
+    public function findById(int $id): ?array
+    {
+        $stmt = $this->pdo->prepare("
+        SELECT
+            id,
+            public_id,
+            role,
+            username,
+            email,
+            phone,
+            email_verified_at,
+            created_at,
+            updated_at
+        FROM users
+        WHERE id = :id
+        LIMIT 1
+    ");
+
+        $stmt->execute(['id' => $id]);
+        $user = $stmt->fetch();
+
+        return $user ?: null;
+    }
+
     public function create(array $data): array
     {
         $stmt = $this->pdo->prepare("

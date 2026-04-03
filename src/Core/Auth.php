@@ -4,16 +4,25 @@ declare(strict_types=1);
 
 namespace App\Core;
 
+use App\Models\UserRepository;
+
 class Auth
 {
+    private static ?array $user = null;
+    private static bool $userLoaded = false;
+
     public static function login(array $user): void
     {
         $_SESSION['user_id'] = $user['id'];
+        self::$user = $user;
+        self::$userLoaded = true;
     }
 
     public static function logout(): void
     {
         unset($_SESSION['user_id']);
+        self::$user = null;
+        self::$userLoaded = false;
     }
 
     public static function check(): bool
@@ -23,7 +32,28 @@ class Auth
 
     public static function id(): ?int
     {
-        return $_SESSION['user_id'] ?? null;
+        return isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : null;
+    }
+
+    public static function user(): ?array
+    {
+        if (self::$userLoaded) {
+            return self::$user;
+        }
+
+        $userId = self::id();
+
+        if ($userId === null) {
+            self::$userLoaded = true;
+            self::$user = null;
+            return null;
+        }
+
+        $users = new UserRepository();
+        self::$user = $users->findById($userId);
+        self::$userLoaded = true;
+
+        return self::$user;
     }
 
     public static function requireGuest(): void

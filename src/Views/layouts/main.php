@@ -12,6 +12,7 @@
 <body>
     <header class="site-header">
         <nav class="navbar">
+
             <!-- LEFT: LOGO -->
             <div class="nav-left">
                 <a href="/" class="logo">
@@ -35,11 +36,16 @@
                 </form>
 
                 <!-- AUTH-DEPENDENT LINKS -->
-                <?php if (\App\Core\Auth::check()): ?>
+                <?php if ($user): ?>
 
                     <!-- LOGGED-IN USER -->
                     <a href="/cart">Cart</a>
                     <a href="/profile">Profile</a>
+
+                    <!-- OPTIONAL: USERNAME -->
+                    <span>
+                        <?= htmlspecialchars($user['username']) ?>
+                    </span>
 
                     <!-- LOGOUT -->
                     <form method="POST" action="/logout" style="display:inline;">
