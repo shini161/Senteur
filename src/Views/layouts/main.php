@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +8,11 @@
     <link rel="stylesheet" href="/assets/css/app.css">
     <link rel="icon" href="/assets/images/logo-favicon.svg" type="image/svg+xml">
 </head>
+
 <body>
     <header class="site-header">
         <nav class="navbar">
-            <!-- LEFT -->
+            <!-- LEFT: LOGO -->
             <div class="nav-left">
                 <a href="/" class="logo">
                     <?php require __DIR__ . '/../../../public/assets/images/logo.svg'; ?>
@@ -18,36 +20,47 @@
                 </a>
             </div>
 
-            <!-- CENTER -->
+            <!-- CENTER: MAIN NAV LINKS -->
             <div class="nav-center">
                 <a href="/products">Shop</a>
                 <a href="/categories">Categories</a>
             </div>
 
-            <!-- RIGHT -->
-             <div class="nav-right">
+            <!-- RIGHT: SEARCH + USER ACTIONS -->
+            <div class="nav-right">
 
                 <!-- SEARCH -->
                 <form method="GET" action="/products" class="search-form">
-                    <input type=text" name="search" placeholder="Search...">
+                    <input type="text" name="search" placeholder="Search...">
                 </form>
 
-                <?php if ($user): ?>
+                <!-- AUTH-DEPENDENT LINKS -->
+                <?php if (\App\Core\Auth::check()): ?>
+
+                    <!-- LOGGED-IN USER -->
                     <a href="/cart">Cart</a>
                     <a href="/profile">Profile</a>
 
+                    <!-- LOGOUT -->
                     <form method="POST" action="/logout" style="display:inline;">
                         <button type="submit">Logout</button>
                     </form>
+
                 <?php else: ?>
+
+                    <!-- GUEST -->
                     <a href="/login">Login</a>
+
                 <?php endif; ?>
-                 
-             </div>
+            </div>
         </nav>
     </header>
+
+    <!-- MAIN CONTENT -->
     <main>
         <?= $content ?? '' ?>
     </main>
+
 </body>
+
 </html>

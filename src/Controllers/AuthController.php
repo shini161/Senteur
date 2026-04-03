@@ -17,6 +17,8 @@ class AuthController extends Controller
 
     public function showLogin(): void
     {
+        Auth::requireGuest();
+
         $this->render('auth/login', [
             'title' => 'Login',
             'error' => null,
@@ -26,6 +28,8 @@ class AuthController extends Controller
 
     public function login(): void
     {
+        Auth::requireGuest();
+
         $email = trim($_POST['email'] ?? '');
         $password = trim($_POST['password'] ?? '');
 
@@ -60,6 +64,8 @@ class AuthController extends Controller
 
     public function showRegister(): void
     {
+        Auth::requireGuest();
+
         $this->render('auth/register', [
             'title' => 'Register',
             'error' => null,
@@ -69,6 +75,8 @@ class AuthController extends Controller
 
     public function register(): void
     {
+        Auth::requireGuest();
+
         $data = [
             'username' => trim($_POST['username'] ?? ''),
             'email' => trim($_POST['email'] ?? ''),

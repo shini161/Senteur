@@ -25,4 +25,20 @@ class Auth
     {
         return $_SESSION['user_id'] ?? null;
     }
+
+    public static function requireGuest(): void
+    {
+        if (self::check()) {
+            header('Location: /');
+            exit;
+        }
+    }
+
+    public static function requireAuth(): void
+    {
+        if (! self::check()) {
+            header('Location: /login');
+            exit;
+        }
+    }
 }
