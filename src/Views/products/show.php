@@ -17,6 +17,7 @@
                 Stock: <?= htmlspecialchars((string) $variant['stock']) ?>
 
                 <form action="/cart/add" method="POST" style="display:inline-block; margin-left: 12px;">
+                    <?= \App\Core\Csrf::input() ?>
                     <input type="hidden" name="variant_id" value="<?= htmlspecialchars((string) $variant['id']) ?>">
                     <input type="number" name="quantity" value="1" min="1" style="width: 60px;">
                     <button type="submit">Add to cart</button>
