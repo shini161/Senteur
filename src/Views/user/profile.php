@@ -31,9 +31,13 @@
                 <span><?= htmlspecialchars($user['created_at']) ?></span>
             </div>
 
-            <div style="margin-top: 1.5rem;">
+            <div class="profile-links">
                 <a href="/addresses" class="profile-link">
                     Manage addresses →
+                </a>
+
+                <a href="/orders" class="profile-link">
+                    My orders →
                 </a>
             </div>
         <?php endif; ?>

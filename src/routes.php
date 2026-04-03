@@ -9,6 +9,7 @@ use App\Controllers\AuthController;
 use App\Controllers\ProfileController;
 use App\Controllers\AddressController;
 use App\Controllers\CheckoutController;
+use App\Controllers\OrderController;
 
 return [
     // [HTTP METHOD, URL PATH, [Controller, Method]]
@@ -52,4 +53,8 @@ return [
     ['GET', '/checkout', [CheckoutController::class, 'index']],
     ['POST', '/checkout', [CheckoutController::class, 'store']],
     ['GET', '/order/success', [CheckoutController::class, 'success']],
+
+    // Orders
+    ['GET', '/orders', [OrderController::class, 'index']],
+    ['GET', '/orders/{publicId}', [OrderController::class, 'show']],
 ];

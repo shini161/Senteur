@@ -11,6 +11,7 @@ use App\Controllers\AuthController;
 use App\Controllers\ProfileController;
 use App\Controllers\AddressController;
 use App\Controllers\CheckoutController;
+use App\Controllers\OrderController;
 use App\Models\CartRepository;
 use App\Models\ProductRepository;
 use App\Models\UserRepository;
@@ -21,6 +22,7 @@ use App\Services\ProductService;
 use App\Services\AuthService;
 use App\Services\AddressService;
 use App\Services\CheckoutService;
+use App\Services\OrderService;
 
 class Router
 {
@@ -148,6 +150,12 @@ class Router
 						new CartRepository()
 					),
 					new AddressRepository(),
+					new OrderRepository()
+				)
+			),
+
+			OrderController::class => new OrderController(
+				new OrderService(
 					new OrderRepository()
 				)
 			),

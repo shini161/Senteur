@@ -308,6 +308,13 @@ li {
   color: var(--accent-dark);
 }
 
+.profile-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
 /* ADDRESSES */
 
 .addresses-page {
