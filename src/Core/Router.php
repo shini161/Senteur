@@ -8,6 +8,7 @@ use App\Controllers\CartController;
 use App\Controllers\HomeController;
 use App\Controllers\ProductController;
 use App\Controllers\AuthController;
+use App\Controllers\ProfileController;
 use App\Models\CartRepository;
 use App\Models\ProductRepository;
 use App\Models\UserRepository;
@@ -126,6 +127,8 @@ class Router
 					new UserRepository()
 				)
 			),
+
+			ProfileController::class => new ProfileController(),
 		};
 	}
 }

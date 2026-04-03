@@ -6,6 +6,7 @@ use App\Controllers\HomeController;
 use App\Controllers\ProductController;
 use App\Controllers\CartController;
 use App\Controllers\AuthController;
+use App\Controllers\ProfileController;
 
 return [
     // [HTTP METHOD, URL PATH, [Controller, Method]]
@@ -34,5 +35,8 @@ return [
     ['POST', '/login', [AuthController::class, 'login']],
 
     // Auth routes: logout
-    ['POST', '/logout', [AuthController::class, 'logout']]
+    ['POST', '/logout', [AuthController::class, 'logout']],
+
+    // User profile
+    ['GET', '/profile', [ProfileController::class, 'index']],
 ];

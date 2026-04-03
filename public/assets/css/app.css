@@ -256,3 +256,42 @@ li {
   background: #fff4f4;
   color: #9b2c2c;
 }
+
+/* PROFILE */
+
+.profile-page {
+  display: flex;
+  justify-content: center;
+  padding: 2rem 1rem;
+}
+
+.profile-card {
+  width: 100%;
+  max-width: 560px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.5rem;
+}
+
+.profile-subtitle {
+  color: var(--muted);
+  margin-bottom: 1.25rem;
+}
+
+.profile-field {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 0;
+  border-top: 1px solid var(--border);
+}
+
+.profile-field:first-of-type {
+  border-top: 0;
+}
+
+.profile-label {
+  font-weight: 600;
+  color: var(--muted);
+}
