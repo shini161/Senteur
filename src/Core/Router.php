@@ -9,12 +9,15 @@ use App\Controllers\HomeController;
 use App\Controllers\ProductController;
 use App\Controllers\AuthController;
 use App\Controllers\ProfileController;
+use App\Controllers\AddressController;
 use App\Models\CartRepository;
 use App\Models\ProductRepository;
 use App\Models\UserRepository;
+use App\Models\AddressRepository;
 use App\Services\CartService;
 use App\Services\ProductService;
 use App\Services\AuthService;
+use App\Services\AddressService;
 
 class Router
 {
@@ -129,6 +132,12 @@ class Router
 			),
 
 			ProfileController::class => new ProfileController(),
+
+			AddressController::class => new AddressController(
+				new AddressService(
+					new AddressRepository()
+				)
+			),
 		};
 	}
 }

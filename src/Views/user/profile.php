@@ -30,6 +30,12 @@
                 <span class="profile-label">Member since</span>
                 <span><?= htmlspecialchars($user['created_at']) ?></span>
             </div>
+
+            <div style="margin-top: 1.5rem;">
+                <a href="/addresses" class="profile-link">
+                    Manage addresses →
+                </a>
+            </div>
         <?php endif; ?>
     </div>
 </section>

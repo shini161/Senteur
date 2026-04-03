@@ -1,0 +1,117 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Controllers;
+
+use App\Core\Auth;
+use App\Core\Controller;
+use App\Core\Csrf;
+use App\Services\AddressService;
+use RuntimeException;
+
+class AddressController extends Controller
+{
+    public function __construct(
+        private AddressService $addressService
+    ) {}
+
+    public function index(): void
+    {
+        Auth::requireAuth();
+
+        $userId = Auth::id();
+
+        $this->render('user/addresses', [
+            'title' => 'Addresses',
+            'addresses' => $this->addressService->getAllForUser((int) $userId),
+            'error' => null,
+            'old' => [],
+        ]);
+    }
+
+    public function store(): void
+    {
+        Auth::requireAuth();
+
+        if (! Csrf::verify($_POST['_csrf'] ?? null)) {
+            http_response_code(403);
+            echo 'Invalid CSRF token';
+            return;
+        }
+
+        $userId = (int) Auth::id();
+
+        $data = [
+            'full_name' => trim($_POST['full_name'] ?? ''),
+            'address_line' => trim($_POST['address_line'] ?? ''),
+            'city' => trim($_POST['city'] ?? ''),
+            'postal_code' => trim($_POST['postal_code'] ?? ''),
+            'country' => trim($_POST['country'] ?? ''),
+            'is_default' => isset($_POST['is_default']),
+        ];
+
+        try {
+            $this->addressService->createForUser($userId, $data);
+
+            header('Location: /addresses');
+            exit;
+        } catch (RuntimeException $e) {
+            $this->render('user/addresses', [
+                'title' => 'Addresses',
+                'addresses' => $this->addressService->getAllForUser($userId),
+                'error' => $e->getMessage(),
+                'old' => $data,
+            ]);
+        }
+    }
+
+    public function delete(): void
+    {
+        Auth::requireAuth();
+
+        if (! Csrf::verify($_POST['_csrf'] ?? null)) {
+            http_response_code(403);
+            echo 'Invalid CSRF token';
+            return;
+        }
+
+        $id = (int) ($_POST['id'] ?? 0);
+        $userId = (int) Auth::id();
+
+        if ($id > 0) {
+            $this->addressService->deleteForUser($id, $userId);
+        }
+
+        header('Location: /addresses');
+        exit;
+    }
+
+    public function setDefault(): void
+    {
+        Auth::requireAuth();
+
+        if (! Csrf::verify($_POST['_csrf'] ?? null)) {
+            http_response_code(403);
+            echo 'Invalid CSRF token';
+            return;
+        }
+
+        $id = (int) ($_POST['id'] ?? 0);
+        $userId = (int) Auth::id();
+
+        if ($id <= 0) {
+            header('Location: /addresses');
+            exit;
+        }
+
+        try {
+            $this->addressService->setDefaultForUser($id, $userId);
+        } catch (RuntimeException) {
+            // Keep redirect-only flow for now
+        }
+
+        header('Location: /addresses');
+        exit;
+    }
+}

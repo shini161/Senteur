@@ -295,3 +295,91 @@ li {
   font-weight: 600;
   color: var(--muted);
 }
+
+/* PROFILE LINK */
+
+.profile-link {
+  color: var(--accent);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.profile-link:hover {
+  color: var(--accent-dark);
+}
+
+/* ADDRESSES */
+
+.addresses-page {
+  padding: 1rem 0;
+}
+
+.addresses-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 1.5rem;
+}
+
+.addresses-card {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.5rem;
+}
+
+.addresses-subtitle {
+  color: var(--muted);
+  margin-bottom: 1.25rem;
+}
+
+.address-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.address-item {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem;
+}
+
+.address-item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.address-badge {
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: #eef2ef;
+  color: var(--accent-dark);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.address-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.address-actions form {
+  margin: 0;
+}
+
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin-bottom: 1rem;
+}
+
+@media (max-width: 860px) {
+  .addresses-grid {
+    grid-template-columns: 1fr;
+  }
+}

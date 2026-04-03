@@ -7,6 +7,7 @@ use App\Controllers\ProductController;
 use App\Controllers\CartController;
 use App\Controllers\AuthController;
 use App\Controllers\ProfileController;
+use App\Controllers\AddressController;
 
 return [
     // [HTTP METHOD, URL PATH, [Controller, Method]]
@@ -39,4 +40,10 @@ return [
 
     // User profile
     ['GET', '/profile', [ProfileController::class, 'index']],
+
+    // Addresses
+    ['GET', '/addresses', [AddressController::class, 'index']],
+    ['POST', '/addresses', [AddressController::class, 'store']],
+    ['POST', '/addresses/delete', [AddressController::class, 'delete']],
+    ['POST', '/addresses/default', [AddressController::class, 'setDefault']],
 ];
