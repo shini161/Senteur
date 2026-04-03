@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Core\Database;
+use App\Models\CartRepository;
 
 class CartService
 {
-    public function __construct()
-    {
+    public function __construct(
+        private CartRepository $cartRepository
+    ) {
         if (! isset($_SESSION['cart'])) {
             $_SESSION['cart'] = [];
         }
@@ -17,7 +18,7 @@ class CartService
 
     public function addItem(int $variantId, int $quantity): void
     {
-        $stock = $this->getVariantStock($variantId);
+        $stock = $this->cartRepository->findVariantStock($variantId);
 
         if ($stock === null) {
             return;
@@ -36,7 +37,7 @@ class CartService
             return;
         }
 
-        $stock = $this->getVariantStock($variantId);
+        $stock = $this->cartRepository->findVariantStock($variantId);
 
         if ($stock === null) {
             return;
@@ -52,37 +53,13 @@ class CartService
 
     public function getItems(): array
     {
-        $cart = $_SESSION['cart'];
+        $cart = $_SESSION['cart'] ?? [];
 
-        if (empty($cart)) {
+        if ($cart === []) {
             return [];
         }
 
-        $variantIds = array_keys($cart);
-        $placeholders = implode(',', array_fill(0, count($variantIds), '?'));
-
-        $pdo = Database::getConnection();
-
-        $stmt = $pdo->prepare("
-            SELECT
-                v.id AS variant_id,
-                v.size_ml,
-                v.price,
-                v.stock,
-                p.id AS product_id,
-                p.name AS product_name,
-                pi.image_url
-            FROM product_variants v
-            INNER JOIN products p ON p.id = v.product_id
-            LEFT JOIN product_images pi
-                ON pi.product_id = p.id
-                AND pi.position = 0
-            WHERE v.id IN ($placeholders)
-            ORDER BY p.name ASC, v.size_ml ASC
-        ");
-
-        $stmt->execute($variantIds);
-        $items = $stmt->fetchAll();
+        $items = $this->cartRepository->findItemsByVariantIds(array_keys($cart));
 
         foreach ($items as &$item) {
             $quantity = (int) ($cart[$item['variant_id']] ?? 0);
@@ -106,27 +83,5 @@ class CartService
         }
 
         return $total;
-    }
-
-    private function getVariantStock(int $variantId): ?int
-    {
-        $pdo = Database::getConnection();
-
-        $stmt = $pdo->prepare("
-            SELECT stock 
-            FROM product_variants
-            WHERE id = :id
-            LIMIT 1
-        ");
-
-        $stmt->execute(['id' => $variantId]);
-
-        $stock = $stmt->fetchColumn();
-
-        if ($stock === false) {
-            return null;
-        }
-
-        return (int) $stock;
     }
 }
