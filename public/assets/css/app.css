@@ -107,9 +107,11 @@ body {
 /* SEARCH */
 
 .search-form input {
-  padding: 0.4rem 0.6rem; /* slightly better */
+  padding: 0.4rem 0.6rem;
+  /* slightly better */
   border: 1px solid var(--border);
-  border-radius: 6px; /* softer */
+  border-radius: 6px;
+  /* softer */
   background: #fff;
   font-size: 0.9rem;
   transition: border-color 0.15s ease;
@@ -170,4 +172,87 @@ ul {
 
 li {
   margin-bottom: 0.35rem;
+}
+
+/* AUTH */
+
+.auth-page {
+  display: flex;
+  justify-content: center;
+  padding: 2rem 1rem;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.5rem;
+}
+
+.auth-subtitle {
+  color: var(--muted);
+  margin-bottom: 1.25rem;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.form-group label {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
+  font: inherit;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.auth-button {
+  padding: 0.8rem 1rem;
+  border: 0;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.auth-button:hover {
+  background: var(--accent-dark);
+}
+
+.auth-switch {
+  margin-top: 1rem;
+  color: var(--muted);
+}
+
+.auth-error {
+  margin-bottom: 1rem;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid #e7b4b4;
+  border-radius: 8px;
+  background: #fff4f4;
+  color: #9b2c2c;
 }

@@ -7,9 +7,13 @@ namespace App\Core;
 use App\Controllers\CartController;
 use App\Controllers\HomeController;
 use App\Controllers\ProductController;
+use App\Controllers\AuthController;
+use App\Models\CartRepository;
 use App\Models\ProductRepository;
+use App\Models\UserRepository;
 use App\Services\CartService;
 use App\Services\ProductService;
+use App\Services\AuthService;
 
 class Router
 {
@@ -112,7 +116,15 @@ class Router
 			),
 
 			CartController::class => new CartController(
-				new CartService()
+				new CartService(
+					new CartRepository()
+				)
+			),
+
+			AuthController::class => new AuthController(
+				new AuthService(
+					new UserRepository()
+				)
 			),
 		};
 	}
