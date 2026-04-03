@@ -9,7 +9,7 @@ use App\Services\ProductService;
 
 class ProductController extends Controller
 {
-    public function __construct(private ProductService $productService = new ProductService()) {}
+    public function __construct(private ProductService $productService) {}
 
     public function index(): void
     {

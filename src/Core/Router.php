@@ -4,73 +4,75 @@ declare(strict_types=1);
 
 namespace App\Core;
 
+use App\Controllers\CartController;
+use App\Controllers\HomeController;
+use App\Controllers\ProductController;
+use App\Models\ProductRepository;
+use App\Services\CartService;
+use App\Services\ProductService;
+
 class Router
 {
 	/**
 	 * @param list<array{
-	 *   0: string, // HTTP method (GET, POST, ...)
-	 *   1: string, // path (e.g. "/products")
-	 *   2: array{0: class-string, 1: string} // [Controller, method]
+	 *   0: string,
+	 *   1: string,
+	 *   2: array{0: class-string, 1: string}
 	 * }> $routes
 	 */
 	public function __construct(
 		private array $routes,
 	) {}
 
-	/**
-	 * Dispatches the incoming request to the matching route.
-	 *
-	 * Flow:
-	 * Request → match route → call controller action
-	 *
-	 * If no route matches, returns a 404 response.
-	 */
 	public function dispatch(Request $request): void
 	{
 		$requestPath = $this->normalizePath($request->path);
 
-		// Iterate over all defined routes
 		foreach ($this->routes as [$method, $path, $handler]) {
-			// Skip if HTTP method does not match
 			if ($request->method !== $method) {
 				continue;
 			}
 
-			// Convert route path into regex pattern
 			$pattern = $this->convertRouteToRegex($path);
 
-			// Skip if request path does not match route pattern
 			if (! preg_match($pattern, $requestPath, $matches)) {
 				continue;
 			}
 
-			// Extract named params from regex matches
 			$params = [];
 			foreach ($matches as $key => $value) {
 				if (! is_int($key)) {
-					$params[] = $value;
+					$params[$key] = $value;
 				}
 			}
 
-			// Extract controller class and action method
 			[$class, $action] = $handler;
 
-			// Instantiate controller and call the action
-			(new $class())->{$action}(...$params);
+			if (! class_exists($class)) {
+				http_response_code(500);
+				header('Content-Type: text/plain; charset=UTF-8');
+				echo 'Route controller not found';
+				return;
+			}
 
-			return; // Stop after first match
+			$controller = $this->resolve($class);
+
+			if (! method_exists($controller, $action)) {
+				http_response_code(500);
+				header('Content-Type: text/plain; charset=UTF-8');
+				echo 'Route action not found';
+				return;
+			}
+
+			$controller->{$action}(...$params);
+			return;
 		}
 
-		// No route matched: 404 response
 		http_response_code(404);
 		header('Content-Type: text/plain; charset=UTF-8');
 		echo 'Not found';
 	}
 
-	/**
-	 * Converts a route path like /product/{id}
-	 * into a regex pattern like #^/product/(?P<id>[^/]+)$#
-	 */
 	private function convertRouteToRegex(string $path): string
 	{
 		$path = $this->normalizePath($path);
@@ -84,10 +86,6 @@ class Router
 		return '#^' . $pattern . '$#';
 	}
 
-	/**
-	 * Normalizes paths so "/product/1/" becomes "/product/1"
-	 * while keeping "/" unchanged.
-	 */
 	private function normalizePath(string $path): string
 	{
 		$path = parse_url($path, PHP_URL_PATH) ?? '/';
@@ -98,4 +96,24 @@ class Router
 
 		return $path;
 	}
-};
+
+	/**
+	 * Resolves current controllers and their dependencies explicitly.
+	 */
+	private function resolve(string $class): object
+	{
+		return match ($class) {
+			HomeController::class => new HomeController(),
+
+			ProductController::class => new ProductController(
+				new ProductService(
+					new ProductRepository()
+				)
+			),
+
+			CartController::class => new CartController(
+				new CartService()
+			),
+		};
+	}
+}

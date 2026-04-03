@@ -9,7 +9,7 @@ use App\Services\CartService;
 
 class CartController extends Controller
 {
-    public function __construct(private CartService $cartService = new CartService()) {}
+    public function __construct(private CartService $cartService) {}
 
     public function index(): void
     {

@@ -2,6 +2,11 @@
 
 declare(strict_types=1);
 
+use App\Core\Request;
+use App\Core\Router;
+use RuntimeException;
+use Throwable;
+
 // --------------------------------------------------
 // Autoloader
 // --------------------------------------------------
@@ -9,16 +14,13 @@ declare(strict_types=1);
 spl_autoload_register(function (string $class): void {
     $prefix = 'App\\';
 
-    // Only load classes from our App namespace
     if (! str_starts_with($class, $prefix)) {
         return;
     }
 
-    // Convert namespace to file path
     $relative = str_replace('\\', '/', substr($class, strlen($prefix)));
-    $file = __DIR__ . '/' . $relative . '.php'; // full path to file
+    $file = __DIR__ . '/' . $relative . '.php';
 
-    // Include file if it exists
     if (is_file($file)) {
         require $file;
     }
@@ -30,27 +32,38 @@ spl_autoload_register(function (string $class): void {
 
 $env = parse_ini_file(__DIR__ . '/../.env');
 
-foreach ($env as $key => $value) {
-    $_ENV[$key] = $value;
+if ($env === false) {
+    throw new RuntimeException('Unable to load .env file');
 }
+
+foreach ($env as $key => $value) {
+    $_ENV[$key] = (string) $value;
+}
+
+// --------------------------------------------------
+// Global exception handler
+// --------------------------------------------------
+
+set_exception_handler(function (Throwable $e): void {
+    http_response_code(500);
+    header('Content-Type: text/plain; charset=UTF-8');
+
+    $debug = ($_ENV['APP_DEBUG'] ?? 'false') === 'true';
+
+    echo $debug
+        ? 'Internal Server Error: ' . $e->getMessage()
+        : 'Internal Server Error';
+});
 
 // --------------------------------------------------
 // Application bootstrap
 // --------------------------------------------------
 
-// Start session (needed for cart)
 if (session_status() !== PHP_SESSION_ACTIVE) {
     session_start();
 }
 
-// Load all route definitions (array of routes)
 $routes = require __DIR__ . '/routes.php';
-
-// Create Request object from PHP globals
-$request = App\Core\Request::fromGlobals();
-
-// Initialize router with route definitions
-$router = new App\Core\Router($routes);
-
-// Dispatch request -> matches route -> calls controller
+$request = Request::fromGlobals();
+$router = new Router($routes);
 $router->dispatch($request);

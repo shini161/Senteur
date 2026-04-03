@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace App\Core;
 
 use PDO;
+use RuntimeException;
 
 /**
  * Creates a PDO connection using environment variables.
- * Uses singleton pattern to reuse connection per request.
+ * Uses a singleton-style static connection reused within the request.
  */
 class Database
 {
@@ -17,11 +18,11 @@ class Database
     public static function getConnection(): PDO
     {
         if (self::$connection === null) {
-            $host = $_ENV['DB_HOST'];
-            $port = $_ENV['DB_PORT'];
-            $db   = $_ENV['DB_DATABASE'];
-            $user = $_ENV['DB_USERNAME'];
-            $pass = $_ENV['DB_PASSWORD'];
+            $host = self::getEnv('DB_HOST');
+            $port = self::getEnv('DB_PORT');
+            $db   = self::getEnv('DB_DATABASE');
+            $user = self::getEnv('DB_USERNAME');
+            $pass = $_ENV['DB_PASSWORD'] ?? '';
 
             $dsn = "mysql:host={$host};port={$port};dbname={$db};charset=utf8mb4";
 
@@ -37,5 +38,16 @@ class Database
         }
 
         return self::$connection;
+    }
+
+    private static function getEnv(string $key): string
+    {
+        $value = $_ENV[$key] ?? null;
+
+        if ($value === null || $value === '') {
+            throw new RuntimeException("Missing required environment variable: {$key}");
+        }
+
+        return (string) $value;
     }
 }
