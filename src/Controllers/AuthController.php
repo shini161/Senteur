@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Core\Auth;
+use App\Core\Csrf;
 use App\Core\Controller;
 use App\Services\AuthService;
 use RuntimeException;
@@ -28,6 +29,12 @@ class AuthController extends Controller
 
     public function login(): void
     {
+        if (! Csrf::verify($_POST['_csrf'] ?? null)) {
+            http_response_code(403);
+            echo 'Invalid CSRF token';
+            return;
+        }
+
         Auth::requireGuest();
 
         $email = trim($_POST['email'] ?? '');
@@ -75,6 +82,12 @@ class AuthController extends Controller
 
     public function register(): void
     {
+        if (! Csrf::verify($_POST['_csrf'] ?? null)) {
+            http_response_code(403);
+            echo 'Invalid CSRF token';
+            return;
+        }
+
         Auth::requireGuest();
 
         $data = [
@@ -120,6 +133,12 @@ class AuthController extends Controller
 
     public function logout(): void
     {
+        if (! Csrf::verify($_POST['_csrf'] ?? null)) {
+            http_response_code(403);
+            echo 'Invalid CSRF token';
+            return;
+        }
+
         Auth::logout();
 
         header('Location: /');

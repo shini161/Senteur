@@ -43,6 +43,7 @@
 
                     <!-- LOGOUT -->
                     <form method="POST" action="/logout" style="display:inline;">
+                        <?= \App\Core\Csrf::input() ?>
                         <button type="submit">Logout</button>
                     </form>
 

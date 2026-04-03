@@ -24,12 +24,14 @@
                 <br><br>
 
                 <form action="/cart/update" method="POST" style="display:inline-block;">
+                    <?= \App\Core\Csrf::input() ?>
                     <input type="hidden" name="variant_id" value="<?= htmlspecialchars((string) $item['variant_id']) ?>">
                     <input type="number" name="quantity" min="0" value="<?= htmlspecialchars((string) $item['quantity']) ?>">
                     <button type="submit">Update</button>
                 </form>
 
                 <form action="/cart/remove" method="POST" style="display:inline-block; margin-left: 8px;">
+                    <?= \App\Core\Csrf::input() ?>
                     <input type="hidden" name="variant_id" value="<?= htmlspecialchars((string) $item['variant_id']) ?>">
                     <button type="submit">Remove</button>
                 </form>

@@ -8,6 +8,7 @@
         <?php endif; ?>
 
         <form method="POST" action="/login" class="auth-form">
+            <?= \App\Core\Csrf::input() ?>
             <div class="form-group">
                 <label for="email">Email</label>
                 <input

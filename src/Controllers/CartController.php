@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Core\Csrf;
 use App\Core\Controller;
 use App\Services\CartService;
 
@@ -25,6 +26,12 @@ class CartController extends Controller
 
     public function add(): void
     {
+        if (! Csrf::verify($_POST['_csrf'] ?? null)) {
+            http_response_code(403);
+            echo 'Invalid CSRF token';
+            return;
+        }
+
         $variantId = (int) ($_POST['variant_id'] ?? 0);
         $quantity = (int) ($_POST['quantity'] ?? 1);
 
@@ -42,6 +49,12 @@ class CartController extends Controller
 
     public function update(): void
     {
+        if (! Csrf::verify($_POST['_csrf'] ?? null)) {
+            http_response_code(403);
+            echo 'Invalid CSRF token';
+            return;
+        }
+
         $variantId = (int) ($_POST['variant_id'] ?? 0);
         $quantity = (int) ($_POST['quantity'] ?? 0);
 
@@ -59,6 +72,12 @@ class CartController extends Controller
 
     public function remove(): void
     {
+        if (! Csrf::verify($_POST['_csrf'] ?? null)) {
+            http_response_code(403);
+            echo 'Invalid CSRF token';
+            return;
+        }
+
         $variantId = (int) ($_POST['variant_id'] ?? 0);
 
         if ($variantId <= 0) {
