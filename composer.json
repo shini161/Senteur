@@ -1,0 +1,11 @@
+{
+    "name": "root/app",
+    "autoload": {
+        "psr-4": {
+            "Root\\App\\": "src/"
+        }
+    },
+    "require": {
+        "stripe/stripe-php": "^20.0"
+    }
+}

@@ -2,6 +2,7 @@ services:
   app:
     volumes:
       - ./:/var/www:z
+      - /var/www/vendor
 
   nginx:
     volumes:
