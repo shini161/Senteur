@@ -8,12 +8,14 @@ use App\Core\Auth;
 use App\Core\Controller;
 use App\Core\Csrf;
 use App\Services\CheckoutService;
+use App\Services\PaymentService;
 use RuntimeException;
 
 class CheckoutController extends Controller
 {
     public function __construct(
-        private CheckoutService $checkoutService
+        private CheckoutService $checkoutService,
+        private PaymentService $paymentService
     ) {}
 
     public function index(): void
@@ -59,9 +61,21 @@ class CheckoutController extends Controller
         $addressId = (int) ($_POST['shipping_address_id'] ?? 0);
 
         try {
+            // 1. create order (pending)
             $publicId = $this->checkoutService->placeOrder($userId, $addressId);
 
-            header('Location: /order/success?order=' . urlencode($publicId));
+            // 2. fetch full order
+            $order = $this->checkoutService->getPlacedOrder($userId, $publicId);
+
+            if ($order === null) {
+                throw new RuntimeException('Order not found after creation.');
+            }
+
+            // 3. create Stripe checkout session
+            $sessionUrl = $this->paymentService->createCheckoutSession($order);
+
+            // 4. redirect to Stripe
+            header('Location: ' . $sessionUrl);
             exit;
         } catch (RuntimeException $e) {
             try {

@@ -6,8 +6,8 @@ namespace App\Models;
 
 use App\Core\Database;
 use PDO;
-use Throwable;
 use RuntimeException;
+use Throwable;
 
 class OrderRepository
 {
@@ -16,7 +16,7 @@ class OrderRepository
         private ?CartRepository $cartRepository = null
     ) {
         $this->pdo ??= Database::getConnection();
-        $this->cartRepository ??= new CartRepository();
+        $this->cartRepository ??= new CartRepository($this->pdo);
     }
 
     public function createOrderWithItems(array $orderData, array $items): string
@@ -40,24 +40,24 @@ class OrderRepository
             }
 
             $orderStmt = $this->pdo->prepare("
-            INSERT INTO orders (
-                public_id,
-                user_id,
-                shipping_address_id,
-                status,
-                subtotal_amount,
-                shipping_cost,
-                total_amount
-            ) VALUES (
-                :public_id,
-                :user_id,
-                :shipping_address_id,
-                :status,
-                :subtotal_amount,
-                :shipping_cost,
-                :total_amount
-            )
-        ");
+                INSERT INTO orders (
+                    public_id,
+                    user_id,
+                    shipping_address_id,
+                    status,
+                    subtotal_amount,
+                    shipping_cost,
+                    total_amount
+                ) VALUES (
+                    :public_id,
+                    :user_id,
+                    :shipping_address_id,
+                    :status,
+                    :subtotal_amount,
+                    :shipping_cost,
+                    :total_amount
+                )
+            ");
 
             $orderStmt->execute([
                 'public_id' => $orderData['public_id'],
@@ -72,22 +72,22 @@ class OrderRepository
             $orderId = (int) $this->pdo->lastInsertId();
 
             $itemStmt = $this->pdo->prepare("
-            INSERT INTO order_items (
-                order_id,
-                product_variant_id,
-                product_name_snapshot,
-                size_ml_snapshot,
-                quantity,
-                price_at_purchase
-            ) VALUES (
-                :order_id,
-                :product_variant_id,
-                :product_name_snapshot,
-                :size_ml_snapshot,
-                :quantity,
-                :price_at_purchase
-            )
-        ");
+                INSERT INTO order_items (
+                    order_id,
+                    product_variant_id,
+                    product_name_snapshot,
+                    size_ml_snapshot,
+                    quantity,
+                    price_at_purchase
+                ) VALUES (
+                    :order_id,
+                    :product_variant_id,
+                    :product_name_snapshot,
+                    :size_ml_snapshot,
+                    :quantity,
+                    :price_at_purchase
+                )
+            ");
 
             foreach ($items as $item) {
                 $this->cartRepository->decrementVariantStock(
@@ -108,7 +108,7 @@ class OrderRepository
             $this->pdo->commit();
 
             return $orderData['public_id'];
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $this->pdo->rollBack();
             throw $e;
         }
@@ -150,32 +150,70 @@ class OrderRepository
     public function findByPublicIdForUser(string $publicId, int $userId): ?array
     {
         $stmt = $this->pdo->prepare("
-        SELECT
-            o.id,
-            o.public_id,
-            o.status,
-            o.subtotal_amount,
-            o.shipping_cost,
-            o.total_amount,
-            o.paid_at,
-            o.shipped_at,
-            o.delivered_at,
-            o.created_at,
-            ua.full_name,
-            ua.address_line,
-            ua.city,
-            ua.postal_code,
-            ua.country
-        FROM orders o
-        LEFT JOIN user_addresses ua ON ua.id = o.shipping_address_id
-        WHERE o.public_id = :public_id
-          AND o.user_id = :user_id
-        LIMIT 1
-    ");
+            SELECT
+                o.id,
+                o.public_id,
+                o.status,
+                o.subtotal_amount,
+                o.shipping_cost,
+                o.total_amount,
+                o.paid_at,
+                o.shipped_at,
+                o.delivered_at,
+                o.created_at,
+                ua.full_name,
+                ua.address_line,
+                ua.city,
+                ua.postal_code,
+                ua.country
+            FROM orders o
+            LEFT JOIN user_addresses ua ON ua.id = o.shipping_address_id
+            WHERE o.public_id = :public_id
+              AND o.user_id = :user_id
+            LIMIT 1
+        ");
 
         $stmt->execute([
             'public_id' => $publicId,
             'user_id' => $userId,
+        ]);
+
+        $order = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $order ?: null;
+    }
+
+    public function findOrderByPublicIdForUser(string $publicId, int $userId): ?array
+    {
+        $stmt = $this->pdo->prepare("
+            SELECT *
+            FROM orders
+            WHERE public_id = :public_id
+              AND user_id = :user_id
+            LIMIT 1
+        ");
+
+        $stmt->execute([
+            'public_id' => $publicId,
+            'user_id' => $userId,
+        ]);
+
+        $order = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $order ?: null;
+    }
+
+    public function findById(int $orderId): ?array
+    {
+        $stmt = $this->pdo->prepare("
+            SELECT *
+            FROM orders
+            WHERE id = :id
+            LIMIT 1
+        ");
+
+        $stmt->execute([
+            'id' => $orderId,
         ]);
 
         $order = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -205,5 +243,20 @@ class OrderRepository
         ]);
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function markAsPaidAndProcessing(int $orderId): void
+    {
+        $stmt = $this->pdo->prepare("
+            UPDATE orders
+            SET
+                status = 'processing',
+                paid_at = CURRENT_TIMESTAMP
+            WHERE id = :id
+        ");
+
+        $stmt->execute([
+            'id' => $orderId,
+        ]);
     }
 }

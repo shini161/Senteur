@@ -17,12 +17,14 @@ use App\Models\ProductRepository;
 use App\Models\UserRepository;
 use App\Models\AddressRepository;
 use App\Models\OrderRepository;
+use App\Models\PaymentRepository;
 use App\Services\CartService;
 use App\Services\ProductService;
 use App\Services\AuthService;
 use App\Services\AddressService;
 use App\Services\CheckoutService;
 use App\Services\OrderService;
+use App\Services\PaymentService;
 
 class Router
 {
@@ -146,14 +148,13 @@ class Router
 
 			CheckoutController::class => new CheckoutController(
 				new CheckoutService(
-					new CartService(
-						new CartRepository()
-					),
+					new CartService(new CartRepository()),
 					new AddressRepository(),
-					new OrderRepository(
-						null,
-						new CartRepository()
-					)
+					new OrderRepository(null, new CartRepository())
+				),
+				new PaymentService(
+					new PaymentRepository(),
+					new OrderRepository()
 				)
 			),
 

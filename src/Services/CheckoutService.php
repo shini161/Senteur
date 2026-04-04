@@ -37,6 +37,11 @@ class CheckoutService
         ];
     }
 
+    public function getPlacedOrder(int $userId, string $publicId): ?array
+    {
+        return $this->orderRepository->findOrderByPublicIdForUser($publicId, $userId);
+    }
+
     public function placeOrder(int $userId, int $addressId): string
     {
         $items = $this->cartService->getItems();
