@@ -13,6 +13,7 @@ use App\Controllers\OrderController;
 use App\Controllers\StripeWebhookController;
 use App\Controllers\AdminAuthController;
 use App\Controllers\AdminOrderController;
+use App\Controllers\AdminProductController;
 
 return [
     // [HTTP METHOD, URL PATH, [Controller, Method]]
@@ -74,4 +75,11 @@ return [
     ['GET', '/admin/orders', [AdminOrderController::class, 'index']],
     ['GET', '/admin/orders/{publicId}', [AdminOrderController::class, 'show']],
     ['POST', '/admin/orders/{publicId}/status', [AdminOrderController::class, 'updateStatus']],
+
+    // Admin products
+    ['GET', '/admin/products', [AdminProductController::class, 'index']],
+    ['GET', '/admin/products/create', [AdminProductController::class, 'create']],
+    ['POST', '/admin/products', [AdminProductController::class, 'store']],
+    ['GET', '/admin/products/{id}/edit', [AdminProductController::class, 'edit']],
+    ['POST', '/admin/products/{id}', [AdminProductController::class, 'update']],
 ];

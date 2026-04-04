@@ -15,6 +15,7 @@ use App\Controllers\OrderController;
 use App\Controllers\StripeWebhookController;
 use App\Controllers\AdminAuthController;
 use App\Controllers\AdminOrderController;
+use App\Controllers\AdminProductController;
 use App\Models\CartRepository;
 use App\Models\ProductRepository;
 use App\Models\UserRepository;
@@ -29,6 +30,7 @@ use App\Services\CheckoutService;
 use App\Services\OrderService;
 use App\Services\PaymentService;
 use App\Services\AdminOrderService;
+use App\Services\AdminProductService;
 
 class Router
 {
@@ -185,6 +187,12 @@ class Router
 			AdminOrderController::class => new AdminOrderController(
 				new AdminOrderService(
 					new OrderRepository()
+				)
+			),
+
+			AdminProductController::class => new AdminProductController(
+				new AdminProductService(
+					new ProductRepository()
 				)
 			),
 		};

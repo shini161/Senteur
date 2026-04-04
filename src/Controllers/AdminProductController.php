@@ -1,0 +1,145 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Controllers;
+
+use App\Core\Auth;
+use App\Core\Controller;
+use App\Core\Csrf;
+use App\Services\AdminProductService;
+use RuntimeException;
+
+class AdminProductController extends Controller
+{
+    public function __construct(
+        private AdminProductService $adminProductService
+    ) {}
+
+    public function index(): void
+    {
+        Auth::requireAdmin();
+
+        $this->render('admin/products/index', [
+            'title' => 'Admin Products',
+            'products' => $this->adminProductService->getProducts(),
+        ]);
+    }
+
+    public function create(): void
+    {
+        Auth::requireAdmin();
+
+        $meta = $this->adminProductService->getFormMeta();
+
+        $this->render('admin/products/create', [
+            'title' => 'Create Product',
+            'error' => null,
+            'old' => [
+                'variants' => [
+                    ['size_ml' => '', 'price' => '', 'stock' => ''],
+                    ['size_ml' => '', 'price' => '', 'stock' => ''],
+                ],
+            ],
+            'brands' => $meta['brands'],
+            'fragranceTypes' => $meta['fragranceTypes'],
+            'genders' => $meta['genders'],
+        ]);
+    }
+
+    public function store(): void
+    {
+        Auth::requireAdmin();
+
+        if (! Csrf::verify($_POST['_csrf'] ?? null)) {
+            http_response_code(403);
+            echo 'Invalid CSRF token';
+            return;
+        }
+
+        try {
+            $productId = $this->adminProductService->create($_POST);
+
+            header('Location: /admin/products/' . $productId . '/edit');
+            exit;
+        } catch (RuntimeException $e) {
+            $meta = $this->adminProductService->getFormMeta();
+
+            $this->render('admin/products/create', [
+                'title' => 'Create Product',
+                'error' => $e->getMessage(),
+                'old' => $_POST,
+                'brands' => $meta['brands'],
+                'fragranceTypes' => $meta['fragranceTypes'],
+                'genders' => $meta['genders'],
+            ]);
+        }
+    }
+
+    public function edit(string $id): void
+    {
+        Auth::requireAdmin();
+
+        $product = $this->adminProductService->getProductById((int) $id);
+
+        if ($product === null) {
+            http_response_code(404);
+            echo 'Product not found';
+            return;
+        }
+
+        $meta = $this->adminProductService->getFormMeta();
+
+        $this->render('admin/products/edit', [
+            'title' => 'Edit Product',
+            'error' => null,
+            'product' => $product,
+            'brands' => $meta['brands'],
+            'fragranceTypes' => $meta['fragranceTypes'],
+            'genders' => $meta['genders'],
+        ]);
+    }
+
+    public function update(string $id): void
+    {
+        Auth::requireAdmin();
+
+        if (! Csrf::verify($_POST['_csrf'] ?? null)) {
+            http_response_code(403);
+            echo 'Invalid CSRF token';
+            return;
+        }
+
+        $productId = (int) $id;
+
+        try {
+            $this->adminProductService->update($productId, $_POST);
+
+            header('Location: /admin/products/' . $productId . '/edit');
+            exit;
+        } catch (RuntimeException $e) {
+            $product = $this->adminProductService->getProductById($productId);
+            $meta = $this->adminProductService->getFormMeta();
+
+            $fallbackProduct = $product ?? [
+                'id' => $productId,
+                'brand_id' => $_POST['brand_id'] ?? '',
+                'fragrance_type_id' => $_POST['fragrance_type_id'] ?? '',
+                'name' => $_POST['name'] ?? '',
+                'slug' => $_POST['slug'] ?? '',
+                'description' => $_POST['description'] ?? '',
+                'gender' => $_POST['gender'] ?? '',
+                'variants' => $_POST['variants'] ?? [],
+            ];
+
+            $this->render('admin/products/edit', [
+                'title' => 'Edit Product',
+                'error' => $e->getMessage(),
+                'product' => $fallbackProduct,
+                'brands' => $meta['brands'],
+                'fragranceTypes' => $meta['fragranceTypes'],
+                'genders' => $meta['genders'],
+            ]);
+        }
+    }
+}
