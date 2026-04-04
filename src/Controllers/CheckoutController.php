@@ -7,6 +7,7 @@ namespace App\Controllers;
 use App\Core\Auth;
 use App\Core\Controller;
 use App\Core\Csrf;
+use App\Services\CartService;
 use App\Services\CheckoutService;
 use App\Services\PaymentService;
 use RuntimeException;
@@ -15,7 +16,8 @@ class CheckoutController extends Controller
 {
     public function __construct(
         private CheckoutService $checkoutService,
-        private PaymentService $paymentService
+        private PaymentService $paymentService,
+        private CartService $cartService
     ) {}
 
     public function index(): void
@@ -131,6 +133,10 @@ class CheckoutController extends Controller
                 'error' => 'Order payment could not be found.',
             ]);
             return;
+        }
+
+        if ($result['payment']['status'] === 'paid') {
+            $this->cartService->clear();
         }
 
         $this->render('checkout/success', [

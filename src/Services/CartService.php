@@ -51,6 +51,11 @@ class CartService
         unset($_SESSION['cart'][$variantId]);
     }
 
+    public function clear(): void
+    {
+        $_SESSION['cart'] = [];
+    }
+
     public function getItems(): array
     {
         $cart = $_SESSION['cart'] ?? [];

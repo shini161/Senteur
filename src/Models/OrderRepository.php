@@ -24,21 +24,6 @@ class OrderRepository
         $this->pdo->beginTransaction();
 
         try {
-            foreach ($items as $item) {
-                $variantId = (int) $item['variant_id'];
-                $quantity = (int) $item['quantity'];
-
-                $stock = $this->cartRepository->findVariantStockForUpdate($variantId);
-
-                if ($stock === null) {
-                    throw new RuntimeException('Product variant not found.');
-                }
-
-                if ($stock < $quantity) {
-                    throw new RuntimeException('One or more cart items no longer have enough stock.');
-                }
-            }
-
             $orderStmt = $this->pdo->prepare("
                 INSERT INTO orders (
                     public_id,
@@ -90,11 +75,6 @@ class OrderRepository
             ");
 
             foreach ($items as $item) {
-                $this->cartRepository->decrementVariantStock(
-                    (int) $item['variant_id'],
-                    (int) $item['quantity']
-                );
-
                 $itemStmt->execute([
                     'order_id' => $orderId,
                     'product_variant_id' => $item['variant_id'],
@@ -247,16 +227,60 @@ class OrderRepository
 
     public function markAsPaidAndProcessing(int $orderId): void
     {
-        $stmt = $this->pdo->prepare("
-            UPDATE orders
-            SET
-                status = 'processing',
-                paid_at = CURRENT_TIMESTAMP
-            WHERE id = :id
-        ");
+        $this->pdo->beginTransaction();
 
-        $stmt->execute([
-            'id' => $orderId,
-        ]);
+        try {
+            $order = $this->findById($orderId);
+
+            if ($order === null) {
+                throw new RuntimeException('Order not found.');
+            }
+
+            if ($order['status'] === 'processing' || $order['status'] === 'shipped' || $order['status'] === 'delivered') {
+                $this->pdo->commit();
+                return;
+            }
+
+            $items = $this->findItemsByOrderId($orderId);
+
+            foreach ($items as $item) {
+                $variantId = (int) $item['product_variant_id'];
+                $quantity = (int) $item['quantity'];
+
+                $stock = $this->cartRepository->findVariantStockForUpdate($variantId);
+
+                if ($stock === null) {
+                    throw new RuntimeException('Product variant not found.');
+                }
+
+                if ($stock < $quantity) {
+                    throw new RuntimeException('Insufficient stock while confirming paid order.');
+                }
+            }
+
+            foreach ($items as $item) {
+                $this->cartRepository->decrementVariantStock(
+                    (int) $item['product_variant_id'],
+                    (int) $item['quantity']
+                );
+            }
+
+            $stmt = $this->pdo->prepare("
+                UPDATE orders
+                SET
+                    status = 'processing',
+                    paid_at = CURRENT_TIMESTAMP
+                WHERE id = :id
+            ");
+
+            $stmt->execute([
+                'id' => $orderId,
+            ]);
+
+            $this->pdo->commit();
+        } catch (Throwable $e) {
+            $this->pdo->rollBack();
+            throw $e;
+        }
     }
 }

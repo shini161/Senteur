@@ -87,14 +87,7 @@ class CheckoutService
             'total_amount' => $total,
         ], $items);
 
-        $this->clearCart();
-
         return $publicId;
-    }
-
-    private function clearCart(): void
-    {
-        $_SESSION['cart'] = [];
     }
 
     private function generatePublicId(): string

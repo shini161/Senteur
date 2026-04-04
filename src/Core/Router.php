@@ -156,7 +156,8 @@ class Router
 				new PaymentService(
 					new PaymentRepository(),
 					new OrderRepository()
-				)
+				),
+				new CartService(new CartRepository())
 			),
 
 			OrderController::class => new OrderController(
