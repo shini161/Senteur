@@ -18,6 +18,8 @@ The project emphasizes clean architecture (MVC), explicit infrastructure setup, 
 * Image uploads
 * MVC architecture (custom lightweight framework)
 * Dockerized environment (Nginx + PHP-FPM + MySQL)
+* Orders system
+* Stripe payment integration (test mode)
 
 ---
 
@@ -26,7 +28,7 @@ The project emphasizes clean architecture (MVC), explicit infrastructure setup, 
 * A **Docker** stack: **Nginx** (web server) → **PHP-FPM** (app) → **MySQL** (database).
 * A **custom “mini framework”** folder under `src/Core/` (router, request/response, database helper).
 * **MVC-style folders**: controllers, models, services, views.
-* A **database schema** in `docker/mysql/init.sql` (brands, products, variants, images, users, reviews, etc.).
+* A **database schema** in `docker/mysql/init.sql`.
 
 ---
 
@@ -54,8 +56,6 @@ The project emphasizes clean architecture (MVC), explicit infrastructure setup, 
    cp .env.example .env
    ```
 
-   Adjust values if you change database credentials in Compose.
-
 3. Start containers:
 
    ```bash
@@ -64,16 +64,80 @@ The project emphasizes clean architecture (MVC), explicit infrastructure setup, 
 
 4. Open **[http://localhost:8080](http://localhost:8080)**
 
-   * Nginx listens on host **8080** and forwards PHP to the `app` container.
-   * If no routes are implemented yet, you may see an empty page with HTTP 200.
-
-5. Stop: `Ctrl+C`, or in another terminal:
+5. Stop:
 
    ```bash
    docker compose down
    ```
 
-**MySQL note:** `init.sql` runs only when MySQL initializes a **new** data volume. If you change the schema later, you may need to reset the volume or apply migrations manually — see `docs/PROJECT_STRUCTURE.md`.
+---
+
+## Stripe (Payments – Development)
+
+Stripe is configured in **test mode** for development.
+
+### 1. Add environment variables
+
+In `.env`:
+
+```env
+APP_URL=http://localhost:8080
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_PUBLISHABLE_KEY=pk_test_...
+STRIPE_WEBHOOK_SECRET=
+```
+
+---
+
+### 2. Install Stripe CLI
+
+Download and install from Stripe releases (Linux RPM recommended for Fedora):
+
+```bash
+sudo dnf install ./stripe_*.rpm
+```
+
+---
+
+### 3. Authenticate
+
+```bash
+stripe login
+```
+
+---
+
+### 4. Start webhook listener
+
+Run this **while your app is running**:
+
+```bash
+stripe listen --forward-to localhost:8080/webhooks/stripe
+```
+
+You will get:
+
+```text
+whsec_...
+```
+
+Add it to `.env`:
+
+```env
+STRIPE_WEBHOOK_SECRET=whsec_...
+```
+
+---
+
+### 5. Test payments
+
+Use Stripe test card:
+
+```
+4242 4242 4242 4242
+any future date
+any CVC
+```
 
 ---
 
@@ -105,36 +169,24 @@ docker compose up --build
 
 Defined in `.env` (see `.env.example`):
 
-* `APP_ENV`, `APP_DEBUG` — local development flags.
-* `DB_*` — host `mysql` matches the Compose service name; use these when connecting with PDO in `Database.php`.
+* `APP_ENV`, `APP_DEBUG`
+* `DB_*`
+* `STRIPE_*`
 
 ---
 
 ## Database diagram
 
-Entity-relationship overview of the Senteur schema.
-
 * Interactive: [https://dbdiagram.io/d/SenteurSQLDiagram-69c288c3fb2db18e3bf07cf6](https://dbdiagram.io/d/SenteurSQLDiagram-69c288c3fb2db18e3bf07cf6)
-* Local files:
-
-  * `docs/diagrams/SenteurSQLDiagram.png`
-  * `docs/diagrams/SenteurSQLDiagram.svg`
-
-> The diagram is generated from the current schema defined in `docker/mysql/init.sql`.
-
-![Senteur Database Diagram](docs/diagrams/SenteurSQLDiagram.png)
 
 ---
 
 ## Application architecture
 
-High-level MVC flow of the application.
-
-* Router → Controller → Service → View
-* Thin controllers, business logic in services
-* Models handle DB interaction (PDO)
-
-![Senteur MVC Architecture](docs/diagrams/architecture.png)
+* Router → Controller → Service → Repository → DB
+* Thin controllers
+* Business logic in services
+* PDO for DB access
 
 ---
 
@@ -142,10 +194,10 @@ High-level MVC flow of the application.
 
 ```
 senteur/
-├── docker/                 # Docker-only: Nginx config, PHP Dockerfile, MySQL init SQL
-├── public/                 # Web root (index.php, assets, uploads)
+├── docker/
+├── public/
 ├── src/
-│   ├── Core/               # Router, Request, Response, Database, base Controller
+│   ├── Core/
 │   ├── Controllers/
 │   ├── Models/
 │   ├── Services/
@@ -153,13 +205,10 @@ senteur/
 │   ├── routes.php
 │   └── bootstrap.php
 ├── docs/
-│   └── PROJECT_STRUCTURE.md   # Deeper folder-by-folder explanation
 ├── .env.example
 ├── docker-compose.yml
 └── README.md
 ```
-
-More detail: **[docs/PROJECT_STRUCTURE.md](docs/PROJECT_STRUCTURE.md)**
 
 ---
 

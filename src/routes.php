@@ -10,6 +10,7 @@ use App\Controllers\ProfileController;
 use App\Controllers\AddressController;
 use App\Controllers\CheckoutController;
 use App\Controllers\OrderController;
+use App\Controllers\StripeWebhookController;
 
 return [
     // [HTTP METHOD, URL PATH, [Controller, Method]]
@@ -57,4 +58,7 @@ return [
     // Orders
     ['GET', '/orders', [OrderController::class, 'index']],
     ['GET', '/orders/{publicId}', [OrderController::class, 'show']],
+
+    // Stripe
+    ['POST', '/webhooks/stripe', [StripeWebhookController::class, 'handle']],
 ];
