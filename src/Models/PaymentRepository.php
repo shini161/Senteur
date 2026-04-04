@@ -65,6 +65,24 @@ class PaymentRepository
         return $payment ?: null;
     }
 
+    public function findByStripeSessionId(string $stripeSessionId): ?array
+    {
+        $stmt = $this->pdo->prepare("
+            SELECT *
+            FROM payments
+            WHERE stripe_session_id = :stripe_session_id
+            LIMIT 1
+        ");
+
+        $stmt->execute([
+            'stripe_session_id' => $stripeSessionId,
+        ]);
+
+        $payment = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $payment ?: null;
+    }
+
     public function findByTransactionId(string $transactionId): ?array
     {
         $stmt = $this->pdo->prepare("
@@ -81,6 +99,20 @@ class PaymentRepository
         $payment = $stmt->fetch(PDO::FETCH_ASSOC);
 
         return $payment ?: null;
+    }
+
+    public function updateStripeSessionId(int $paymentId, string $stripeSessionId): void
+    {
+        $stmt = $this->pdo->prepare("
+            UPDATE payments
+            SET stripe_session_id = :stripe_session_id
+            WHERE id = :id
+        ");
+
+        $stmt->execute([
+            'id' => $paymentId,
+            'stripe_session_id' => $stripeSessionId,
+        ]);
     }
 
     public function markPaid(

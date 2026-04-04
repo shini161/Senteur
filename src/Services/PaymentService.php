@@ -34,17 +34,23 @@ class PaymentService
         $existingPayment = $this->paymentRepository->findByOrderId((int) $order['id']);
 
         if ($existingPayment === null) {
-            $this->paymentRepository->createPendingPayment(
+            $paymentId = $this->paymentRepository->createPendingPayment(
                 (int) $order['id'],
                 'stripe',
                 (float) $order['total_amount'],
                 'EUR'
             );
+
+            $existingPayment = $this->paymentRepository->findByOrderId((int) $order['id']);
+
+            if ($existingPayment === null) {
+                throw new RuntimeException('Failed to create payment record.');
+            }
         }
 
         $session = Session::create([
             'mode' => 'payment',
-            'success_url' => rtrim($appUrl, '/') . '/checkout/success?order=' . urlencode($order['public_id']),
+            'success_url' => rtrim($appUrl, '/') . '/checkout/success?session_id={CHECKOUT_SESSION_ID}',
             'cancel_url' => rtrim($appUrl, '/') . '/checkout/cancel?order=' . urlencode($order['public_id']),
             'line_items' => [[
                 'price_data' => [
@@ -63,7 +69,32 @@ class PaymentService
             ],
         ]);
 
+        $this->paymentRepository->updateStripeSessionId(
+            (int) $existingPayment['id'],
+            (string) $session->id
+        );
+
         return $session->url;
+    }
+
+    public function getCheckoutSuccessData(int $userId, string $stripeSessionId): ?array
+    {
+        $payment = $this->paymentRepository->findByStripeSessionId($stripeSessionId);
+
+        if ($payment === null) {
+            return null;
+        }
+
+        $order = $this->orderRepository->findById((int) $payment['order_id']);
+
+        if ($order === null || (int) $order['user_id'] !== $userId) {
+            return null;
+        }
+
+        return [
+            'order' => $order,
+            'payment' => $payment,
+        ];
     }
 
     public function handleStripeWebhook(string $payload, string $signature): void
@@ -89,14 +120,19 @@ class PaymentService
 
         $session = $event->data->object;
 
+        $stripeSessionId = (string) ($session->id ?? '');
         $orderId = isset($session->metadata->order_id) ? (int) $session->metadata->order_id : 0;
         $transactionId = (string) ($session->payment_intent ?? '');
 
-        if ($orderId <= 0 || $transactionId === '') {
+        if ($stripeSessionId === '' || $orderId <= 0 || $transactionId === '') {
             throw new RuntimeException('Stripe webhook missing required metadata.');
         }
 
-        $payment = $this->paymentRepository->findByOrderId($orderId);
+        $payment = $this->paymentRepository->findByStripeSessionId($stripeSessionId);
+
+        if ($payment === null) {
+            $payment = $this->paymentRepository->findByOrderId($orderId);
+        }
 
         if ($payment === null) {
             throw new RuntimeException('Payment record not found for order.');

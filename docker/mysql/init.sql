@@ -192,6 +192,7 @@ CREATE TABLE payments (
     amount DECIMAL(10,2) NOT NULL CHECK (amount >= 0),
     currency VARCHAR(10) NOT NULL DEFAULT 'EUR',
 
+    stripe_session_id VARCHAR(255) UNIQUE NULL,
     transaction_id VARCHAR(255) UNIQUE,
 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

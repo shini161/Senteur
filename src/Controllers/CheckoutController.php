@@ -61,20 +61,16 @@ class CheckoutController extends Controller
         $addressId = (int) ($_POST['shipping_address_id'] ?? 0);
 
         try {
-            // 1. create order (pending)
             $publicId = $this->checkoutService->placeOrder($userId, $addressId);
 
-            // 2. fetch full order
             $order = $this->checkoutService->getPlacedOrder($userId, $publicId);
 
             if ($order === null) {
                 throw new RuntimeException('Order not found after creation.');
             }
 
-            // 3. create Stripe checkout session
             $sessionUrl = $this->paymentService->createCheckoutSession($order);
 
-            // 4. redirect to Stripe
             header('Location: ' . $sessionUrl);
             exit;
         } catch (RuntimeException $e) {
@@ -108,10 +104,51 @@ class CheckoutController extends Controller
     {
         Auth::requireAuth();
 
-        $orderPublicId = trim($_GET['order'] ?? '');
+        $userId = (int) Auth::id();
+        $sessionId = trim($_GET['session_id'] ?? '');
+
+        if ($sessionId === '') {
+            http_response_code(400);
+
+            $this->render('checkout/success', [
+                'title' => 'Payment confirmation',
+                'orderPublicId' => '',
+                'paymentStatus' => null,
+                'error' => 'Missing Stripe session id.',
+            ]);
+            return;
+        }
+
+        $result = $this->paymentService->getCheckoutSuccessData($userId, $sessionId);
+
+        if ($result === null) {
+            http_response_code(404);
+
+            $this->render('checkout/success', [
+                'title' => 'Payment confirmation',
+                'orderPublicId' => '',
+                'paymentStatus' => null,
+                'error' => 'Order payment could not be found.',
+            ]);
+            return;
+        }
 
         $this->render('checkout/success', [
-            'title' => 'Order success',
+            'title' => 'Payment confirmation',
+            'orderPublicId' => $result['order']['public_id'],
+            'paymentStatus' => $result['payment']['status'],
+            'error' => null,
+        ]);
+    }
+
+    public function cancel(): void
+    {
+        Auth::requireAuth();
+
+        $orderPublicId = trim($_GET['order'] ?? '');
+
+        $this->render('checkout/cancel', [
+            'title' => 'Payment cancelled',
             'orderPublicId' => $orderPublicId,
         ]);
     }

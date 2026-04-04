@@ -53,7 +53,8 @@ return [
     // Checkout
     ['GET', '/checkout', [CheckoutController::class, 'index']],
     ['POST', '/checkout', [CheckoutController::class, 'store']],
-    ['GET', '/order/success', [CheckoutController::class, 'success']],
+    ['GET', '/checkout/success', [CheckoutController::class, 'success']],
+    ['GET', '/checkout/cancel', [CheckoutController::class, 'cancel']],
 
     // Orders
     ['GET', '/orders', [OrderController::class, 'index']],

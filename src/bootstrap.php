@@ -48,6 +48,9 @@ set_exception_handler(function (Throwable $e): void {
 
     $debug = ($_ENV['APP_DEBUG'] ?? 'false') === 'true';
 
+    error_log((string) $e);
+    error_log($e->getMessage());
+
     echo $debug
         ? 'Internal Server Error: ' . $e->getMessage()
         : 'Internal Server Error';
