@@ -56,6 +56,13 @@ class Auth
         return self::$user;
     }
 
+    public static function isAdmin(): bool
+    {
+        $user = self::user();
+
+        return $user !== null && ($user['role'] ?? null) === 'admin';
+    }
+
     public static function requireGuest(): void
     {
         if (self::check()) {
@@ -68,6 +75,33 @@ class Auth
     {
         if (! self::check()) {
             header('Location: /login');
+            exit;
+        }
+    }
+
+    public static function requireAdminGuest(): void
+    {
+        if (self::isAdmin()) {
+            header('Location: /admin/orders');
+            exit;
+        }
+
+        if (self::check()) {
+            header('Location: /');
+            exit;
+        }
+    }
+
+    public static function requireAdmin(): void
+    {
+        if (! self::check()) {
+            header('Location: /admin/login');
+            exit;
+        }
+
+        if (! self::isAdmin()) {
+            http_response_code(403);
+            echo 'Forbidden';
             exit;
         }
     }

@@ -24,6 +24,17 @@ class AuthService
         return $user;
     }
 
+    public function loginAdmin(string $email, string $password): array
+    {
+        $user = $this->login($email, $password);
+
+        if (($user['role'] ?? null) !== 'admin') {
+            throw new RuntimeException('Invalid credentials');
+        }
+
+        return $user;
+    }
+
     public function register(array $data): array
     {
         if ($this->users->existsByEmail($data['email'])) {

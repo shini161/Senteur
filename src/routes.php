@@ -11,6 +11,8 @@ use App\Controllers\AddressController;
 use App\Controllers\CheckoutController;
 use App\Controllers\OrderController;
 use App\Controllers\StripeWebhookController;
+use App\Controllers\AdminAuthController;
+use App\Controllers\AdminOrderController;
 
 return [
     // [HTTP METHOD, URL PATH, [Controller, Method]]
@@ -62,4 +64,14 @@ return [
 
     // Stripe
     ['POST', '/webhooks/stripe', [StripeWebhookController::class, 'handle']],
+
+    // Admin auth
+    ['GET', '/admin/login', [AdminAuthController::class, 'showLogin']],
+    ['POST', '/admin/login', [AdminAuthController::class, 'login']],
+    ['POST', '/admin/logout', [AdminAuthController::class, 'logout']],
+
+    // Admin orders
+    ['GET', '/admin/orders', [AdminOrderController::class, 'index']],
+    ['GET', '/admin/orders/{publicId}', [AdminOrderController::class, 'show']],
+    ['POST', '/admin/orders/{publicId}/status', [AdminOrderController::class, 'updateStatus']],
 ];

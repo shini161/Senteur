@@ -13,6 +13,8 @@ use App\Controllers\AddressController;
 use App\Controllers\CheckoutController;
 use App\Controllers\OrderController;
 use App\Controllers\StripeWebhookController;
+use App\Controllers\AdminAuthController;
+use App\Controllers\AdminOrderController;
 use App\Models\CartRepository;
 use App\Models\ProductRepository;
 use App\Models\UserRepository;
@@ -26,6 +28,7 @@ use App\Services\AddressService;
 use App\Services\CheckoutService;
 use App\Services\OrderService;
 use App\Services\PaymentService;
+use App\Services\AdminOrderService;
 
 class Router
 {
@@ -169,6 +172,18 @@ class Router
 			StripeWebhookController::class => new StripeWebhookController(
 				new PaymentService(
 					new PaymentRepository(),
+					new OrderRepository()
+				)
+			),
+
+			AdminAuthController::class => new AdminAuthController(
+				new AuthService(
+					new UserRepository()
+				)
+			),
+
+			AdminOrderController::class => new AdminOrderController(
+				new AdminOrderService(
 					new OrderRepository()
 				)
 			),

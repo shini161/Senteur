@@ -283,4 +283,111 @@ class OrderRepository
             throw $e;
         }
     }
+
+    public function findAllForAdmin(): array
+    {
+        $stmt = $this->pdo->query("
+            SELECT
+                o.id,
+                o.public_id,
+                o.status,
+                o.total_amount,
+                o.created_at,
+                u.email AS user_email,
+                u.username,
+                COALESCE(SUM(oi.quantity), 0) AS items_count
+            FROM orders o
+            INNER JOIN users u ON u.id = o.user_id
+            LEFT JOIN order_items oi ON oi.order_id = o.id
+            GROUP BY
+                o.id,
+                o.public_id,
+                o.status,
+                o.total_amount,
+                o.created_at,
+                u.email,
+                u.username
+            ORDER BY o.created_at DESC
+        ");
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function findByPublicIdForAdmin(string $publicId): ?array
+    {
+        $stmt = $this->pdo->prepare("
+            SELECT
+                o.id,
+                o.public_id,
+                o.status,
+                o.subtotal_amount,
+                o.shipping_cost,
+                o.total_amount,
+                o.paid_at,
+                o.shipped_at,
+                o.delivered_at,
+                o.created_at,
+                u.email AS user_email,
+                u.username,
+                ua.full_name,
+                ua.address_line,
+                ua.city,
+                ua.postal_code,
+                ua.country
+            FROM orders o
+            INNER JOIN users u ON u.id = o.user_id
+            LEFT JOIN user_addresses ua ON ua.id = o.shipping_address_id
+            WHERE o.public_id = :public_id
+            LIMIT 1
+        ");
+
+        $stmt->execute([
+            'public_id' => $publicId,
+        ]);
+
+        $order = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $order ?: null;
+    }
+
+    public function updateStatusByPublicId(string $publicId, string $status): void
+    {
+        $allowed = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
+
+        if (! in_array($status, $allowed, true)) {
+            throw new RuntimeException('Invalid order status.');
+        }
+
+        $fields = [
+            'shipped_at = shipped_at',
+            'delivered_at = delivered_at',
+        ];
+
+        if ($status === 'shipped') {
+            $fields[0] = 'shipped_at = CURRENT_TIMESTAMP';
+        }
+
+        if ($status === 'delivered') {
+            $fields[0] = 'shipped_at = COALESCE(shipped_at, CURRENT_TIMESTAMP)';
+            $fields[1] = 'delivered_at = CURRENT_TIMESTAMP';
+        }
+
+        $stmt = $this->pdo->prepare("
+            UPDATE orders
+            SET
+                status = :status,
+                {$fields[0]},
+                {$fields[1]}
+            WHERE public_id = :public_id
+        ");
+
+        $stmt->execute([
+            'status' => $status,
+            'public_id' => $publicId,
+        ]);
+
+        if ($stmt->rowCount() !== 1) {
+            throw new RuntimeException('Order not found or unchanged.');
+        }
+    }
 }
