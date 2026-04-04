@@ -7,13 +7,16 @@ namespace App\Models;
 use App\Core\Database;
 use PDO;
 use Throwable;
+use RuntimeException;
 
 class OrderRepository
 {
     public function __construct(
-        private ?PDO $pdo = null
+        private ?PDO $pdo = null,
+        private ?CartRepository $cartRepository = null
     ) {
         $this->pdo ??= Database::getConnection();
+        $this->cartRepository ??= new CartRepository();
     }
 
     public function createOrderWithItems(array $orderData, array $items): string
@@ -21,25 +24,40 @@ class OrderRepository
         $this->pdo->beginTransaction();
 
         try {
+            foreach ($items as $item) {
+                $variantId = (int) $item['variant_id'];
+                $quantity = (int) $item['quantity'];
+
+                $stock = $this->cartRepository->findVariantStockForUpdate($variantId);
+
+                if ($stock === null) {
+                    throw new RuntimeException('Product variant not found.');
+                }
+
+                if ($stock < $quantity) {
+                    throw new RuntimeException('One or more cart items no longer have enough stock.');
+                }
+            }
+
             $orderStmt = $this->pdo->prepare("
-                INSERT INTO orders (
-                    public_id,
-                    user_id,
-                    shipping_address_id,
-                    status,
-                    subtotal_amount,
-                    shipping_cost,
-                    total_amount
-                ) VALUES (
-                    :public_id,
-                    :user_id,
-                    :shipping_address_id,
-                    :status,
-                    :subtotal_amount,
-                    :shipping_cost,
-                    :total_amount
-                )
-            ");
+            INSERT INTO orders (
+                public_id,
+                user_id,
+                shipping_address_id,
+                status,
+                subtotal_amount,
+                shipping_cost,
+                total_amount
+            ) VALUES (
+                :public_id,
+                :user_id,
+                :shipping_address_id,
+                :status,
+                :subtotal_amount,
+                :shipping_cost,
+                :total_amount
+            )
+        ");
 
             $orderStmt->execute([
                 'public_id' => $orderData['public_id'],
@@ -54,24 +72,29 @@ class OrderRepository
             $orderId = (int) $this->pdo->lastInsertId();
 
             $itemStmt = $this->pdo->prepare("
-                INSERT INTO order_items (
-                    order_id,
-                    product_variant_id,
-                    product_name_snapshot,
-                    size_ml_snapshot,
-                    quantity,
-                    price_at_purchase
-                ) VALUES (
-                    :order_id,
-                    :product_variant_id,
-                    :product_name_snapshot,
-                    :size_ml_snapshot,
-                    :quantity,
-                    :price_at_purchase
-                )
-            ");
+            INSERT INTO order_items (
+                order_id,
+                product_variant_id,
+                product_name_snapshot,
+                size_ml_snapshot,
+                quantity,
+                price_at_purchase
+            ) VALUES (
+                :order_id,
+                :product_variant_id,
+                :product_name_snapshot,
+                :size_ml_snapshot,
+                :quantity,
+                :price_at_purchase
+            )
+        ");
 
             foreach ($items as $item) {
+                $this->cartRepository->decrementVariantStock(
+                    (int) $item['variant_id'],
+                    (int) $item['quantity']
+                );
+
                 $itemStmt->execute([
                     'order_id' => $orderId,
                     'product_variant_id' => $item['variant_id'],
@@ -85,7 +108,7 @@ class OrderRepository
             $this->pdo->commit();
 
             return $orderData['public_id'];
-        } catch (Throwable $e) {
+        } catch (\Throwable $e) {
             $this->pdo->rollBack();
             throw $e;
         }

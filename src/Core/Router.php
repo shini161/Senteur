@@ -150,7 +150,10 @@ class Router
 						new CartRepository()
 					),
 					new AddressRepository(),
-					new OrderRepository()
+					new OrderRepository(
+						null,
+						new CartRepository()
+					)
 				)
 			),
 

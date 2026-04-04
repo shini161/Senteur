@@ -60,4 +60,42 @@ class CartRepository
 
         return $stmt->fetchAll();
     }
+
+    public function findVariantStockForUpdate(int $variantId): ?int
+    {
+        $stmt = $this->pdo->prepare("
+        SELECT stock
+        FROM product_variants
+        WHERE id = :id
+        LIMIT 1
+        FOR UPDATE
+    ");
+
+        $stmt->execute([
+            'id' => $variantId,
+        ]);
+
+        $stock = $stmt->fetchColumn();
+
+        return $stock === false ? null : (int) $stock;
+    }
+
+    public function decrementVariantStock(int $variantId, int $quantity): void
+    {
+        $stmt = $this->pdo->prepare("
+        UPDATE product_variants
+        SET stock = stock - :quantity
+        WHERE id = :id
+          AND stock >= :quantity
+    ");
+
+        $stmt->execute([
+            'id' => $variantId,
+            'quantity' => $quantity,
+        ]);
+
+        if ($stmt->rowCount() !== 1) {
+            throw new \RuntimeException('Failed to decrement stock for variant ' . $variantId);
+        }
+    }
 }
