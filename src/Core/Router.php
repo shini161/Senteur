@@ -124,7 +124,11 @@ class Router
 	private function resolve(string $class): object
 	{
 		return match ($class) {
-			HomeController::class => new HomeController(),
+			HomeController::class => new HomeController(
+				new ProductService(
+					new ProductRepository()
+				)
+			),
 
 			ProductController::class => new ProductController(
 				new ProductService(

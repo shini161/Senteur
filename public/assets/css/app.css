@@ -881,3 +881,25 @@ p {
     grid-template-columns: 1fr !important;
   }
 }
+
+.home-hero h1 {
+  max-width: 780px;
+}
+
+@media (max-width: 980px) {
+
+  .home-hero,
+  .panel div[style*="grid-template-columns: repeat(3, minmax(0, 1fr))"],
+  .products-grid[style*="repeat(4, minmax(0, 1fr))"] {
+    grid-template-columns: 1fr 1fr !important;
+  }
+}
+
+@media (max-width: 640px) {
+
+  .home-hero,
+  .panel div[style*="grid-template-columns: repeat(3, minmax(0, 1fr))"],
+  .products-grid[style*="repeat(4, minmax(0, 1fr))"] {
+    grid-template-columns: 1fr !important;
+  }
+}

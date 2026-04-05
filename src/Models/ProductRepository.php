@@ -527,4 +527,78 @@ class ProductRepository
             ],
         ];
     }
+
+    public function findFeaturedActive(int $limit = 4): array
+    {
+        $stmt = $this->pdo->prepare("
+        SELECT
+            p.id,
+            p.name,
+            p.slug,
+            p.gender,
+            b.name AS brand_name,
+            ft.name AS fragrance_type_name,
+            MIN(v.price) AS price,
+            COUNT(v.id) AS variant_count,
+            COALESCE(SUM(CASE WHEN v.stock > 0 THEN 1 ELSE 0 END), 0) AS in_stock_variant_count,
+            pi.image_url
+        FROM products p
+        INNER JOIN brands b ON b.id = p.brand_id
+        LEFT JOIN fragrance_types ft ON ft.id = p.fragrance_type_id
+        LEFT JOIN product_variants v ON v.product_id = p.id
+        LEFT JOIN product_images pi
+            ON pi.product_id = p.id
+            AND pi.position = 0
+        WHERE p.deleted_at IS NULL
+        GROUP BY
+            p.id,
+            p.name,
+            p.slug,
+            p.gender,
+            b.name,
+            ft.name,
+            pi.image_url
+        ORDER BY p.id DESC
+        LIMIT :limit
+    ");
+
+        $stmt->bindValue('limit', $limit, PDO::PARAM_INT);
+        $stmt->execute();
+
+        $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($products as &$product) {
+            $product['is_sellable'] = (int) $product['in_stock_variant_count'] > 0;
+        }
+
+        unset($product);
+
+        return $products;
+    }
+
+    public function findCategoryHighlights(): array
+    {
+        return [
+            [
+                'title' => 'Fresh',
+                'description' => 'Clean, bright, and easy to wear daily.',
+                'query' => '?search=&sort=newest',
+            ],
+            [
+                'title' => 'Woody',
+                'description' => 'Elegant, warm profiles with depth and structure.',
+                'query' => '?search=&sort=price_desc',
+            ],
+            [
+                'title' => 'Floral',
+                'description' => 'Soft to radiant compositions with signature bloom.',
+                'query' => '?gender=female&sort=newest',
+            ],
+            [
+                'title' => 'Luxury',
+                'description' => 'Statement bottles and richer concentrations.',
+                'query' => '?sort=price_desc',
+            ],
+        ];
+    }
 }

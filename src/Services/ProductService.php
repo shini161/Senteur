@@ -17,6 +17,16 @@ class ProductService
         return $this->productRepository->findAllActive($filters);
     }
 
+    public function getFeatured(int $limit = 4): array
+    {
+        return $this->productRepository->findFeaturedActive($limit);
+    }
+
+    public function getHomeCollections(): array
+    {
+        return $this->productRepository->findCategoryHighlights();
+    }
+
     public function getBySlug(string $slug): ?array
     {
         return $this->productRepository->findActiveBySlug($slug);

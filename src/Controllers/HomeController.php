@@ -5,18 +5,23 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Core\Controller;
+use App\Services\ProductService;
 
 class HomeController extends Controller
 {
-    /**
-     * Handles the home page request (/)
-     *
-     * Calls the render method to load the view inside the main layout.
-     */
+    public function __construct(
+        private ProductService $productService
+    ) {}
+
     public function index(): void
     {
+        $featuredProducts = $this->productService->getFeatured(4);
+        $collections = $this->productService->getHomeCollections();
+
         $this->render('home/index', [
-            'title' => 'Home', // Data passed to the view
+            'title' => 'Home',
+            'featuredProducts' => $featuredProducts,
+            'collections' => $collections,
         ]);
     }
 }
