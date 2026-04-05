@@ -17,28 +17,81 @@ class ProductRepository
         $this->pdo ??= Database::getConnection();
     }
 
-    public function findAllActive(): array
+    public function findAllActive(array $filters = []): array
     {
-        $stmt = $this->pdo->query("
+        $search = trim((string) ($filters['search'] ?? ''));
+        $brandId = (int) ($filters['brand_id'] ?? 0);
+        $fragranceTypeId = (int) ($filters['fragrance_type_id'] ?? 0);
+        $gender = trim((string) ($filters['gender'] ?? ''));
+        $sort = trim((string) ($filters['sort'] ?? 'newest'));
+
+        $allowedSorts = [
+            'newest' => 'p.id DESC',
+            'name_asc' => 'p.name ASC',
+            'price_asc' => 'price ASC',
+            'price_desc' => 'price DESC',
+        ];
+
+        $orderBy = $allowedSorts[$sort] ?? $allowedSorts['newest'];
+
+        $conditions = ['p.deleted_at IS NULL'];
+        $params = [];
+
+        if ($search !== '') {
+            $conditions[] = '(p.name LIKE :search OR p.description LIKE :search)';
+            $params['search'] = '%' . $search . '%';
+        }
+
+        if ($brandId > 0) {
+            $conditions[] = 'p.brand_id = :brand_id';
+            $params['brand_id'] = $brandId;
+        }
+
+        if ($fragranceTypeId > 0) {
+            $conditions[] = 'p.fragrance_type_id = :fragrance_type_id';
+            $params['fragrance_type_id'] = $fragranceTypeId;
+        }
+
+        if (in_array($gender, ['male', 'female', 'unisex'], true)) {
+            $conditions[] = 'p.gender = :gender';
+            $params['gender'] = $gender;
+        }
+
+        $whereSql = implode(' AND ', $conditions);
+
+        $stmt = $this->pdo->prepare("
             SELECT 
                 p.id,
                 p.name,
                 p.slug,
+                p.gender,
+                b.name AS brand_name,
+                ft.name AS fragrance_type_name,
                 MIN(v.price) AS price,
                 COUNT(v.id) AS variant_count,
                 COALESCE(SUM(CASE WHEN v.stock > 0 THEN 1 ELSE 0 END), 0) AS in_stock_variant_count,
                 pi.image_url
             FROM products p
+            INNER JOIN brands b ON b.id = p.brand_id
+            LEFT JOIN fragrance_types ft ON ft.id = p.fragrance_type_id
             LEFT JOIN product_variants v ON v.product_id = p.id
             LEFT JOIN product_images pi
                 ON pi.product_id = p.id
                 AND pi.position = 0
-            WHERE p.deleted_at IS NULL
-            GROUP BY p.id, p.name, p.slug, pi.image_url
-            ORDER BY p.id DESC
+            WHERE {$whereSql}
+            GROUP BY
+                p.id,
+                p.name,
+                p.slug,
+                p.gender,
+                b.name,
+                ft.name,
+                pi.image_url
+            ORDER BY {$orderBy}
         ");
 
-        $products = $stmt->fetchAll();
+        $stmt->execute($params);
+        $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         foreach ($products as &$product) {
             $product['is_sellable'] = (int) $product['in_stock_variant_count'] > 0;
@@ -396,5 +449,20 @@ class ProductRepository
                 'stock' => $stock,
             ]);
         }
+    }
+
+    public function getPublicFilterMeta(): array
+    {
+        return [
+            'brands' => $this->getBrands(),
+            'fragranceTypes' => $this->getFragranceTypes(),
+            'genders' => ['male', 'female', 'unisex'],
+            'sortOptions' => [
+                'newest' => 'Newest',
+                'name_asc' => 'Name (A-Z)',
+                'price_asc' => 'Price (low to high)',
+                'price_desc' => 'Price (high to low)',
+            ],
+        ];
     }
 }

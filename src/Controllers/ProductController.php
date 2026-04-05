@@ -13,17 +13,23 @@ class ProductController extends Controller
 
     public function index(): void
     {
-        $products = $this->productService->getAll();
+        $filters = $this->productService->normalizePublicFilters($_GET);
+        $products = $this->productService->getAll($filters);
+        $meta = $this->productService->getPublicFilterMeta();
 
         $this->render('products/index', [
             'title' => 'Products',
-            'products' => $products
+            'products' => $products,
+            'filters' => $filters,
+            'brands' => $meta['brands'],
+            'fragranceTypes' => $meta['fragranceTypes'],
+            'genders' => $meta['genders'],
+            'sortOptions' => $meta['sortOptions'],
         ]);
     }
 
     public function show(string $id): void
     {
-        // Basic validation: only numeric ids allowed
         if (! ctype_digit($id)) {
             http_response_code(404);
             echo 'Product not found';
