@@ -14,6 +14,7 @@ use App\Controllers\StripeWebhookController;
 use App\Controllers\AdminAuthController;
 use App\Controllers\AdminOrderController;
 use App\Controllers\AdminProductController;
+use App\Controllers\ReviewController;
 
 return [
     // [HTTP METHOD, URL PATH, [Controller, Method]]
@@ -21,11 +22,10 @@ return [
     // Home page
     ['GET', '/', [HomeController::class, 'index']],
 
-    // Products page
+    // Products
     ['GET', '/products', [ProductController::class, 'index']],
-
-    // Product details page
     ['GET', '/products/{slug}', [ProductController::class, 'show']],
+    ['POST', '/products/{slug}/reviews', [ReviewController::class, 'store']],
 
     // Cart page
     ['GET', '/cart', [CartController::class, 'index']],

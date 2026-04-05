@@ -390,4 +390,25 @@ class OrderRepository
             throw new RuntimeException('Order not found or unchanged.');
         }
     }
+
+    public function userHasPurchasedProduct(int $userId, int $productId): bool
+    {
+        $stmt = $this->pdo->prepare("
+        SELECT 1
+        FROM orders o
+        INNER JOIN order_items oi ON oi.order_id = o.id
+        INNER JOIN product_variants pv ON pv.id = oi.product_variant_id
+        WHERE o.user_id = :user_id
+          AND pv.product_id = :product_id
+          AND o.status IN ('processing', 'shipped', 'delivered')
+        LIMIT 1
+    ");
+
+        $stmt->execute([
+            'user_id' => $userId,
+            'product_id' => $productId,
+        ]);
+
+        return (bool) $stmt->fetchColumn();
+    }
 }

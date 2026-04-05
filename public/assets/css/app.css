@@ -947,3 +947,54 @@ p {
   font-size: 0.85rem;
   color: #777;
 }
+
+/* ===== STAR INPUT (FORM) ===== */
+.star-rating {
+  display: flex;
+  justify-content: center;
+  flex-direction: row-reverse;
+  gap: 0.4rem;
+  margin: 0.5rem 0 0.75rem;
+}
+
+.star-rating input {
+  display: none;
+}
+
+.star-rating label {
+  cursor: pointer;
+  font-size: 2.2rem;
+  /* bigger */
+  line-height: 1;
+  color: #d8ded8;
+  /* neutral base */
+  transition: color 0.2s ease, transform 0.15s ease;
+}
+
+/* hover + selected */
+.star-rating label:hover,
+.star-rating label:hover~label,
+.star-rating input:checked~label {
+  color: #6f8f79;
+  /* your green brand tone */
+}
+
+/* slight pop on hover */
+.star-rating label:hover {
+  transform: scale(1.1);
+}
+
+/* ===== REVIEW DISPLAY ===== */
+.review-stars {
+  margin: 0.3rem 0 0.6rem;
+  font-size: 0.95rem;
+  /* smaller */
+  letter-spacing: 0.05em;
+  color: #7a8f82;
+  /* muted green */
+}
+
+/* optional: softer empty stars */
+.review-stars span.empty {
+  color: #d8ded8;
+}

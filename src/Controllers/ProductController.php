@@ -4,12 +4,17 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Core\Auth;
 use App\Core\Controller;
 use App\Services\ProductService;
+use App\Services\ReviewService;
 
 class ProductController extends Controller
 {
-    public function __construct(private ProductService $productService) {}
+    public function __construct(
+        private ProductService $productService,
+        private ReviewService $reviewService
+    ) {}
 
     public function index(): void
     {
@@ -46,9 +51,18 @@ class ProductController extends Controller
             return;
         }
 
+        $reviewData = $this->reviewService->getProductReviewData(
+            (int) $product['id'],
+            Auth::id()
+        );
+
         $this->render('products/show', [
             'title' => $product['name'],
             'product' => $product,
+            'reviewSummary' => $reviewData['summary'],
+            'reviews' => $reviewData['reviews'],
+            'userReview' => $reviewData['userReview'],
+            'canReview' => $reviewData['canReview'],
         ]);
     }
 }

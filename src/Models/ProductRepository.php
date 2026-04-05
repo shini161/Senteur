@@ -601,4 +601,23 @@ class ProductRepository
             ],
         ];
     }
+
+    public function findProductIdBySlug(string $slug): ?int
+    {
+        $stmt = $this->pdo->prepare("
+        SELECT id
+        FROM products
+        WHERE slug = :slug
+          AND deleted_at IS NULL
+        LIMIT 1
+    ");
+
+        $stmt->execute([
+            'slug' => $slug,
+        ]);
+
+        $id = $stmt->fetchColumn();
+
+        return $id === false ? null : (int) $id;
+    }
 }

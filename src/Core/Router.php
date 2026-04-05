@@ -12,6 +12,7 @@ use App\Controllers\ProfileController;
 use App\Controllers\AddressController;
 use App\Controllers\CheckoutController;
 use App\Controllers\OrderController;
+use App\Controllers\ReviewController;
 use App\Controllers\StripeWebhookController;
 use App\Controllers\AdminAuthController;
 use App\Controllers\AdminOrderController;
@@ -22,6 +23,7 @@ use App\Models\UserRepository;
 use App\Models\AddressRepository;
 use App\Models\OrderRepository;
 use App\Models\PaymentRepository;
+use App\Models\ReviewRepository;
 use App\Services\CartService;
 use App\Services\ProductService;
 use App\Services\AuthService;
@@ -31,6 +33,8 @@ use App\Services\OrderService;
 use App\Services\PaymentService;
 use App\Services\AdminOrderService;
 use App\Services\AdminProductService;
+use App\Services\ReviewService;
+
 
 class Router
 {
@@ -133,6 +137,11 @@ class Router
 			ProductController::class => new ProductController(
 				new ProductService(
 					new ProductRepository()
+				),
+				new ReviewService(
+					new ReviewRepository(),
+					new OrderRepository(),
+					new ProductRepository()
 				)
 			),
 
@@ -196,6 +205,14 @@ class Router
 
 			AdminProductController::class => new AdminProductController(
 				new AdminProductService(
+					new ProductRepository()
+				)
+			),
+
+			ReviewController::class => new ReviewController(
+				new ReviewService(
+					new ReviewRepository(),
+					new OrderRepository(),
 					new ProductRepository()
 				)
 			),

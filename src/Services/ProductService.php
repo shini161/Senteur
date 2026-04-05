@@ -47,4 +47,9 @@ class ProductService
             'sort' => trim((string) ($input['sort'] ?? 'newest')),
         ];
     }
+
+    public function getIdBySlug(string $slug): ?int
+    {
+        return $this->productRepository->findProductIdBySlug($slug);
+    }
 }
