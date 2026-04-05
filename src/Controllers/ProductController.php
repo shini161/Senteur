@@ -28,15 +28,17 @@ class ProductController extends Controller
         ]);
     }
 
-    public function show(string $id): void
+    public function show(string $slug): void
     {
-        if (! ctype_digit($id)) {
+        $slug = trim($slug);
+
+        if ($slug === '') {
             http_response_code(404);
             echo 'Product not found';
             return;
         }
 
-        $product = $this->productService->getById((int) $id);
+        $product = $this->productService->getBySlug($slug);
 
         if ($product === null) {
             http_response_code(404);
@@ -46,7 +48,7 @@ class ProductController extends Controller
 
         $this->render('products/show', [
             'title' => $product['name'],
-            'product' => $product
+            'product' => $product,
         ]);
     }
 }

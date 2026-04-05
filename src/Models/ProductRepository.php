@@ -102,43 +102,105 @@ class ProductRepository
         return $products;
     }
 
-    public function findActiveById(int $id): ?array
+    public function findActiveBySlug(string $slug): ?array
     {
         $productStmt = $this->pdo->prepare("
-            SELECT 
-                p.id,
-                p.name,
-                p.description,
-                pi.image_url
-            FROM products p
-            LEFT JOIN product_images pi
-                ON pi.product_id = p.id
-                AND pi.position = 0
-            WHERE p.id = :id
-              AND p.deleted_at IS NULL
-            LIMIT 1
-        ");
+        SELECT
+            p.id,
+            p.name,
+            p.slug,
+            p.description,
+            p.gender,
+            b.name AS brand_name,
+            ft.name AS fragrance_type_name,
+            pi.image_url
+        FROM products p
+        INNER JOIN brands b ON b.id = p.brand_id
+        LEFT JOIN fragrance_types ft ON ft.id = p.fragrance_type_id
+        LEFT JOIN product_images pi
+            ON pi.product_id = p.id
+            AND pi.position = 0
+        WHERE p.slug = :slug
+          AND p.deleted_at IS NULL
+        LIMIT 1
+    ");
 
-        $productStmt->execute(['id' => $id]);
-        $product = $productStmt->fetch();
+        $productStmt->execute([
+            'slug' => $slug,
+        ]);
+
+        $product = $productStmt->fetch(PDO::FETCH_ASSOC);
 
         if (! $product) {
             return null;
         }
 
         $variantStmt = $this->pdo->prepare("
-            SELECT
-                v.id,
-                v.size_ml,
-                v.price,
-                v.stock
-            FROM product_variants v
-            WHERE v.product_id = :id
-            ORDER BY v.price ASC
-        ");
+        SELECT
+            v.id,
+            v.size_ml,
+            v.price,
+            v.stock
+        FROM product_variants v
+        WHERE v.product_id = :product_id
+        ORDER BY v.price ASC
+    ");
 
-        $variantStmt->execute(['id' => $id]);
-        $product['variants'] = $variantStmt->fetchAll();
+        $variantStmt->execute([
+            'product_id' => $product['id'],
+        ]);
+
+        $product['variants'] = $variantStmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $categoryStmt = $this->pdo->prepare("
+        SELECT
+            c.id,
+            c.name
+        FROM product_categories pc
+        INNER JOIN categories c ON c.id = pc.category_id
+        WHERE pc.product_id = :product_id
+        ORDER BY c.name ASC
+    ");
+
+        $categoryStmt->execute([
+            'product_id' => $product['id'],
+        ]);
+
+        $product['categories'] = $categoryStmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $noteStmt = $this->pdo->prepare("
+        SELECT
+            n.id,
+            n.name,
+            n.image_url,
+            pn.note_type
+        FROM product_notes pn
+        INNER JOIN notes n ON n.id = pn.note_id
+        WHERE pn.product_id = :product_id
+        ORDER BY
+            FIELD(pn.note_type, 'top', 'middle', 'base'),
+            n.name ASC
+    ");
+
+        $noteStmt->execute([
+            'product_id' => $product['id'],
+        ]);
+
+        $notes = $noteStmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $product['notes'] = [
+            'top' => [],
+            'middle' => [],
+            'base' => [],
+        ];
+
+        foreach ($notes as $note) {
+            $type = $note['note_type'];
+
+            if (isset($product['notes'][$type])) {
+                $product['notes'][$type][] = $note;
+            }
+        }
 
         return $product;
     }

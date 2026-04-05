@@ -25,7 +25,7 @@ return [
     ['GET', '/products', [ProductController::class, 'index']],
 
     // Product details page
-    ['GET', '/product/{id}', [ProductController::class, 'show']],
+    ['GET', '/products/{slug}', [ProductController::class, 'show']],
 
     // Cart page
     ['GET', '/cart', [CartController::class, 'index']],

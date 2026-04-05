@@ -91,7 +91,7 @@
     <section class="products-grid">
         <?php foreach ($products as $product): ?>
             <article class="product-card">
-                <a href="/product/<?= htmlspecialchars((string) $product['id']) ?>" class="product-card-link">
+                <a href="/products/<?= htmlspecialchars($product['slug']) ?>" class="product-card-link">
                     <div class="product-card-media">
                         <?php if (!empty($product['image_url'])): ?>
                             <img

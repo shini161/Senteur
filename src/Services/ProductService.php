@@ -17,9 +17,9 @@ class ProductService
         return $this->productRepository->findAllActive($filters);
     }
 
-    public function getById(int $id): ?array
+    public function getBySlug(string $slug): ?array
     {
-        return $this->productRepository->findActiveById($id);
+        return $this->productRepository->findActiveBySlug($slug);
     }
 
     public function getPublicFilterMeta(): array

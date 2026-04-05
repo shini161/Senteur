@@ -13,7 +13,13 @@
 
     <div class="product-show-panel">
         <div class="product-meta-line">
-            <span class="badge">Perfume</span>
+            <span class="badge"><?= htmlspecialchars($product['brand_name']) ?></span>
+
+            <?php if (!empty($product['fragrance_type_name'])): ?>
+                <span class="badge"><?= htmlspecialchars($product['fragrance_type_name']) ?></span>
+            <?php endif; ?>
+
+            <span class="badge"><?= htmlspecialchars(ucfirst($product['gender'])) ?></span>
             <span class="badge"><?= count($product['variants'] ?? []) ?> variants</span>
         </div>
 
@@ -25,6 +31,47 @@
             </p>
         <?php else: ?>
             <p class="product-description">No description available yet.</p>
+        <?php endif; ?>
+
+        <?php if (!empty($product['categories'])): ?>
+            <h2>Categories</h2>
+            <div class="product-meta-line">
+                <?php foreach ($product['categories'] as $category): ?>
+                    <span class="badge"><?= htmlspecialchars($category['name']) ?></span>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
+
+        <?php if (
+            !empty($product['notes']['top']) ||
+            !empty($product['notes']['middle']) ||
+            !empty($product['notes']['base'])
+        ): ?>
+            <h2>Scent profile</h2>
+
+            <?php if (!empty($product['notes']['top'])): ?>
+                <p><strong>Top notes:</strong>
+                    <?php foreach ($product['notes']['top'] as $index => $note): ?>
+                        <?= $index > 0 ? ', ' : '' ?><?= htmlspecialchars($note['name']) ?>
+                    <?php endforeach; ?>
+                </p>
+            <?php endif; ?>
+
+            <?php if (!empty($product['notes']['middle'])): ?>
+                <p><strong>Middle notes:</strong>
+                    <?php foreach ($product['notes']['middle'] as $index => $note): ?>
+                        <?= $index > 0 ? ', ' : '' ?><?= htmlspecialchars($note['name']) ?>
+                    <?php endforeach; ?>
+                </p>
+            <?php endif; ?>
+
+            <?php if (!empty($product['notes']['base'])): ?>
+                <p><strong>Base notes:</strong>
+                    <?php foreach ($product['notes']['base'] as $index => $note): ?>
+                        <?= $index > 0 ? ', ' : '' ?><?= htmlspecialchars($note['name']) ?>
+                    <?php endforeach; ?>
+                </p>
+            <?php endif; ?>
         <?php endif; ?>
 
         <h2>Available variants</h2>

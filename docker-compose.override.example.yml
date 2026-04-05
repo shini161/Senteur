@@ -3,13 +3,19 @@ services:
     volumes:
       - ./:/var/www:z
       - /var/www/vendor
+      - product_uploads:/var/www/public/uploads:z
 
   nginx:
     volumes:
       - ./:/var/www:z
+      - product_uploads:/var/www/public/uploads:ro,z
       - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro,z
 
   mysql:
     volumes:
       - mysql_data:/var/lib/mysql:z
       - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro,z
+
+volumes:
+  mysql_data:
+  product_uploads:
