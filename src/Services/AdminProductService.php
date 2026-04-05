@@ -67,6 +67,60 @@ class AdminProductService
         );
     }
 
+    public function uploadPrimaryImage(int $productId, array $file): void
+    {
+        $product = $this->productRepository->findByIdForAdmin($productId);
+
+        if ($product === null) {
+            throw new RuntimeException('Product not found.');
+        }
+
+        if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
+            throw new RuntimeException('Image upload failed.');
+        }
+
+        $tmpPath = (string) ($file['tmp_name'] ?? '');
+        $originalName = (string) ($file['name'] ?? '');
+
+        if ($tmpPath === '' || !is_uploaded_file($tmpPath)) {
+            throw new RuntimeException('Invalid uploaded image.');
+        }
+
+        $mimeType = mime_content_type($tmpPath) ?: '';
+
+        $extension = match ($mimeType) {
+            'image/jpeg' => 'jpg',
+            'image/png' => 'png',
+            'image/webp' => 'webp',
+            default => null,
+        };
+
+        if ($extension === null) {
+            throw new RuntimeException('Only JPG, PNG, and WEBP images are allowed.');
+        }
+
+        if (($file['size'] ?? 0) > 5 * 1024 * 1024) {
+            throw new RuntimeException('Image must be 5MB or smaller.');
+        }
+
+        $uploadDir = dirname(__DIR__, 2) . '/public/uploads/products';
+
+        if (!is_dir($uploadDir) && !mkdir($uploadDir, 0775, true) && !is_dir($uploadDir)) {
+            throw new RuntimeException('Failed to create upload directory.');
+        }
+
+        $safeBaseName = bin2hex(random_bytes(12));
+        $filename = 'product-' . $productId . '-' . $safeBaseName . '.' . $extension;
+        $destination = $uploadDir . '/' . $filename;
+
+        if (!move_uploaded_file($tmpPath, $destination)) {
+            throw new RuntimeException('Failed to save uploaded image.');
+        }
+
+        $imageUrl = 'uploads/products/' . $filename;
+        $this->productRepository->replacePrimaryImage($productId, $imageUrl);
+    }
+
     private function normalizeAndValidate(array $data): array
     {
         $product = [

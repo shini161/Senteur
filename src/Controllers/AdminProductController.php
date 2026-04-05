@@ -93,6 +93,7 @@ class AdminProductController extends Controller
         $this->render('admin/products/edit', [
             'title' => 'Edit Product',
             'error' => null,
+            'imageError' => null,
             'product' => $product,
             'brands' => $meta['brands'],
             'fragranceTypes' => $meta['fragranceTypes'],
@@ -129,13 +130,54 @@ class AdminProductController extends Controller
                 'slug' => $_POST['slug'] ?? '',
                 'description' => $_POST['description'] ?? '',
                 'gender' => $_POST['gender'] ?? '',
+                'image_url' => $product['image_url'] ?? null,
                 'variants' => $_POST['variants'] ?? [],
             ];
 
             $this->render('admin/products/edit', [
                 'title' => 'Edit Product',
                 'error' => $e->getMessage(),
+                'imageError' => null,
                 'product' => $fallbackProduct,
+                'brands' => $meta['brands'],
+                'fragranceTypes' => $meta['fragranceTypes'],
+                'genders' => $meta['genders'],
+            ]);
+        }
+    }
+
+    public function uploadImage(string $id): void
+    {
+        Auth::requireAdmin();
+
+        if (! Csrf::verify($_POST['_csrf'] ?? null)) {
+            http_response_code(403);
+            echo 'Invalid CSRF token';
+            return;
+        }
+
+        $productId = (int) $id;
+
+        try {
+            $this->adminProductService->uploadPrimaryImage($productId, $_FILES['image'] ?? []);
+
+            header('Location: /admin/products/' . $productId . '/edit');
+            exit;
+        } catch (RuntimeException $e) {
+            $product = $this->adminProductService->getProductById($productId);
+            $meta = $this->adminProductService->getFormMeta();
+
+            if ($product === null) {
+                http_response_code(404);
+                echo 'Product not found';
+                return;
+            }
+
+            $this->render('admin/products/edit', [
+                'title' => 'Edit Product',
+                'error' => null,
+                'imageError' => $e->getMessage(),
+                'product' => $product,
                 'brands' => $meta['brands'],
                 'fragranceTypes' => $meta['fragranceTypes'],
                 'genders' => $meta['genders'],

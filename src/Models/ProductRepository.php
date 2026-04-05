@@ -26,11 +26,15 @@ class ProductRepository
                 p.slug,
                 MIN(v.price) AS price,
                 COUNT(v.id) AS variant_count,
-                COALESCE(SUM(CASE WHEN v.stock > 0 THEN 1 ELSE 0 END), 0) AS in_stock_variant_count
+                COALESCE(SUM(CASE WHEN v.stock > 0 THEN 1 ELSE 0 END), 0) AS in_stock_variant_count,
+                pi.image_url
             FROM products p
             LEFT JOIN product_variants v ON v.product_id = p.id
+            LEFT JOIN product_images pi
+                ON pi.product_id = p.id
+                AND pi.position = 0
             WHERE p.deleted_at IS NULL
-            GROUP BY p.id, p.name, p.slug
+            GROUP BY p.id, p.name, p.slug, pi.image_url
             ORDER BY p.id DESC
         ");
 
@@ -51,8 +55,12 @@ class ProductRepository
             SELECT 
                 p.id,
                 p.name,
-                p.description
+                p.description,
+                pi.image_url
             FROM products p
+            LEFT JOIN product_images pi
+                ON pi.product_id = p.id
+                AND pi.position = 0
             WHERE p.id = :id
               AND p.deleted_at IS NULL
             LIMIT 1
@@ -96,11 +104,15 @@ class ProductRepository
                 COUNT(v.id) AS variant_count,
                 COALESCE(SUM(v.stock), 0) AS total_stock,
                 MIN(v.price) AS min_price,
-                MAX(v.price) AS max_price
+                MAX(v.price) AS max_price,
+                pi.image_url
             FROM products p
             INNER JOIN brands b ON b.id = p.brand_id
             LEFT JOIN fragrance_types ft ON ft.id = p.fragrance_type_id
             LEFT JOIN product_variants v ON v.product_id = p.id
+            LEFT JOIN product_images pi
+                ON pi.product_id = p.id
+                AND pi.position = 0
             GROUP BY
                 p.id,
                 p.name,
@@ -108,7 +120,8 @@ class ProductRepository
                 p.gender,
                 p.deleted_at,
                 b.name,
-                ft.name
+                ft.name,
+                pi.image_url
             ORDER BY p.id DESC
         ");
 
@@ -126,8 +139,12 @@ class ProductRepository
                 p.slug,
                 p.description,
                 p.gender,
-                p.deleted_at
+                p.deleted_at,
+                pi.image_url
             FROM products p
+            LEFT JOIN product_images pi
+                ON pi.product_id = p.id
+                AND pi.position = 0
             WHERE p.id = :id
             LIMIT 1
         ");
@@ -295,6 +312,36 @@ class ProductRepository
         $stmt->execute($params);
 
         return (bool) $stmt->fetchColumn();
+    }
+
+    public function replacePrimaryImage(int $productId, string $imageUrl): void
+    {
+        $deleteStmt = $this->pdo->prepare("
+            DELETE FROM product_images
+            WHERE product_id = :product_id
+              AND position = 0
+        ");
+
+        $deleteStmt->execute([
+            'product_id' => $productId,
+        ]);
+
+        $insertStmt = $this->pdo->prepare("
+            INSERT INTO product_images (
+                product_id,
+                image_url,
+                position
+            ) VALUES (
+                :product_id,
+                :image_url,
+                0
+            )
+        ");
+
+        $insertStmt->execute([
+            'product_id' => $productId,
+            'image_url' => $imageUrl,
+        ]);
     }
 
     private function replaceVariants(int $productId, array $variants): void

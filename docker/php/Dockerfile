@@ -6,7 +6,8 @@ RUN apt-get update && apt-get install -y \
     git \
     unzip \
     zip \
-    curl
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
 RUN docker-php-ext-install pdo pdo_mysql
 
@@ -17,3 +18,7 @@ COPY composer.json composer.lock ./
 RUN composer install --no-interaction --prefer-dist --optimize-autoloader
 
 COPY . .
+
+RUN mkdir -p /var/www/public/uploads/products \
+    && chown -R www-data:www-data /var/www/public/uploads \
+    && chmod -R 775 /var/www/public/uploads

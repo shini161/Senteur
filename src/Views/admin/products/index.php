@@ -1,5 +1,6 @@
 <section class="auth-page">
     <div class="auth-card" style="max-width: 1200px;">
+        <p class="section-kicker">Admin</p>
         <h1>Products</h1>
         <p class="auth-subtitle">Manage catalog products.</p>
 
@@ -8,42 +9,57 @@
         </p>
 
         <?php if ($products === []): ?>
-            <p>No products found.</p>
+            <div class="empty-state">
+                <p>No products found.</p>
+            </div>
         <?php else: ?>
-            <div style="overflow-x:auto;">
-                <table style="width:100%; border-collapse: collapse;">
+            <div class="admin-table-wrap">
+                <table class="admin-table">
                     <thead>
                         <tr>
-                            <th style="text-align:left; padding: 0.75rem;">ID</th>
-                            <th style="text-align:left; padding: 0.75rem;">Name</th>
-                            <th style="text-align:left; padding: 0.75rem;">Brand</th>
-                            <th style="text-align:left; padding: 0.75rem;">Type</th>
-                            <th style="text-align:left; padding: 0.75rem;">Gender</th>
-                            <th style="text-align:left; padding: 0.75rem;">Variants</th>
-                            <th style="text-align:left; padding: 0.75rem;">Stock</th>
-                            <th style="text-align:left; padding: 0.75rem;">Price range</th>
-                            <th style="text-align:left; padding: 0.75rem;">Action</th>
+                            <th>ID</th>
+                            <th>Preview</th>
+                            <th>Name</th>
+                            <th>Brand</th>
+                            <th>Type</th>
+                            <th>Gender</th>
+                            <th>Variants</th>
+                            <th>Stock</th>
+                            <th>Price range</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php foreach ($products as $product): ?>
                             <tr>
-                                <td style="padding: 0.75rem;"><?= (int) $product['id'] ?></td>
-                                <td style="padding: 0.75rem;">
+                                <td><?= (int) $product['id'] ?></td>
+                                <td>
+                                    <?php if (!empty($product['image_url'])): ?>
+                                        <img
+                                            src="/<?= htmlspecialchars($product['image_url']) ?>"
+                                            alt="<?= htmlspecialchars($product['name']) ?>"
+                                            style="width: 56px; height: 56px; object-fit: cover; border-radius: 10px; border: 1px solid #e5e8e2;">
+                                    <?php else: ?>
+                                        <div style="width: 56px; height: 56px; border-radius: 10px; border: 1px solid #e5e8e2; display:grid; place-items:center; color:#667067; font-size:0.7rem;">
+                                            No image
+                                        </div>
+                                    <?php endif; ?>
+                                </td>
+                                <td>
                                     <?= htmlspecialchars($product['name']) ?><br>
                                     <small><?= htmlspecialchars($product['slug']) ?></small>
                                 </td>
-                                <td style="padding: 0.75rem;"><?= htmlspecialchars($product['brand_name']) ?></td>
-                                <td style="padding: 0.75rem;"><?= htmlspecialchars((string) ($product['fragrance_type_name'] ?? '')) ?></td>
-                                <td style="padding: 0.75rem;"><?= htmlspecialchars($product['gender']) ?></td>
-                                <td style="padding: 0.75rem;"><?= (int) $product['variant_count'] ?></td>
-                                <td style="padding: 0.75rem;"><?= (int) $product['total_stock'] ?></td>
-                                <td style="padding: 0.75rem;">
+                                <td><?= htmlspecialchars($product['brand_name']) ?></td>
+                                <td><?= htmlspecialchars((string) ($product['fragrance_type_name'] ?? '')) ?></td>
+                                <td><?= htmlspecialchars($product['gender']) ?></td>
+                                <td><?= (int) $product['variant_count'] ?></td>
+                                <td><?= (int) $product['total_stock'] ?></td>
+                                <td>
                                     €<?= number_format((float) $product['min_price'], 2) ?>
                                     —
                                     €<?= number_format((float) $product['max_price'], 2) ?>
                                 </td>
-                                <td style="padding: 0.75rem;">
+                                <td>
                                     <a href="/admin/products/<?= (int) $product['id'] ?>/edit">Edit</a>
                                 </td>
                             </tr>

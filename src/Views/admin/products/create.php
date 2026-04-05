@@ -1,5 +1,6 @@
 <section class="auth-page">
     <div class="auth-card" style="max-width: 900px;">
+        <p class="section-kicker">Admin</p>
         <h1>Create Product</h1>
         <p class="auth-subtitle">Add a new catalog product.</p>
 

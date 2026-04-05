@@ -12,8 +12,6 @@
 <body>
     <header class="site-header">
         <nav class="navbar">
-
-            <!-- LEFT: LOGO -->
             <div class="nav-left">
                 <a href="/" class="logo">
                     <?php require __DIR__ . '/../../../public/assets/images/logo.svg'; ?>
@@ -21,53 +19,41 @@
                 </a>
             </div>
 
-            <!-- CENTER: MAIN NAV LINKS -->
             <div class="nav-center">
                 <a href="/products">Shop</a>
-                <a href="/categories">Categories</a>
+                <?php if ($user && ($user['role'] ?? '') === 'admin'): ?>
+                    <a href="/admin/orders">Admin</a>
+                <?php endif; ?>
             </div>
 
-            <!-- RIGHT: SEARCH + USER ACTIONS -->
             <div class="nav-right">
-
-                <!-- SEARCH -->
                 <form method="GET" action="/products" class="search-form">
-                    <input type="text" name="search" placeholder="Search...">
+                    <input
+                        type="text"
+                        name="search"
+                        placeholder="Search perfumes..."
+                        value="<?= htmlspecialchars($_GET['search'] ?? '') ?>">
                 </form>
 
-                <!-- AUTH-DEPENDENT LINKS -->
                 <?php if ($user): ?>
-
-                    <!-- LOGGED-IN USER -->
                     <a href="/cart">Cart</a>
                     <a href="/profile">Profile</a>
+                    <span class="nav-user"><?= htmlspecialchars($user['username']) ?></span>
 
-                    <!-- OPTIONAL: USERNAME -->
-                    <span>
-                        <?= htmlspecialchars($user['username']) ?>
-                    </span>
-
-                    <!-- LOGOUT -->
-                    <form method="POST" action="/logout" style="display:inline;">
+                    <form method="POST" action="/logout" class="inline-form">
                         <?= \App\Core\Csrf::input() ?>
-                        <button type="submit">Logout</button>
+                        <button type="submit" class="button-secondary">Logout</button>
                     </form>
-
                 <?php else: ?>
-
-                    <!-- GUEST -->
-                    <a href="/login">Login</a>
-
+                    <a href="/login" class="button-secondary">Login</a>
                 <?php endif; ?>
             </div>
         </nav>
     </header>
 
-    <!-- MAIN CONTENT -->
     <main>
         <?= $content ?? '' ?>
     </main>
-
 </body>
 
 </html>
