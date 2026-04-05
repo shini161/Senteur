@@ -54,6 +54,25 @@
     <main>
         <?= $content ?? '' ?>
     </main>
+
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <div class="footer-left">
+                <strong>Senteur</strong>
+                <p class="muted">A clean fragrance storefront built with PHP, MySQL, Docker, and Stripe.</p>
+            </div>
+
+            <div class="footer-links">
+                <a href="/products">Shop</a>
+                <a href="https://github.com/yourusername/senteur" target="_blank">GitHub</a>
+                <a href="https://linkedin.com/in/yourprofile" target="_blank">LinkedIn</a>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <span>© <?= date('Y') ?> Senteur</span>
+        </div>
+    </footer>
 </body>
 
 </html>
