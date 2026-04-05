@@ -41,6 +41,8 @@ CREATE TABLE products (
     brand_id INT NOT NULL,
     fragrance_type_id INT NULL,
 
+    family_name VARCHAR(150) NULL,
+
     name VARCHAR(150) NOT NULL,
     slug VARCHAR(180) UNIQUE NOT NULL,
     description TEXT,
@@ -251,6 +253,7 @@ CREATE TABLE cart_items (
 CREATE INDEX idx_products_gender ON products(gender);
 CREATE INDEX idx_products_brand_gender ON products(brand_id, gender);
 CREATE INDEX idx_products_fragrance_type ON products(fragrance_type_id);
+CREATE INDEX idx_products_family_name ON products(family_name);
 
 CREATE INDEX idx_variants_price ON product_variants(price);
 CREATE INDEX idx_variants_stock ON product_variants(stock);

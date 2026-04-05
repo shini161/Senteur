@@ -126,6 +126,7 @@ class AdminProductController extends Controller
                 'id' => $productId,
                 'brand_id' => $_POST['brand_id'] ?? '',
                 'fragrance_type_id' => $_POST['fragrance_type_id'] ?? '',
+                'family_name' => $_POST['family_name'] ?? '',
                 'name' => $_POST['name'] ?? '',
                 'slug' => $_POST['slug'] ?? '',
                 'description' => $_POST['description'] ?? '',

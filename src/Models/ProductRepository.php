@@ -107,6 +107,7 @@ class ProductRepository
         $productStmt = $this->pdo->prepare("
         SELECT
             p.id,
+            p.family_name,
             p.name,
             p.slug,
             p.description,
@@ -202,6 +203,31 @@ class ProductRepository
             }
         }
 
+        $product['related_family_products'] = [];
+
+        if (!empty($product['family_name'])) {
+            $relatedStmt = $this->pdo->prepare("
+                SELECT
+                    p.id,
+                    p.name,
+                    p.slug,
+                    ft.name AS fragrance_type_name
+                FROM products p
+                LEFT JOIN fragrance_types ft ON ft.id = p.fragrance_type_id
+                WHERE p.family_name = :family_name
+                  AND p.id != :product_id
+                  AND p.deleted_at IS NULL
+                ORDER BY p.name ASC
+            ");
+
+            $relatedStmt->execute([
+                'family_name' => $product['family_name'],
+                'product_id' => $product['id'],
+            ]);
+
+            $product['related_family_products'] = $relatedStmt->fetchAll(PDO::FETCH_ASSOC);
+        }
+
         return $product;
     }
 
@@ -250,6 +276,7 @@ class ProductRepository
                 p.id,
                 p.brand_id,
                 p.fragrance_type_id,
+                p.family_name,
                 p.name,
                 p.slug,
                 p.description,
@@ -325,6 +352,7 @@ class ProductRepository
                 INSERT INTO products (
                     brand_id,
                     fragrance_type_id,
+                    family_name,
                     name,
                     slug,
                     description,
@@ -332,6 +360,7 @@ class ProductRepository
                 ) VALUES (
                     :brand_id,
                     :fragrance_type_id,
+                    :family_name,
                     :name,
                     :slug,
                     :description,
@@ -342,6 +371,7 @@ class ProductRepository
             $stmt->execute([
                 'brand_id' => $data['brand_id'],
                 'fragrance_type_id' => $data['fragrance_type_id'] ?: null,
+                'family_name' => $data['family_name'] ?: null,
                 'name' => $data['name'],
                 'slug' => $data['slug'],
                 'description' => $data['description'],
@@ -371,6 +401,7 @@ class ProductRepository
                 SET
                     brand_id = :brand_id,
                     fragrance_type_id = :fragrance_type_id,
+                    family_name = :family_name,
                     name = :name,
                     slug = :slug,
                     description = :description,
@@ -382,6 +413,7 @@ class ProductRepository
                 'id' => $id,
                 'brand_id' => $data['brand_id'],
                 'fragrance_type_id' => $data['fragrance_type_id'] ?: null,
+                'family_name' => $data['family_name'] ?: null,
                 'name' => $data['name'],
                 'slug' => $data['slug'],
                 'description' => $data['description'],

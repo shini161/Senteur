@@ -39,6 +39,17 @@
             <?php endif; ?>
         </p>
 
+        <?php if (!empty($product['related_family_products'])): ?>
+            <h2>Also in this line</h2>
+            <div class="product-meta-line">
+                <?php foreach ($product['related_family_products'] as $relatedProduct): ?>
+                    <a href="/products/<?= htmlspecialchars($relatedProduct['slug']) ?>" class="badge">
+                        <?= htmlspecialchars($relatedProduct['name']) ?>
+                    </a>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
+
         <?php if (!empty($product['categories'])): ?>
             <h2>Categories</h2>
             <div class="product-meta-line">

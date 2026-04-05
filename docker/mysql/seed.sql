@@ -106,22 +106,26 @@ INSERT INTO user_addresses (
 
 -- ======================
 -- PRODUCTS
+-- IMPORTANT:
+-- requires products.family_name column to exist
 -- ======================
 INSERT INTO products (
     id,
     brand_id,
     fragrance_type_id,
+    family_name,
     name,
     slug,
     description,
     gender
 ) VALUES
-(1, 1, 2, 'Dior Sauvage', 'dior-sauvage', 'Fresh spicy fragrance with bergamot, pepper and ambroxan.', 'male'),
-(2, 2, 2, 'Bleu de Chanel', 'bleu-de-chanel', 'Woody aromatic fragrance with citrus, incense and cedar.', 'male'),
-(3, 3, 2, 'YSL Libre', 'ysl-libre', 'Floral lavender perfume with vanilla and musk.', 'female'),
-(4, 4, 3, 'Creed Aventus', 'creed-aventus', 'Fruity smoky fragrance with pineapple, birch and musk.', 'male'),
-(5, 5, 3, 'Tom Ford Oud Wood', 'tom-ford-oud-wood', 'Warm woody fragrance with oud, vanilla and spices.', 'unisex'),
-(6, 6, 2, 'Baccarat Rouge 540', 'baccarat-rouge-540', 'Amber floral fragrance with jasmine, saffron and cedar.', 'unisex');
+(1, 1, 2, 'Dior Sauvage', 'Dior Sauvage Eau de Parfum', 'dior-sauvage-edp', 'Fresh spicy fragrance with bergamot, pepper and ambroxan.', 'male'),
+(2, 2, 2, 'Bleu de Chanel', 'Bleu de Chanel Eau de Parfum', 'bleu-de-chanel-edp', 'Woody aromatic fragrance with citrus, incense and cedar.', 'male'),
+(3, 3, 2, 'YSL Libre', 'YSL Libre Eau de Parfum', 'ysl-libre-edp', 'Floral lavender perfume with vanilla and musk.', 'female'),
+(4, 4, 3, 'Creed Aventus', 'Creed Aventus Parfum', 'creed-aventus-parfum', 'Fruity smoky fragrance with pineapple, birch and musk.', 'male'),
+(5, 5, 3, 'Tom Ford Oud Wood', 'Tom Ford Oud Wood Parfum', 'tom-ford-oud-wood-parfum', 'Warm woody fragrance with oud, vanilla and spices.', 'unisex'),
+(6, 6, 2, 'Baccarat Rouge 540', 'Baccarat Rouge 540 Eau de Parfum', 'baccarat-rouge-540-edp', 'Amber floral fragrance with jasmine, saffron and cedar.', 'unisex'),
+(7, 6, 3, 'Baccarat Rouge 540', 'Baccarat Rouge 540 Extrait de Parfum', 'baccarat-rouge-540-extrait', 'A richer and denser Baccarat Rouge 540 interpretation with deeper amber and musk facets.', 'unisex');
 
 -- ======================
 -- PRODUCT VARIANTS
@@ -149,7 +153,10 @@ INSERT INTO product_variants (
 (10, 5, 100, 305.00, 8),
 
 (11, 6, 70, 245.00, 12),
-(12, 6, 200, 430.00, 5);
+(12, 6, 200, 430.00, 5),
+
+(13, 7, 70, 325.00, 10),
+(14, 7, 200, 560.00, 4);
 
 -- ======================
 -- PRODUCT IMAGES
@@ -165,7 +172,8 @@ INSERT INTO product_images (
 (3, 3, 'products/libre.jpg', 0),
 (4, 4, 'products/aventus.jpg', 0),
 (5, 5, 'products/oud-wood.jpg', 0),
-(6, 6, 'products/baccarat-rouge-540.jpg', 0);
+(6, 6, 'products/baccarat-rouge-540.jpg', 0),
+(7, 7, 'products/baccarat-rouge-540-extrait.jpg', 0);
 
 -- ======================
 -- PRODUCT CATEGORIES
@@ -173,18 +181,26 @@ INSERT INTO product_images (
 INSERT INTO product_categories (product_id, category_id) VALUES
 (1, 1),
 (1, 6),
+
 (2, 1),
 (2, 2),
+
 (3, 3),
 (3, 6),
+
 (4, 2),
 (4, 5),
+
 (5, 2),
 (5, 4),
 (5, 5),
+
 (6, 3),
 (6, 4),
-(6, 5);
+(6, 5),
+
+(7, 4),
+(7, 5);
 
 -- ======================
 -- PRODUCT NOTES
@@ -212,7 +228,11 @@ INSERT INTO product_notes (product_id, note_id, note_type) VALUES
 
 (6, 7, 'top'),
 (6, 4, 'middle'),
-(6, 10, 'base');
+(6, 10, 'base'),
+
+(7, 7, 'top'),
+(7, 8, 'middle'),
+(7, 10, 'base');
 
 -- ======================
 -- REVIEWS
@@ -288,16 +308,16 @@ INSERT INTO order_items (
     quantity,
     price_at_purchase
 ) VALUES
-(1, 1, 1, 'Dior Sauvage', 50, 2, 85.00),
-(2, 1, 4, 'Bleu de Chanel', 100, 1, 130.00),
+(1, 1, 1, 'Dior Sauvage Eau de Parfum', 50, 2, 85.00),
+(2, 1, 4, 'Bleu de Chanel Eau de Parfum', 100, 1, 130.00),
 
-(3, 2, 11, 'Baccarat Rouge 540', 70, 1, 245.00),
+(3, 2, 11, 'Baccarat Rouge 540 Eau de Parfum', 70, 1, 245.00),
 
-(4, 3, 9, 'Tom Ford Oud Wood', 50, 1, 210.00),
+(4, 3, 9, 'Tom Ford Oud Wood Parfum', 50, 1, 210.00),
 
-(5, 4, 12, 'Baccarat Rouge 540', 200, 1, 430.00),
+(5, 4, 12, 'Baccarat Rouge 540 Eau de Parfum', 200, 1, 430.00),
 
-(6, 5, 5, 'YSL Libre', 50, 1, 95.00);
+(6, 5, 5, 'YSL Libre Eau de Parfum', 50, 1, 95.00);
 
 -- ======================
 -- PAYMENTS

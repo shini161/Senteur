@@ -39,6 +39,16 @@ $variants = $formData['variants'] ?? [
 </div>
 
 <div class="form-group">
+    <label for="family_name">Product line / family</label>
+    <input
+        id="family_name"
+        name="family_name"
+        type="text"
+        value="<?= htmlspecialchars((string) ($formData['family_name'] ?? '')) ?>"
+        placeholder="e.g. Baccarat Rouge 540">
+</div>
+
+<div class="form-group">
     <label for="name">Name</label>
     <input
         id="name"

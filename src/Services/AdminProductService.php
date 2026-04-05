@@ -126,6 +126,7 @@ class AdminProductService
         $product = [
             'brand_id' => (int) ($data['brand_id'] ?? 0),
             'fragrance_type_id' => ($data['fragrance_type_id'] ?? '') !== '' ? (int) $data['fragrance_type_id'] : null,
+            'family_name' => trim((string) ($data['family_name'] ?? '')),
             'name' => trim((string) ($data['name'] ?? '')),
             'slug' => trim((string) ($data['slug'] ?? '')),
             'description' => trim((string) ($data['description'] ?? '')),
