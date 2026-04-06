@@ -35,6 +35,23 @@ $renderStars = static function (int $rating): string {
     return $html;
 };
 
+$renderAverageStars = static function (float $rating): string {
+    $rating = max(0, min(5, $rating));
+    $html = '';
+
+    for ($i = 1; $i <= 5; $i++) {
+        if ($rating >= $i) {
+            $html .= '<span class="star-full">★</span>';
+        } elseif ($rating >= $i - 0.5) {
+            $html .= '<span class="star-half">★</span>';
+        } else {
+            $html .= '<span class="star-empty">★</span>';
+        }
+    }
+
+    return $html;
+};
+
 $variants = $product['variants'] ?? [];
 $selectedVariant = $variants[0] ?? null;
 $selectedVariantImages = $selectedVariant['images'] ?? [];
@@ -89,9 +106,11 @@ $selectedImage = $selectedVariantImages[0]['image_url'] ?? $selectedVariant['ima
 
         <div class="product-rating-summary">
             <?php if ($reviewSummary['average_rating'] !== null): ?>
-                <span class="product-rating-value"><?= number_format((float) $reviewSummary['average_rating'], 1) ?></span>
-                <span class="review-stars"><?= $renderStars((int) round((float) $reviewSummary['average_rating'])) ?></span>
-                <span class="muted"><?= (int) $reviewSummary['review_count'] ?> review(s)</span>
+                <div class="product-rating-pill">
+                    <span class="product-rating-value"><?= number_format((float) $reviewSummary['average_rating'], 1) ?></span>
+                    <span class="review-stars review-stars-lg"><?= $renderAverageStars((float) $reviewSummary['average_rating']) ?></span>
+                    <span class="muted"><?= (int) $reviewSummary['review_count'] ?> review<?= (int) $reviewSummary['review_count'] === 1 ? '' : 's' ?></span>
+                </div>
             <?php else: ?>
                 <span class="muted">No reviews yet</span>
             <?php endif; ?>
@@ -163,13 +182,20 @@ $selectedImage = $selectedVariantImages[0]['image_url'] ?? $selectedVariant['ima
                     </div>
 
                     <div class="product-purchase-actions">
-                        <input
-                            type="number"
-                            name="quantity"
-                            value="1"
-                            min="1"
-                            max="<?= min((int) $selectedVariant['stock'], 5) ?>"
-                            class="qty-input">
+                        <div class="qty-stepper">
+                            <button type="button" class="qty-btn" data-qty-action="decrease" aria-label="Decrease quantity">−</button>
+
+                            <input
+                                type="number"
+                                name="quantity"
+                                value="1"
+                                min="1"
+                                max="<?= min((int) $selectedVariant['stock'], 5) ?>"
+                                class="qty-input"
+                                inputmode="numeric">
+
+                            <button type="button" class="qty-btn" data-qty-action="increase" aria-label="Increase quantity">+</button>
+                        </div>
 
                         <button type="submit" class="auth-button">Add to cart</button>
                     </div>
@@ -239,34 +265,63 @@ $selectedImage = $selectedVariantImages[0]['image_url'] ?? $selectedVariant['ima
 
     <div class="panel" id="reviews">
         <h2>Reviews</h2>
-        <p class="muted">
-            <?= $reviewSummary['review_count'] ?> review(s)
+        <div class="reviews-overview">
+            <p class="muted">
+                <?= (int) $reviewSummary['review_count'] ?> review<?= (int) $reviewSummary['review_count'] === 1 ? '' : 's' ?>
+            </p>
+
             <?php if ($reviewSummary['average_rating'] !== null): ?>
-                · Average rating: <?= number_format((float) $reviewSummary['average_rating'], 1) ?>/5
+                <div class="reviews-overview-rating">
+                    <span class="product-rating-value"><?= number_format((float) $reviewSummary['average_rating'], 1) ?></span>
+                    <span class="review-stars"><?= $renderAverageStars((float) $reviewSummary['average_rating']) ?></span>
+                </div>
             <?php endif; ?>
-        </p>
+        </div>
 
         <?php if ($canReview): ?>
-            <div class="review-form-wrap">
+            <div class="review-form-wrap is-hidden" id="review-form">
                 <h3><?= $userReview ? 'Update your review' : 'Write a review' ?></h3>
 
                 <form method="POST" action="/products/<?= htmlspecialchars($product['slug']) ?>/reviews" class="auth-form">
                     <?= \App\Core\Csrf::input() ?>
 
                     <div class="form-group">
-                        <label>Rating</label>
+                        <label for="rating-5">Rating</label>
 
-                        <div class="star-rating">
-                            <?php for ($i = 5; $i >= 1; $i--): ?>
-                                <input
-                                    type="radio"
-                                    id="rating-<?= $i ?>"
-                                    name="rating"
-                                    value="<?= $i ?>"
-                                    <?= (string) ($userReview['rating'] ?? '') === (string) $i ? 'checked' : '' ?>
-                                    required>
-                                <label for="rating-<?= $i ?>" title="<?= $i ?>/5">★</label>
-                            <?php endfor; ?>
+                        <div class="review-rating-input" data-rating-widget>
+                            <div class="star-rating" role="radiogroup" aria-label="Rate this perfume">
+                                <?php for ($i = 1; $i <= 5; $i++): ?>
+                                    <input
+                                        type="radio"
+                                        id="rating-<?= $i ?>"
+                                        name="rating"
+                                        value="<?= $i ?>"
+                                        <?= (string) ($userReview['rating'] ?? '') === (string) $i ? 'checked' : '' ?>
+                                        required>
+                                    <label
+                                        for="rating-<?= $i ?>"
+                                        class="star-rating-star"
+                                        data-rating-value="<?= $i ?>"
+                                        title="<?= $i ?>/5"
+                                        aria-label="<?= $i ?> out of 5">
+                                        ★
+                                    </label>
+                                <?php endfor; ?>
+                            </div>
+
+                            <div class="star-rating-meta">
+                                <span class="star-rating-caption" data-rating-caption>
+                                    <?= !empty($userReview['rating'])
+                                        ? match ((int) $userReview['rating']) {
+                                            1 => 'Poor',
+                                            2 => 'Fair',
+                                            3 => 'Good',
+                                            4 => 'Very good',
+                                            5 => 'Excellent',
+                                        }
+                                        : 'Select your rating' ?>
+                                </span>
+                            </div>
                         </div>
                     </div>
 
@@ -311,11 +366,23 @@ $selectedImage = $selectedVariantImages[0]['image_url'] ?? $selectedVariant['ima
                 <?php foreach ($reviews as $review): ?>
                     <article class="panel review-card">
                         <div class="review-card-header">
-                            <strong><?= htmlspecialchars($review['username']) ?></strong>
-                            <span class="muted"><?= htmlspecialchars($formatReviewDate($review['created_at'])) ?></span>
-                        </div>
+                            <div class="review-card-author">
+                                <strong class="review-card-username"><?= htmlspecialchars($review['username']) ?></strong>
 
-                        <p class="review-stars"><?= $renderStars((int) $review['rating']) ?></p>
+                                <div class="review-card-rating-row">
+                                    <span class="review-stars review-stars-md"><?= $renderStars((int) $review['rating']) ?></span>
+                                    <span class="review-card-rating-value"><?= (int) $review['rating'] ?>.0</span>
+                                </div>
+                            </div>
+
+                            <div class="review-card-meta">
+                                <span class="muted review-card-date"><?= htmlspecialchars($formatReviewDate($review['created_at'])) ?></span>
+
+                                <?php if ($userReview && (int) $review['id'] === (int) $userReview['id']): ?>
+                                    <button type="button" class="button-link review-edit-toggle">Edit</button>
+                                <?php endif; ?>
+                            </div>
+                        </div>
 
                         <?php if (!empty($review['title'])): ?>
                             <p><strong><?= htmlspecialchars($review['title']) ?></strong></p>
@@ -420,6 +487,9 @@ $selectedImage = $selectedVariantImages[0]['image_url'] ?? $selectedVariant['ima
         const mainImage = document.getElementById('product-main-image');
         const thumbnailsWrap = document.getElementById('product-thumbnails');
         const quantityInput = document.querySelector('.product-purchase-form input[name="quantity"]');
+        const qtyStepper = document.querySelector('.qty-stepper');
+
+        let clampQuantity = null;
 
         const renderThumbnails = (images) => {
             if (!thumbnailsWrap) {
@@ -455,6 +525,51 @@ $selectedImage = $selectedVariantImages[0]['image_url'] ?? $selectedVariant['ima
             });
         };
 
+        if (qtyStepper && quantityInput) {
+            const decreaseBtn = qtyStepper.querySelector('[data-qty-action="decrease"]');
+            const increaseBtn = qtyStepper.querySelector('[data-qty-action="increase"]');
+
+            clampQuantity = () => {
+                const min = Number(quantityInput.min || 1);
+                const max = Number(quantityInput.max || 1);
+                let value = Number(quantityInput.value || min);
+
+                if (Number.isNaN(value)) {
+                    value = min;
+                }
+
+                value = Math.max(min, Math.min(max, value));
+                quantityInput.value = String(value);
+
+                const disabled = quantityInput.disabled;
+                decreaseBtn.disabled = disabled || value <= min;
+                increaseBtn.disabled = disabled || value >= max;
+            };
+
+            decreaseBtn.addEventListener('click', () => {
+                if (quantityInput.disabled) {
+                    return;
+                }
+
+                quantityInput.stepDown();
+                clampQuantity();
+            });
+
+            increaseBtn.addEventListener('click', () => {
+                if (quantityInput.disabled) {
+                    return;
+                }
+
+                quantityInput.stepUp();
+                clampQuantity();
+            });
+
+            quantityInput.addEventListener('input', clampQuantity);
+            quantityInput.addEventListener('change', clampQuantity);
+
+            clampQuantity();
+        }
+
         variantButtons.forEach((button) => {
             button.addEventListener('click', function() {
                 variantButtons.forEach((item) => item.classList.remove('is-selected'));
@@ -479,6 +594,10 @@ $selectedImage = $selectedVariantImages[0]['image_url'] ?? $selectedVariant['ima
                     }
 
                     quantityInput.disabled = stock <= 0;
+
+                    if (typeof clampQuantity === 'function') {
+                        clampQuantity();
+                    }
                 }
 
                 const images = JSON.parse(button.dataset.images || '[]');
@@ -509,6 +628,70 @@ $selectedImage = $selectedVariantImages[0]['image_url'] ?? $selectedVariant['ima
                     });
 
                     thumb.classList.add('is-active');
+                });
+            });
+        }
+
+        const ratingWidget = document.querySelector('[data-rating-widget]');
+
+        if (ratingWidget) {
+            const stars = Array.from(ratingWidget.querySelectorAll('.star-rating-star'));
+            const inputs = Array.from(ratingWidget.querySelectorAll('input[name="rating"]'));
+            const caption = ratingWidget.querySelector('[data-rating-caption]');
+
+            const labels = {
+                1: 'Poor',
+                2: 'Fair',
+                3: 'Good',
+                4: 'Very good',
+                5: 'Excellent'
+            };
+
+            const getCheckedValue = () => {
+                const checked = inputs.find((input) => input.checked);
+                return checked ? Number(checked.value) : 0;
+            };
+
+            const paintStars = (value) => {
+                stars.forEach((star) => {
+                    const starValue = Number(star.dataset.ratingValue);
+                    star.classList.toggle('is-active', starValue <= value);
+                });
+
+                if (caption) {
+                    caption.textContent = value > 0 ? labels[value] : 'Select your rating';
+                }
+            };
+
+            paintStars(getCheckedValue());
+
+            stars.forEach((star) => {
+                const value = Number(star.dataset.ratingValue);
+
+                star.addEventListener('mouseenter', () => paintStars(value));
+                star.addEventListener('click', () => paintStars(value));
+            });
+
+            ratingWidget.querySelector('.star-rating')?.addEventListener('mouseleave', () => {
+                paintStars(getCheckedValue());
+            });
+
+            inputs.forEach((input) => {
+                input.addEventListener('change', () => {
+                    paintStars(Number(input.value));
+                });
+            });
+        }
+
+        const editBtn = document.querySelector('.review-edit-toggle');
+        const reviewForm = document.getElementById('review-form');
+
+        if (editBtn && reviewForm) {
+            editBtn.addEventListener('click', () => {
+                reviewForm.classList.toggle('is-hidden');
+                reviewForm.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
                 });
             });
         }
