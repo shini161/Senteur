@@ -103,7 +103,7 @@
                     </div>
 
                     <div class="product-card-body">
-                        <div class="product-meta-line" style="margin-bottom: 0.7rem;">
+                        <div class="product-card-badges">
                             <span class="badge"><?= htmlspecialchars($product['brand_name']) ?></span>
                             <?php if (!empty($product['fragrance_type_name'])): ?>
                                 <span class="badge"><?= htmlspecialchars($product['fragrance_type_name']) ?></span>
