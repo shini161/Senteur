@@ -23,7 +23,7 @@
             <p>No featured products available yet.</p>
         </div>
     <?php else: ?>
-        <section class="products-grid">
+        <section class="home-featured-grid">
             <?php foreach ($featuredProducts as $product): ?>
                 <article class="product-card">
                     <a href="/products/<?= htmlspecialchars($product['slug']) ?>" class="product-card-link">
@@ -70,7 +70,7 @@
         <h2 style="margin-top: 0;">Shop by style</h2>
     </div>
 
-    <div class="products-grid" style="grid-template-columns: repeat(4, minmax(0, 1fr));">
+    <div class="home-collections-grid">
         <?php foreach ($collections as $collection): ?>
             <article class="panel">
                 <h2 style="margin-top: 0;"><?= htmlspecialchars($collection['title']) ?></h2>
@@ -87,7 +87,7 @@
         <h2 style="margin-top: 0;">A cleaner fragrance shopping experience</h2>
     </div>
 
-    <div style="display:grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem;">
+    <div class="home-why-grid">
         <div>
             <h2 style="margin-top: 0;">Curated catalogue</h2>
             <p class="muted">Structured product pages with variants, notes, and richer perfume details.</p>

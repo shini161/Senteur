@@ -2,91 +2,104 @@
 
 declare(strict_types=1);
 
-namespace App\Services;
+namespace App\Models;
 
-use App\Models\CartRepository;
+use App\Core\Database;
+use PDO;
+use RuntimeException;
 
-class CartService
+class CartRepository
 {
     public function __construct(
-        private CartRepository $cartRepository
+        private ?PDO $pdo = null
     ) {
-        if (! isset($_SESSION['cart'])) {
-            $_SESSION['cart'] = [];
-        }
+        $this->pdo ??= Database::getConnection();
     }
 
-    public function addItem(int $variantId, int $quantity): void
+    public function findVariantStock(int $variantId): ?int
     {
-        $stock = $this->cartRepository->findVariantStock($variantId);
+        $stmt = $this->pdo->prepare("
+            SELECT stock
+            FROM product_variants
+            WHERE id = :id
+            LIMIT 1
+        ");
 
-        if ($stock === null) {
-            return;
-        }
+        $stmt->execute([
+            'id' => $variantId,
+        ]);
 
-        $currentQuantity = $_SESSION['cart'][$variantId] ?? 0;
-        $newQuantity = $currentQuantity + $quantity;
+        $stock = $stmt->fetchColumn();
 
-        $_SESSION['cart'][$variantId] = min($newQuantity, $stock);
+        return $stock === false ? null : (int) $stock;
     }
 
-    public function updateItem(int $variantId, int $quantity): void
+    public function findItemsByVariantIds(array $variantIds): array
     {
-        if ($quantity <= 0) {
-            $this->removeItem($variantId);
-            return;
-        }
-
-        $stock = $this->cartRepository->findVariantStock($variantId);
-
-        if ($stock === null) {
-            return;
-        }
-
-        $_SESSION['cart'][$variantId] = min($quantity, $stock);
-    }
-
-    public function removeItem(int $variantId): void
-    {
-        unset($_SESSION['cart'][$variantId]);
-    }
-
-    public function clear(): void
-    {
-        $_SESSION['cart'] = [];
-    }
-
-    public function getItems(): array
-    {
-        $cart = $_SESSION['cart'] ?? [];
-
-        if ($cart === []) {
+        if ($variantIds === []) {
             return [];
         }
 
-        $items = $this->cartRepository->findItemsByVariantIds(array_keys($cart));
+        $placeholders = implode(',', array_fill(0, count($variantIds), '?'));
 
-        foreach ($items as &$item) {
-            $quantity = (int) ($cart[$item['variant_id']] ?? 0);
-            $price = (float) $item['price'];
+        $stmt = $this->pdo->prepare("
+            SELECT
+                v.id AS variant_id,
+                v.size_ml,
+                v.price,
+                v.stock,
+                p.id AS product_id,
+                p.name AS product_name,
+                pi.image_url
+            FROM product_variants v
+            INNER JOIN products p ON p.id = v.product_id
+            LEFT JOIN product_images pi
+                ON pi.product_id = p.id
+                AND pi.position = 0
+            WHERE v.id IN ($placeholders)
+            ORDER BY p.name ASC, v.size_ml ASC
+        ");
 
-            $item['quantity'] = $quantity;
-            $item['subtotal'] = $price * $quantity;
-        }
+        $stmt->execute($variantIds);
 
-        unset($item);
-
-        return $items;
+        return $stmt->fetchAll();
     }
 
-    public function getTotal(): float
+    public function findVariantStockForUpdate(int $variantId): ?int
     {
-        $total = 0.0;
+        $stmt = $this->pdo->prepare("
+            SELECT stock
+            FROM product_variants
+            WHERE id = :id
+            LIMIT 1
+            FOR UPDATE
+        ");
 
-        foreach ($this->getItems() as $item) {
-            $total += (float) $item['subtotal'];
+        $stmt->execute([
+            'id' => $variantId,
+        ]);
+
+        $stock = $stmt->fetchColumn();
+
+        return $stock === false ? null : (int) $stock;
+    }
+
+    public function decrementVariantStock(int $variantId, int $quantity): void
+    {
+        $stmt = $this->pdo->prepare("
+            UPDATE product_variants
+            SET stock = stock - :quantity
+            WHERE id = :id
+              AND stock >= :quantity
+        ");
+
+        $stmt->execute([
+            'id' => $variantId,
+            'quantity' => $quantity,
+        ]);
+
+        if ($stmt->rowCount() !== 1) {
+            throw new RuntimeException('Failed to decrement stock for variant ' . $variantId);
         }
-
-        return $total;
     }
 }

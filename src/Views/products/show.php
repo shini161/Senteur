@@ -164,6 +164,7 @@ $selectedImage = $selectedVariantImages[0]['image_url'] ?? $selectedVariant['ima
                             name="quantity"
                             value="1"
                             min="1"
+                            max="<?= min((int) $selectedVariant['stock'], 5) ?>"
                             class="qty-input">
 
                         <button type="submit" class="auth-button">Add to cart</button>
@@ -392,6 +393,7 @@ $selectedImage = $selectedVariantImages[0]['image_url'] ?? $selectedVariant['ima
         const stockEl = document.getElementById('selected-variant-stock');
         const mainImage = document.getElementById('product-main-image');
         const thumbnailsWrap = document.getElementById('product-thumbnails');
+        const quantityInput = document.querySelector('.product-purchase-form input[name="quantity"]');
 
         const renderThumbnails = (images) => {
             if (!thumbnailsWrap) {
@@ -437,6 +439,21 @@ $selectedImage = $selectedVariantImages[0]['image_url'] ?? $selectedVariant['ima
 
                 const stock = Number(button.dataset.stock);
                 stockEl.textContent = stock > 0 ? `In stock · ${stock} available` : 'Out of stock';
+
+                if (quantityInput) {
+                    const maxQuantity = Math.min(stock, 5);
+                    quantityInput.max = String(maxQuantity > 0 ? maxQuantity : 1);
+
+                    if (Number(quantityInput.value) > maxQuantity && maxQuantity > 0) {
+                        quantityInput.value = String(maxQuantity);
+                    }
+
+                    if (Number(quantityInput.value) < 1) {
+                        quantityInput.value = '1';
+                    }
+
+                    quantityInput.disabled = stock <= 0;
+                }
 
                 const images = JSON.parse(button.dataset.images || '[]');
 

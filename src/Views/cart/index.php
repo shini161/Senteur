@@ -7,7 +7,7 @@
         <?php foreach ($items as $item): ?>
             <li>
                 <strong>
-                    <a href="/product/<?= htmlspecialchars((string) $item['product_id']) ?>">
+                    <a href="/products/<?= htmlspecialchars((string) $item['product_id']) ?>">
                         <?= htmlspecialchars($item['product_name']) ?>
                     </a>
                 </strong>
@@ -26,7 +26,12 @@
                 <form action="/cart/update" method="POST" style="display:inline-block;">
                     <?= \App\Core\Csrf::input() ?>
                     <input type="hidden" name="variant_id" value="<?= htmlspecialchars((string) $item['variant_id']) ?>">
-                    <input type="number" name="quantity" min="0" value="<?= htmlspecialchars((string) $item['quantity']) ?>">
+                    <input
+                        type="number"
+                        name="quantity"
+                        min="0"
+                        max="<?= htmlspecialchars((string) $item['max_quantity']) ?>"
+                        value="<?= htmlspecialchars((string) $item['quantity']) ?>">
                     <button type="submit">Update</button>
                 </form>
 
