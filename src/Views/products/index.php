@@ -78,7 +78,7 @@
         <div style="display:flex; gap: 0.75rem; margin-top: 1rem; align-items:center;">
             <button type="submit" class="auth-button">Apply filters</button>
             <a href="/products" class="button-secondary">Reset</a>
-            <span class="muted"><?= count($products) ?> result(s)</span>
+            <span class="muted"><?= (int) $totalProducts ?> result(s)</span>
         </div>
     </form>
 </section>
@@ -126,4 +126,38 @@
             </article>
         <?php endforeach; ?>
     </section>
+<?php endif; ?>
+
+<?php if (($totalPages ?? 1) > 1): ?>
+    <?php
+    $queryParams = $filters;
+    unset($queryParams['page']);
+
+    $buildPageUrl = static function (int $pageNumber) use ($queryParams): string {
+        $params = array_merge($queryParams, ['page' => $pageNumber]);
+
+        return '/products?' . http_build_query(array_filter(
+            $params,
+            static fn($value) => $value !== '' && $value !== 0 && $value !== '0'
+        ));
+    };
+    ?>
+
+    <nav class="catalog-pagination">
+        <?php if (($currentPage ?? 1) > 1): ?>
+            <a href="<?= htmlspecialchars($buildPageUrl($currentPage - 1)) ?>" class="button-secondary">Previous</a>
+        <?php else: ?>
+            <span class="button-secondary pagination-disabled">Previous</span>
+        <?php endif; ?>
+
+        <span class="muted">
+            Page <?= (int) $currentPage ?> of <?= (int) $totalPages ?>
+        </span>
+
+        <?php if (($currentPage ?? 1) < ($totalPages ?? 1)): ?>
+            <a href="<?= htmlspecialchars($buildPageUrl($currentPage + 1)) ?>" class="button-secondary">Next</a>
+        <?php else: ?>
+            <span class="button-secondary pagination-disabled">Next</span>
+        <?php endif; ?>
+    </nav>
 <?php endif; ?>

@@ -19,8 +19,21 @@ class ProductController extends Controller
     public function index(): void
     {
         $filters = $this->productService->normalizePublicFilters($_GET);
-        $products = $this->productService->getAll($filters);
         $meta = $this->productService->getPublicFilterMeta();
+
+        $perPage = 12;
+        $page = max(1, (int) ($_GET['page'] ?? 1));
+        $offset = ($page - 1) * $perPage;
+
+        $totalProducts = $this->productService->countAll($filters);
+        $totalPages = max(1, (int) ceil($totalProducts / $perPage));
+
+        if ($page > $totalPages) {
+            $page = $totalPages;
+            $offset = ($page - 1) * $perPage;
+        }
+
+        $products = $this->productService->getAll($filters, $perPage, $offset);
 
         $this->render('products/index', [
             'title' => 'Products',
@@ -30,6 +43,10 @@ class ProductController extends Controller
             'fragranceTypes' => $meta['fragranceTypes'],
             'genders' => $meta['genders'],
             'sortOptions' => $meta['sortOptions'],
+            'currentPage' => $page,
+            'perPage' => $perPage,
+            'totalProducts' => $totalProducts,
+            'totalPages' => $totalPages,
         ]);
     }
 

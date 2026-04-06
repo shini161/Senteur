@@ -17,7 +17,7 @@ class ProductRepository
         $this->pdo ??= Database::getConnection();
     }
 
-    public function findAllActive(array $filters = []): array
+    public function findAllActive(array $filters = [], int $limit = 12, int $offset = 0): array
     {
         $search = trim((string) ($filters['search'] ?? ''));
         $brandId = (int) ($filters['brand_id'] ?? 0);
@@ -88,9 +88,17 @@ class ProductRepository
                 ft.name,
                 pi.image_url
             ORDER BY {$orderBy}
+            LIMIT :limit OFFSET :offset
         ");
 
-        $stmt->execute($params);
+        foreach ($params as $key => $value) {
+            $stmt->bindValue(':' . $key, $value);
+        }
+
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+
+        $stmt->execute();
         $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         foreach ($products as &$product) {
@@ -829,5 +837,48 @@ class ProductRepository
         $variant = $stmt->fetch(PDO::FETCH_ASSOC);
 
         return $variant ?: null;
+    }
+
+    public function countAllActive(array $filters = []): int
+    {
+        $search = trim((string) ($filters['search'] ?? ''));
+        $brandId = (int) ($filters['brand_id'] ?? 0);
+        $fragranceTypeId = (int) ($filters['fragrance_type_id'] ?? 0);
+        $gender = trim((string) ($filters['gender'] ?? ''));
+
+        $conditions = ['p.deleted_at IS NULL'];
+        $params = [];
+
+        if ($search !== '') {
+            $conditions[] = '(p.name LIKE :search OR p.description LIKE :search)';
+            $params['search'] = '%' . $search . '%';
+        }
+
+        if ($brandId > 0) {
+            $conditions[] = 'p.brand_id = :brand_id';
+            $params['brand_id'] = $brandId;
+        }
+
+        if ($fragranceTypeId > 0) {
+            $conditions[] = 'p.fragrance_type_id = :fragrance_type_id';
+            $params['fragrance_type_id'] = $fragranceTypeId;
+        }
+
+        if (in_array($gender, ['male', 'female', 'unisex'], true)) {
+            $conditions[] = 'p.gender = :gender';
+            $params['gender'] = $gender;
+        }
+
+        $whereSql = implode(' AND ', $conditions);
+
+        $stmt = $this->pdo->prepare("
+        SELECT COUNT(*) 
+        FROM products p
+        WHERE {$whereSql}
+    ");
+
+        $stmt->execute($params);
+
+        return (int) $stmt->fetchColumn();
     }
 }

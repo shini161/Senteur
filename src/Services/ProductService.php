@@ -12,9 +12,9 @@ class ProductService
         private ProductRepository $productRepository
     ) {}
 
-    public function getAll(array $filters = []): array
+    public function getAll(array $filters = [], int $limit = 12, int $offset = 0): array
     {
-        return $this->productRepository->findAllActive($filters);
+        return $this->productRepository->findAllActive($filters, $limit, $offset);
     }
 
     public function getFeatured(int $limit = 4): array
@@ -51,5 +51,10 @@ class ProductService
     public function getIdBySlug(string $slug): ?int
     {
         return $this->productRepository->findProductIdBySlug($slug);
+    }
+
+    public function countAll(array $filters = []): int
+    {
+        return $this->productRepository->countAllActive($filters);
     }
 }

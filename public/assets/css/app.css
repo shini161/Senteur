@@ -1223,3 +1223,17 @@ p {
   flex-direction: column;
   gap: 0.75rem;
 }
+
+.catalog-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 2rem;
+  flex-wrap: wrap;
+}
+
+.pagination-disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
