@@ -37,15 +37,20 @@
                             <?php endif; ?>
                         </div>
 
-                        <div class="product-card-body">
-                            <div class="product-card-badges">
-                                <span class="badge"><?= htmlspecialchars($product['brand_name']) ?></span>
-                                <?php if (!empty($product['fragrance_type_name'])): ?>
-                                    <span class="badge"><?= htmlspecialchars($product['fragrance_type_name']) ?></span>
-                                <?php endif; ?>
+                        <div class="product-card-body product-card-body-featured">
+                            <div class="product-card-brand">
+                                <?= htmlspecialchars($product['brand_name']) ?>
                             </div>
 
-                            <h2 class="product-card-title"><?= htmlspecialchars($product['name']) ?></h2>
+                            <h2 class="product-card-title product-card-title-featured">
+                                <?= htmlspecialchars($product['name']) ?>
+                            </h2>
+
+                            <?php if (!empty($product['fragrance_type_name'])): ?>
+                                <div class="product-card-subtitle product-card-subtitle-featured">
+                                    <?= htmlspecialchars($product['fragrance_type_name']) ?>
+                                </div>
+                            <?php endif; ?>
 
                             <div class="product-card-meta">
                                 <span class="product-card-price">
