@@ -25,6 +25,21 @@ class ProductRepository
         $gender = trim((string) ($filters['gender'] ?? ''));
         $sort = trim((string) ($filters['sort'] ?? 'newest'));
 
+        $topNoteIds = array_values(array_filter(
+            array_map('intval', (array) ($filters['top_note_ids'] ?? [])),
+            static fn(int $id): bool => $id > 0
+        ));
+
+        $middleNoteIds = array_values(array_filter(
+            array_map('intval', (array) ($filters['middle_note_ids'] ?? [])),
+            static fn(int $id): bool => $id > 0
+        ));
+
+        $baseNoteIds = array_values(array_filter(
+            array_map('intval', (array) ($filters['base_note_ids'] ?? [])),
+            static fn(int $id): bool => $id > 0
+        ));
+
         $allowedSorts = [
             'newest' => 'p.id DESC',
             'name_asc' => 'p.name ASC',
@@ -69,6 +84,66 @@ class ProductRepository
         if (in_array($gender, ['male', 'female', 'unisex'], true)) {
             $conditions[] = 'p.gender = :gender';
             $params['gender'] = $gender;
+        }
+
+        if ($topNoteIds !== []) {
+            $topPlaceholders = [];
+
+            foreach ($topNoteIds as $index => $noteId) {
+                $paramKey = 'top_note_id_' . $index;
+                $topPlaceholders[] = ':' . $paramKey;
+                $params[$paramKey] = $noteId;
+            }
+
+            $conditions[] = "
+                EXISTS (
+                    SELECT 1
+                    FROM product_notes pn_top
+                    WHERE pn_top.product_id = p.id
+                      AND pn_top.note_type = 'top'
+                      AND pn_top.note_id IN (" . implode(', ', $topPlaceholders) . ")
+                )
+            ";
+        }
+
+        if ($middleNoteIds !== []) {
+            $middlePlaceholders = [];
+
+            foreach ($middleNoteIds as $index => $noteId) {
+                $paramKey = 'middle_note_id_' . $index;
+                $middlePlaceholders[] = ':' . $paramKey;
+                $params[$paramKey] = $noteId;
+            }
+
+            $conditions[] = "
+                EXISTS (
+                    SELECT 1
+                    FROM product_notes pn_middle
+                    WHERE pn_middle.product_id = p.id
+                      AND pn_middle.note_type = 'middle'
+                      AND pn_middle.note_id IN (" . implode(', ', $middlePlaceholders) . ")
+                )
+            ";
+        }
+
+        if ($baseNoteIds !== []) {
+            $basePlaceholders = [];
+
+            foreach ($baseNoteIds as $index => $noteId) {
+                $paramKey = 'base_note_id_' . $index;
+                $basePlaceholders[] = ':' . $paramKey;
+                $params[$paramKey] = $noteId;
+            }
+
+            $conditions[] = "
+                EXISTS (
+                    SELECT 1
+                    FROM product_notes pn_base
+                    WHERE pn_base.product_id = p.id
+                      AND pn_base.note_type = 'base'
+                      AND pn_base.note_id IN (" . implode(', ', $basePlaceholders) . ")
+                )
+            ";
         }
 
         $whereSql = implode(' AND ', $conditions);
@@ -486,6 +561,17 @@ class ProductRepository
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function getNotes(): array
+    {
+        $stmt = $this->pdo->query("
+        SELECT id, name
+        FROM notes
+        ORDER BY name ASC
+    ");
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     public function getFragranceTypes(): array
     {
         $stmt = $this->pdo->query("
@@ -709,6 +795,7 @@ class ProductRepository
         return [
             'brands' => $this->getBrands(),
             'fragranceTypes' => $this->getFragranceTypes(),
+            'notes' => $this->getNotes(),
             'genders' => ['male', 'female', 'unisex'],
             'sortOptions' => [
                 'newest' => 'Newest',
@@ -877,6 +964,21 @@ class ProductRepository
         $fragranceTypeId = (int) ($filters['fragrance_type_id'] ?? 0);
         $gender = trim((string) ($filters['gender'] ?? ''));
 
+        $topNoteIds = array_values(array_filter(
+            array_map('intval', (array) ($filters['top_note_ids'] ?? [])),
+            static fn(int $id): bool => $id > 0
+        ));
+
+        $middleNoteIds = array_values(array_filter(
+            array_map('intval', (array) ($filters['middle_note_ids'] ?? [])),
+            static fn(int $id): bool => $id > 0
+        ));
+
+        $baseNoteIds = array_values(array_filter(
+            array_map('intval', (array) ($filters['base_note_ids'] ?? [])),
+            static fn(int $id): bool => $id > 0
+        ));
+
         $conditions = ['p.deleted_at IS NULL'];
         $params = [];
 
@@ -912,6 +1014,66 @@ class ProductRepository
         if (in_array($gender, ['male', 'female', 'unisex'], true)) {
             $conditions[] = 'p.gender = :gender';
             $params['gender'] = $gender;
+        }
+
+        if ($topNoteIds !== []) {
+            $topPlaceholders = [];
+
+            foreach ($topNoteIds as $index => $noteId) {
+                $paramKey = 'top_note_id_' . $index;
+                $topPlaceholders[] = ':' . $paramKey;
+                $params[$paramKey] = $noteId;
+            }
+
+            $conditions[] = "
+                EXISTS (
+                    SELECT 1
+                    FROM product_notes pn_top
+                    WHERE pn_top.product_id = p.id
+                      AND pn_top.note_type = 'top'
+                      AND pn_top.note_id IN (" . implode(', ', $topPlaceholders) . ")
+                )
+            ";
+        }
+
+        if ($middleNoteIds !== []) {
+            $middlePlaceholders = [];
+
+            foreach ($middleNoteIds as $index => $noteId) {
+                $paramKey = 'middle_note_id_' . $index;
+                $middlePlaceholders[] = ':' . $paramKey;
+                $params[$paramKey] = $noteId;
+            }
+
+            $conditions[] = "
+                EXISTS (
+                    SELECT 1
+                    FROM product_notes pn_middle
+                    WHERE pn_middle.product_id = p.id
+                      AND pn_middle.note_type = 'middle'
+                      AND pn_middle.note_id IN (" . implode(', ', $middlePlaceholders) . ")
+                )
+            ";
+        }
+
+        if ($baseNoteIds !== []) {
+            $basePlaceholders = [];
+
+            foreach ($baseNoteIds as $index => $noteId) {
+                $paramKey = 'base_note_id_' . $index;
+                $basePlaceholders[] = ':' . $paramKey;
+                $params[$paramKey] = $noteId;
+            }
+
+            $conditions[] = "
+                EXISTS (
+                    SELECT 1
+                    FROM product_notes pn_base
+                    WHERE pn_base.product_id = p.id
+                      AND pn_base.note_type = 'base'
+                      AND pn_base.note_id IN (" . implode(', ', $basePlaceholders) . ")
+                )
+            ";
         }
 
         $whereSql = implode(' AND ', $conditions);

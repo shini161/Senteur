@@ -41,6 +41,7 @@ class ProductController extends Controller
             'filters' => $filters,
             'brands' => $meta['brands'],
             'fragranceTypes' => $meta['fragranceTypes'],
+            'notes' => $meta['notes'],
             'genders' => $meta['genders'],
             'sortOptions' => $meta['sortOptions'],
             'currentPage' => $page,

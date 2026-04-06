@@ -45,6 +45,18 @@ class ProductService
             'fragrance_type_id' => (int) ($input['fragrance_type_id'] ?? 0),
             'gender' => trim((string) ($input['gender'] ?? '')),
             'sort' => trim((string) ($input['sort'] ?? 'newest')),
+            'top_note_ids' => array_values(array_filter(
+                array_map('intval', (array) ($input['top_note_ids'] ?? [])),
+                static fn(int $id): bool => $id > 0
+            )),
+            'middle_note_ids' => array_values(array_filter(
+                array_map('intval', (array) ($input['middle_note_ids'] ?? [])),
+                static fn(int $id): bool => $id > 0
+            )),
+            'base_note_ids' => array_values(array_filter(
+                array_map('intval', (array) ($input['base_note_ids'] ?? [])),
+                static fn(int $id): bool => $id > 0
+            )),
         ];
     }
 
