@@ -112,6 +112,7 @@ CREATE TABLE categories (
 CREATE TABLE notes (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) UNIQUE NOT NULL CHECK (name <> ''),
+    slug VARCHAR(100) UNIQUE NOT NULL CHECK (slug <> ''),
     image_url VARCHAR(255) NOT NULL
 );
 

@@ -67,17 +67,17 @@ INSERT INTO categories (id, name) VALUES
 -- ======================
 -- NOTES
 -- ======================
-INSERT INTO notes (id, name, image_url) VALUES
-(1, 'Bergamot', 'uploads/notes/bergamot.png'),
-(2, 'Pepper', 'uploads/notes/pepper.png'),
-(3, 'Lavender', 'uploads/notes/lavender.png'),
-(4, 'Cedarwood', 'uploads/notes/cedarwood.png'),
-(5, 'Vanilla', 'uploads/notes/vanilla.png'),
-(6, 'Patchouli', 'uploads/notes/patchouli.png'),
-(7, 'Jasmine', 'uploads/notes/jasmine.png'),
-(8, 'Ambroxan', 'uploads/notes/ambroxan.png'),
-(9, 'Pineapple', 'uploads/notes/pineapple.png'),
-(10, 'Musk', 'uploads/notes/musk.png');
+INSERT INTO notes (id, name, slug, image_url) VALUES
+(1, 'Bergamot', 'bergamot', 'uploads/notes/bergamot.png'),
+(2, 'Pepper', 'pepper', 'uploads/notes/pepper.png'),
+(3, 'Lavender', 'lavender', 'uploads/notes/lavender.png'),
+(4, 'Cedarwood', 'cedarwood', 'uploads/notes/cedarwood.png'),
+(5, 'Vanilla', 'vanilla', 'uploads/notes/vanilla.png'),
+(6, 'Patchouli', 'patchouli', 'uploads/notes/patchouli.png'),
+(7, 'Jasmine', 'jasmine', 'uploads/notes/jasmine.png'),
+(8, 'Ambroxan', 'ambroxan', 'uploads/notes/ambroxan.png'),
+(9, 'Pineapple', 'pineapple', 'uploads/notes/pineapple.png'),
+(10, 'Musk', 'musk', 'uploads/notes/musk.png');
 
 -- ======================
 -- USERS

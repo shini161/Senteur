@@ -564,10 +564,10 @@ class ProductRepository
     public function getNotes(): array
     {
         $stmt = $this->pdo->query("
-        SELECT id, name
-        FROM notes
-        ORDER BY name ASC
-    ");
+            SELECT id, name, slug, image_url
+            FROM notes
+            ORDER BY name ASC
+        ");
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
@@ -858,26 +858,42 @@ class ProductRepository
 
     public function findCategoryHighlights(): array
     {
+        $noteIds = $this->findNoteIdsBySlugs([
+            'bergamot',
+            'vanilla',
+            'musk',
+            'cedarwood',
+            'patchouli',
+            'lavender',
+            'jasmine',
+        ]);
+
         return [
             [
-                'title' => 'Fresh',
-                'description' => 'Clean, bright, and easy to wear daily.',
-                'query' => '?search=&sort=newest',
+                'title' => 'Fresh Office Scents',
+                'description' => 'Clean bergamot and aromatic openings that stay versatile and refined.',
+                'query' => '?top_note_ids[]=' . ($noteIds['bergamot'] ?? 0) . '&sort=price_asc',
             ],
             [
-                'title' => 'Woody',
-                'description' => 'Elegant, warm profiles with depth and structure.',
-                'query' => '?search=&sort=price_desc',
+                'title' => 'Dark Seductive',
+                'description' => 'Richer vanilla, musk, spice, and amber profiles with more presence.',
+                'query' => '?middle_note_ids[]=' . ($noteIds['vanilla'] ?? 0)
+                    . '&base_note_ids[]=' . ($noteIds['musk'] ?? 0)
+                    . '&sort=price_desc',
             ],
             [
-                'title' => 'Floral',
-                'description' => 'Soft to radiant compositions with signature bloom.',
-                'query' => '?gender=female&sort=newest',
+                'title' => 'Woody Luxury',
+                'description' => 'Structured woody compositions with cedar, patchouli, and upscale depth.',
+                'query' => '?middle_note_ids[]=' . ($noteIds['cedarwood'] ?? 0)
+                    . '&base_note_ids[]=' . ($noteIds['patchouli'] ?? 0)
+                    . '&sort=price_desc',
             ],
             [
-                'title' => 'Luxury',
-                'description' => 'Statement bottles and richer concentrations.',
-                'query' => '?sort=price_desc',
+                'title' => 'Soft Floral',
+                'description' => 'Lavender and jasmine compositions with a smoother elegant character.',
+                'query' => '?top_note_ids[]=' . ($noteIds['lavender'] ?? 0)
+                    . '&middle_note_ids[]=' . ($noteIds['jasmine'] ?? 0)
+                    . '&sort=newest',
             ],
         ];
     }
@@ -1089,5 +1105,61 @@ class ProductRepository
         $stmt->execute($params);
 
         return (int) $stmt->fetchColumn();
+    }
+
+    public function findNoteIdsByNames(array $names): array
+    {
+        if ($names === []) {
+            return [];
+        }
+
+        $placeholders = implode(',', array_fill(0, count($names), '?'));
+
+        $stmt = $this->pdo->prepare("
+            SELECT id, name
+            FROM notes
+            WHERE LOWER(name) IN ($placeholders)
+        ");
+
+        $names = array_map('mb_strtolower', $names);
+
+        $stmt->execute($names);
+
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $mapped = [];
+
+        foreach ($rows as $row) {
+            $mapped[$row['name']] = (int) $row['id'];
+        }
+
+        return $mapped;
+    }
+
+    public function findNoteIdsBySlugs(array $slugs): array
+    {
+        if ($slugs === []) {
+            return [];
+        }
+
+        $placeholders = implode(',', array_fill(0, count($slugs), '?'));
+
+        $stmt = $this->pdo->prepare("
+            SELECT id, slug
+            FROM notes
+            WHERE slug IN ($placeholders)
+        ");
+
+        $stmt->execute($slugs);
+
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $mapped = [];
+
+        foreach ($rows as $row) {
+            $mapped[$row['slug']] = (int) $row['id'];
+        }
+
+        return $mapped;
     }
 }

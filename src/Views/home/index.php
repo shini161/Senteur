@@ -89,23 +89,23 @@
 <section class="panel" style="padding: 1.5rem;">
     <div class="section-heading" style="margin-bottom: 1rem;">
         <p class="section-kicker">Why Senteur</p>
-        <h2 style="margin-top: 0;">A cleaner fragrance shopping experience</h2>
+        <h2 style="margin-top: 0;">Fragrance shopping, made more intuitive</h2>
     </div>
 
     <div class="home-why-grid">
         <div>
-            <h2 style="margin-top: 0;">Curated catalogue</h2>
-            <p class="muted">Structured product pages with variants, notes, and richer perfume details.</p>
+            <h2 style="margin-top: 0;">Clear product discovery</h2>
+            <p class="muted">Browse by brand, concentration, notes, and style without getting lost in clutter.</p>
         </div>
 
         <div>
-            <h2 style="margin-top: 0;">Secure checkout</h2>
-            <p class="muted">Stripe checkout flow with payment confirmation and order tracking.</p>
+            <h2 style="margin-top: 0;">Meaningful perfume details</h2>
+            <p class="muted">See concentrations, variants, scent profiles, and related fragrances in a cleaner format.</p>
         </div>
 
         <div>
-            <h2 style="margin-top: 0;">Admin operations</h2>
-            <p class="muted">Internal order and product management built into the same platform.</p>
+            <h2 style="margin-top: 0;">Smooth buying flow</h2>
+            <p class="muted">From discovery to checkout, everything is designed to stay simple, fast, and elegant.</p>
         </div>
     </div>
 </section>

@@ -59,13 +59,15 @@
         <div class="footer-inner">
             <div class="footer-left">
                 <strong>Senteur</strong>
-                <p class="muted">A clean fragrance storefront built with PHP, MySQL, Docker, and Stripe.</p>
+                <p class="muted">
+                    Discover refined fragrances, signature scents, and standout perfume lines.
+                </p>
             </div>
 
             <div class="footer-links">
                 <a href="/products">Shop</a>
-                <a href="https://github.com/yourusername/senteur" target="_blank">GitHub</a>
-                <a href="https://linkedin.com/in/yourprofile" target="_blank">LinkedIn</a>
+                <a href="https://github.com/shini161/Senteur" target="_blank" rel="noopener noreferrer">GitHub</a>
+                <a href="https://www.linkedin.com/in/mirza-osmic" target="_blank" rel="noopener noreferrer">LinkedIn</a>
             </div>
         </div>
 
