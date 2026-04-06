@@ -51,7 +51,7 @@
         </nav>
     </header>
 
-    <main>
+    <main class="site-main">
         <?= $content ?? '' ?>
     </main>
 

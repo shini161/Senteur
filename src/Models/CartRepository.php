@@ -49,15 +49,19 @@ class CartRepository
                 v.price,
                 v.stock,
                 p.id AS product_id,
+                p.slug AS product_slug,
                 p.name AS product_name,
+                b.name AS brand_name,
+                p.concentration_label,
                 pi.image_url
             FROM product_variants v
             INNER JOIN products p ON p.id = v.product_id
+            INNER JOIN brands b ON b.id = p.brand_id
             LEFT JOIN product_images pi
                 ON pi.product_id = p.id
                 AND pi.position = 0
             WHERE v.id IN ($placeholders)
-            ORDER BY p.name ASC, v.size_ml ASC
+            ORDER BY b.name ASC, p.name ASC, v.size_ml ASC
         ");
 
         $stmt->execute($variantIds);

@@ -2,104 +2,155 @@
 
 declare(strict_types=1);
 
-namespace App\Models;
+namespace App\Services;
 
-use App\Core\Database;
-use PDO;
-use RuntimeException;
+use App\Models\CartRepository;
 
-class CartRepository
+class CartService
 {
     public function __construct(
-        private ?PDO $pdo = null
+        private CartRepository $cartRepository
     ) {
-        $this->pdo ??= Database::getConnection();
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            session_start();
+        }
+
+        $_SESSION['cart'] ??= [];
     }
 
-    public function findVariantStock(int $variantId): ?int
+    public function getItems(): array
     {
-        $stmt = $this->pdo->prepare("
-            SELECT stock
-            FROM product_variants
-            WHERE id = :id
-            LIMIT 1
-        ");
+        $cart = $this->getCart();
 
-        $stmt->execute([
-            'id' => $variantId,
-        ]);
-
-        $stock = $stmt->fetchColumn();
-
-        return $stock === false ? null : (int) $stock;
-    }
-
-    public function findItemsByVariantIds(array $variantIds): array
-    {
-        if ($variantIds === []) {
+        if ($cart === []) {
             return [];
         }
 
-        $placeholders = implode(',', array_fill(0, count($variantIds), '?'));
+        $variantIds = array_map('intval', array_keys($cart));
+        $variants = $this->cartRepository->findItemsByVariantIds($variantIds);
 
-        $stmt = $this->pdo->prepare("
-            SELECT
-                v.id AS variant_id,
-                v.size_ml,
-                v.price,
-                v.stock,
-                p.id AS product_id,
-                p.name AS product_name,
-                pi.image_url
-            FROM product_variants v
-            INNER JOIN products p ON p.id = v.product_id
-            LEFT JOIN product_images pi
-                ON pi.product_id = p.id
-                AND pi.position = 0
-            WHERE v.id IN ($placeholders)
-            ORDER BY p.name ASC, v.size_ml ASC
-        ");
+        $items = [];
 
-        $stmt->execute($variantIds);
+        foreach ($variants as $variant) {
+            $variantId = (int) $variant['variant_id'];
+            $quantity = (int) ($cart[$variantId] ?? 0);
 
-        return $stmt->fetchAll();
-    }
+            if ($quantity <= 0) {
+                continue;
+            }
 
-    public function findVariantStockForUpdate(int $variantId): ?int
-    {
-        $stmt = $this->pdo->prepare("
-            SELECT stock
-            FROM product_variants
-            WHERE id = :id
-            LIMIT 1
-            FOR UPDATE
-        ");
+            $price = (float) $variant['price'];
+            $stock = (int) $variant['stock'];
+            $maxQuantity = max(0, min($stock, 5));
+            $finalQuantity = min($quantity, $maxQuantity > 0 ? $maxQuantity : $quantity);
 
-        $stmt->execute([
-            'id' => $variantId,
-        ]);
-
-        $stock = $stmt->fetchColumn();
-
-        return $stock === false ? null : (int) $stock;
-    }
-
-    public function decrementVariantStock(int $variantId, int $quantity): void
-    {
-        $stmt = $this->pdo->prepare("
-            UPDATE product_variants
-            SET stock = stock - :quantity
-            WHERE id = :id
-              AND stock >= :quantity
-        ");
-
-        $stmt->execute([
-            'id' => $variantId,
-            'quantity' => $quantity,
-        ]);
-
-        if ($stmt->rowCount() !== 1) {
-            throw new RuntimeException('Failed to decrement stock for variant ' . $variantId);
+            $items[] = [
+                'variant_id' => $variantId,
+                'product_id' => (int) $variant['product_id'],
+                'product_slug' => $variant['product_slug'],
+                'product_name' => $variant['product_name'],
+                'brand_name' => $variant['brand_name'] ?? null,
+                'concentration_label' => $variant['concentration_label'] ?? null,
+                'size_ml' => (int) $variant['size_ml'],
+                'price' => $price,
+                'stock' => $stock,
+                'image_url' => $variant['image_url'] ?? null,
+                'quantity' => $finalQuantity,
+                'max_quantity' => $maxQuantity,
+                'subtotal' => $price * $finalQuantity,
+            ];
         }
+
+        return $items;
+    }
+
+    public function getTotal(): float
+    {
+        $total = 0.0;
+
+        foreach ($this->getItems() as $item) {
+            $total += (float) $item['subtotal'];
+        }
+
+        return $total;
+    }
+
+    public function addItem(int $variantId, int $quantity): void
+    {
+        if ($variantId <= 0 || $quantity <= 0) {
+            return;
+        }
+
+        $stock = $this->cartRepository->findVariantStock($variantId);
+
+        if ($stock === null || $stock <= 0) {
+            return;
+        }
+
+        $cart = $this->getCart();
+        $currentQuantity = (int) ($cart[$variantId] ?? 0);
+        $newQuantity = min($currentQuantity + $quantity, min($stock, 5));
+
+        $cart[$variantId] = $newQuantity;
+        $this->storeCart($cart);
+    }
+
+    public function updateItem(int $variantId, int $quantity): void
+    {
+        if ($variantId <= 0) {
+            return;
+        }
+
+        if ($quantity <= 0) {
+            $this->removeItem($variantId);
+            return;
+        }
+
+        $stock = $this->cartRepository->findVariantStock($variantId);
+
+        if ($stock === null || $stock <= 0) {
+            $this->removeItem($variantId);
+            return;
+        }
+
+        $cart = $this->getCart();
+        $cart[$variantId] = min($quantity, min($stock, 5));
+
+        $this->storeCart($cart);
+    }
+
+    public function removeItem(int $variantId): void
+    {
+        $cart = $this->getCart();
+        unset($cart[$variantId]);
+
+        $this->storeCart($cart);
+    }
+
+    private function getCart(): array
+    {
+        $cart = $_SESSION['cart'] ?? [];
+
+        if (! is_array($cart)) {
+            return [];
+        }
+
+        $normalized = [];
+
+        foreach ($cart as $variantId => $quantity) {
+            $variantId = (int) $variantId;
+            $quantity = (int) $quantity;
+
+            if ($variantId > 0 && $quantity > 0) {
+                $normalized[$variantId] = $quantity;
+            }
+        }
+
+        return $normalized;
+    }
+
+    private function storeCart(array $cart): void
+    {
+        $_SESSION['cart'] = $cart;
     }
 }
