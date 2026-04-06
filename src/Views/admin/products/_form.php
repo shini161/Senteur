@@ -49,13 +49,24 @@ $variants = $formData['variants'] ?? [
 </div>
 
 <div class="form-group">
-    <label for="name">Name</label>
+    <label for="name">Base name</label>
     <input
         id="name"
         name="name"
         type="text"
         value="<?= htmlspecialchars((string) ($formData['name'] ?? '')) ?>"
+        placeholder="e.g. Bleu de Chanel"
         required>
+</div>
+
+<div class="form-group">
+    <label for="concentration_label">Concentration / subtitle</label>
+    <input
+        id="concentration_label"
+        name="concentration_label"
+        type="text"
+        value="<?= htmlspecialchars((string) ($formData['concentration_label'] ?? '')) ?>"
+        placeholder="e.g. Eau de Parfum or Parfum Cologne">
 </div>
 
 <div class="form-group">

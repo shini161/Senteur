@@ -21,6 +21,7 @@
                             <th>Preview</th>
                             <th>Name</th>
                             <th>Brand</th>
+                            <th>Subtitle</th>
                             <th>Type</th>
                             <th>Gender</th>
                             <th>Variants</th>
@@ -50,6 +51,7 @@
                                     <small><?= htmlspecialchars($product['slug']) ?></small>
                                 </td>
                                 <td><?= htmlspecialchars($product['brand_name']) ?></td>
+                                <td><?= htmlspecialchars((string) ($product['concentration_label'] ?? '')) ?></td>
                                 <td><?= htmlspecialchars((string) ($product['fragrance_type_name'] ?? '')) ?></td>
                                 <td><?= htmlspecialchars($product['gender']) ?></td>
                                 <td><?= (int) $product['variant_count'] ?></td>

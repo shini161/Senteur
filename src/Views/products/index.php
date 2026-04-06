@@ -15,7 +15,7 @@
                     id="search"
                     type="text"
                     name="search"
-                    placeholder="Name or description"
+                    placeholder="Name, concentration, or description"
                     value="<?= htmlspecialchars($filters['search'] ?? '') ?>">
             </div>
 
@@ -105,12 +105,13 @@
                     <div class="product-card-body">
                         <div class="product-card-badges">
                             <span class="badge"><?= htmlspecialchars($product['brand_name']) ?></span>
-                            <?php if (!empty($product['fragrance_type_name'])): ?>
-                                <span class="badge"><?= htmlspecialchars($product['fragrance_type_name']) ?></span>
-                            <?php endif; ?>
                         </div>
 
                         <h2 class="product-card-title"><?= htmlspecialchars($product['name']) ?></h2>
+
+                        <?php if (!empty($product['concentration_label'])): ?>
+                            <div class="product-card-subtitle"><?= htmlspecialchars($product['concentration_label']) ?></div>
+                        <?php endif; ?>
 
                         <div class="product-card-meta">
                             <span class="product-card-price">

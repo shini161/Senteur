@@ -47,6 +47,7 @@ CREATE TABLE products (
     family_name VARCHAR(150) NULL,
 
     name VARCHAR(150) NOT NULL,
+    concentration_label VARCHAR(100) NULL,
     slug VARCHAR(180) UNIQUE NOT NULL,
     description TEXT,
     gender ENUM('male', 'female', 'unisex') NOT NULL,

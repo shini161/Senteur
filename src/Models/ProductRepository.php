@@ -38,7 +38,7 @@ class ProductRepository
         $params = [];
 
         if ($search !== '') {
-            $conditions[] = '(p.name LIKE :search OR p.description LIKE :search)';
+            $conditions[] = '(p.name LIKE :search OR p.description LIKE :search OR p.concentration_label LIKE :search)';
             $params['search'] = '%' . $search . '%';
         }
 
@@ -63,6 +63,7 @@ class ProductRepository
             SELECT 
                 p.id,
                 p.name,
+                p.concentration_label,
                 p.slug,
                 p.gender,
                 b.name AS brand_name,
@@ -82,6 +83,7 @@ class ProductRepository
             GROUP BY
                 p.id,
                 p.name,
+                p.concentration_label,
                 p.slug,
                 p.gender,
                 b.name,
@@ -113,26 +115,27 @@ class ProductRepository
     public function findActiveBySlug(string $slug): ?array
     {
         $productStmt = $this->pdo->prepare("
-        SELECT
-            p.id,
-            p.family_name,
-            p.name,
-            p.slug,
-            p.description,
-            p.gender,
-            b.name AS brand_name,
-            ft.name AS fragrance_type_name,
-            pi.image_url
-        FROM products p
-        INNER JOIN brands b ON b.id = p.brand_id
-        LEFT JOIN fragrance_types ft ON ft.id = p.fragrance_type_id
-        LEFT JOIN product_images pi
-            ON pi.product_id = p.id
-            AND pi.position = 0
-        WHERE p.slug = :slug
-          AND p.deleted_at IS NULL
-        LIMIT 1
-    ");
+            SELECT
+                p.id,
+                p.family_name,
+                p.name,
+                p.concentration_label,
+                p.slug,
+                p.description,
+                p.gender,
+                b.name AS brand_name,
+                ft.name AS fragrance_type_name,
+                pi.image_url
+            FROM products p
+            INNER JOIN brands b ON b.id = p.brand_id
+            LEFT JOIN fragrance_types ft ON ft.id = p.fragrance_type_id
+            LEFT JOIN product_images pi
+                ON pi.product_id = p.id
+                AND pi.position = 0
+            WHERE p.slug = :slug
+              AND p.deleted_at IS NULL
+            LIMIT 1
+        ");
 
         $productStmt->execute([
             'slug' => $slug,
@@ -145,21 +148,21 @@ class ProductRepository
         }
 
         $variantStmt = $this->pdo->prepare("
-        SELECT
-            v.id,
-            v.size_ml,
-            v.price,
-            v.stock,
-            (
-                SELECT pvi.image_url
-                FROM product_variant_images pvi
-                WHERE pvi.product_variant_id = v.id
-                ORDER BY pvi.position ASC
-                LIMIT 1
-            ) AS image_url
-        FROM product_variants v
-        WHERE v.product_id = :product_id
-        ORDER BY v.price ASC
+            SELECT
+                v.id,
+                v.size_ml,
+                v.price,
+                v.stock,
+                (
+                    SELECT pvi.image_url
+                    FROM product_variant_images pvi
+                    WHERE pvi.product_variant_id = v.id
+                    ORDER BY pvi.position ASC
+                    LIMIT 1
+                ) AS image_url
+            FROM product_variants v
+            WHERE v.product_id = :product_id
+            ORDER BY v.price ASC
         ");
 
         $variantStmt->execute([
@@ -192,14 +195,14 @@ class ProductRepository
         unset($variant);
 
         $categoryStmt = $this->pdo->prepare("
-        SELECT
-            c.id,
-            c.name
-        FROM product_categories pc
-        INNER JOIN categories c ON c.id = pc.category_id
-        WHERE pc.product_id = :product_id
-        ORDER BY c.name ASC
-    ");
+            SELECT
+                c.id,
+                c.name
+            FROM product_categories pc
+            INNER JOIN categories c ON c.id = pc.category_id
+            WHERE pc.product_id = :product_id
+            ORDER BY c.name ASC
+        ");
 
         $categoryStmt->execute([
             'product_id' => $product['id'],
@@ -208,18 +211,18 @@ class ProductRepository
         $product['categories'] = $categoryStmt->fetchAll(PDO::FETCH_ASSOC);
 
         $noteStmt = $this->pdo->prepare("
-        SELECT
-            n.id,
-            n.name,
-            n.image_url,
-            pn.note_type
-        FROM product_notes pn
-        INNER JOIN notes n ON n.id = pn.note_id
-        WHERE pn.product_id = :product_id
-        ORDER BY
-            FIELD(pn.note_type, 'top', 'middle', 'base'),
-            n.name ASC
-    ");
+            SELECT
+                n.id,
+                n.name,
+                n.image_url,
+                pn.note_type
+            FROM product_notes pn
+            INNER JOIN notes n ON n.id = pn.note_id
+            WHERE pn.product_id = :product_id
+            ORDER BY
+                FIELD(pn.note_type, 'top', 'middle', 'base'),
+                n.name ASC
+        ");
 
         $noteStmt->execute([
             'product_id' => $product['id'],
@@ -245,33 +248,35 @@ class ProductRepository
 
         if (!empty($product['family_name'])) {
             $relatedStmt = $this->pdo->prepare("
-        SELECT
-            p.id,
-            p.name,
-            p.slug,
-            b.name AS brand_name,
-            ft.name AS fragrance_type_name,
-            pi.image_url,
-            MIN(v.price) AS price
-        FROM products p
-        INNER JOIN brands b ON b.id = p.brand_id
-        LEFT JOIN fragrance_types ft ON ft.id = p.fragrance_type_id
-        LEFT JOIN product_images pi
-            ON pi.product_id = p.id
-            AND pi.position = 0
-        LEFT JOIN product_variants v ON v.product_id = p.id
-        WHERE p.family_name = :family_name
-          AND p.id != :product_id
-          AND p.deleted_at IS NULL
-        GROUP BY
-            p.id,
-            p.name,
-            p.slug,
-            b.name,
-            ft.name,
-            pi.image_url
-        ORDER BY p.name ASC
-    ");
+                SELECT
+                    p.id,
+                    p.name,
+                    p.concentration_label,
+                    p.slug,
+                    b.name AS brand_name,
+                    ft.name AS fragrance_type_name,
+                    pi.image_url,
+                    MIN(v.price) AS price
+                FROM products p
+                INNER JOIN brands b ON b.id = p.brand_id
+                LEFT JOIN fragrance_types ft ON ft.id = p.fragrance_type_id
+                LEFT JOIN product_images pi
+                    ON pi.product_id = p.id
+                    AND pi.position = 0
+                LEFT JOIN product_variants v ON v.product_id = p.id
+                WHERE p.family_name = :family_name
+                  AND p.id != :product_id
+                  AND p.deleted_at IS NULL
+                GROUP BY
+                    p.id,
+                    p.name,
+                    p.concentration_label,
+                    p.slug,
+                    b.name,
+                    ft.name,
+                    pi.image_url
+                ORDER BY p.name ASC
+            ");
 
             $relatedStmt->execute([
                 'family_name' => $product['family_name'],
@@ -282,56 +287,58 @@ class ProductRepository
         }
 
         $relatedProductsStmt = $this->pdo->prepare("
-    SELECT
-        p.id,
-        p.name,
-        p.slug,
-        b.name AS brand_name,
-        ft.name AS fragrance_type_name,
-        pi.image_url,
-        MIN(v.price) AS price,
-        (
-            CASE WHEN p.brand_id = (
-                SELECT brand_id FROM products WHERE id = :product_id
-            ) THEN 100 ELSE 0 END
-        ) +
-        (
-            CASE WHEN COALESCE(p.fragrance_type_id, 0) = COALESCE((
-                SELECT fragrance_type_id FROM products WHERE id = :product_id
-            ), 0) THEN 10 ELSE 0 END
-        ) +
-        (
-            CASE WHEN p.gender = (
-                SELECT gender FROM products WHERE id = :product_id
-            ) THEN 1 ELSE 0 END
-        ) AS relevance_score
-    FROM products p
-    INNER JOIN brands b ON b.id = p.brand_id
-    LEFT JOIN fragrance_types ft ON ft.id = p.fragrance_type_id
-    LEFT JOIN product_images pi
-        ON pi.product_id = p.id
-        AND pi.position = 0
-    LEFT JOIN product_variants v ON v.product_id = p.id
-    WHERE p.id != :product_id
-      AND p.deleted_at IS NULL
-      AND (
-        p.brand_id = (SELECT brand_id FROM products WHERE id = :product_id)
-        OR COALESCE(p.fragrance_type_id, 0) = COALESCE((SELECT fragrance_type_id FROM products WHERE id = :product_id), 0)
-        OR p.gender = (SELECT gender FROM products WHERE id = :product_id)
-      )
-    GROUP BY
-        p.id,
-        p.name,
-        p.slug,
-        b.name,
-        ft.name,
-        pi.image_url,
-        p.brand_id,
-        p.fragrance_type_id,
-        p.gender
-    ORDER BY relevance_score DESC, p.name ASC
-    LIMIT 4
-");
+            SELECT
+                p.id,
+                p.name,
+                p.concentration_label,
+                p.slug,
+                b.name AS brand_name,
+                ft.name AS fragrance_type_name,
+                pi.image_url,
+                MIN(v.price) AS price,
+                (
+                    CASE WHEN p.brand_id = (
+                        SELECT brand_id FROM products WHERE id = :product_id
+                    ) THEN 100 ELSE 0 END
+                ) +
+                (
+                    CASE WHEN COALESCE(p.fragrance_type_id, 0) = COALESCE((
+                        SELECT fragrance_type_id FROM products WHERE id = :product_id
+                    ), 0) THEN 10 ELSE 0 END
+                ) +
+                (
+                    CASE WHEN p.gender = (
+                        SELECT gender FROM products WHERE id = :product_id
+                    ) THEN 1 ELSE 0 END
+                ) AS relevance_score
+            FROM products p
+            INNER JOIN brands b ON b.id = p.brand_id
+            LEFT JOIN fragrance_types ft ON ft.id = p.fragrance_type_id
+            LEFT JOIN product_images pi
+                ON pi.product_id = p.id
+                AND pi.position = 0
+            LEFT JOIN product_variants v ON v.product_id = p.id
+            WHERE p.id != :product_id
+              AND p.deleted_at IS NULL
+              AND (
+                p.brand_id = (SELECT brand_id FROM products WHERE id = :product_id)
+                OR COALESCE(p.fragrance_type_id, 0) = COALESCE((SELECT fragrance_type_id FROM products WHERE id = :product_id), 0)
+                OR p.gender = (SELECT gender FROM products WHERE id = :product_id)
+              )
+            GROUP BY
+                p.id,
+                p.name,
+                p.concentration_label,
+                p.slug,
+                b.name,
+                ft.name,
+                pi.image_url,
+                p.brand_id,
+                p.fragrance_type_id,
+                p.gender
+            ORDER BY relevance_score DESC, p.name ASC
+            LIMIT 4
+        ");
 
         $relatedProductsStmt->execute([
             'product_id' => $product['id'],
@@ -348,6 +355,7 @@ class ProductRepository
             SELECT
                 p.id,
                 p.name,
+                p.concentration_label,
                 p.slug,
                 p.gender,
                 p.deleted_at,
@@ -368,6 +376,7 @@ class ProductRepository
             GROUP BY
                 p.id,
                 p.name,
+                p.concentration_label,
                 p.slug,
                 p.gender,
                 p.deleted_at,
@@ -389,6 +398,7 @@ class ProductRepository
                 p.fragrance_type_id,
                 p.family_name,
                 p.name,
+                p.concentration_label,
                 p.slug,
                 p.description,
                 p.gender,
@@ -413,15 +423,15 @@ class ProductRepository
         }
 
         $variantStmt = $this->pdo->prepare("
-    SELECT
-        id,
-        size_ml,
-        price,
-        stock
-    FROM product_variants
-    WHERE product_id = :product_id
-    ORDER BY size_ml ASC
-");
+            SELECT
+                id,
+                size_ml,
+                price,
+                stock
+            FROM product_variants
+            WHERE product_id = :product_id
+            ORDER BY size_ml ASC
+        ");
 
         $variantStmt->execute([
             'product_id' => $id,
@@ -484,6 +494,7 @@ class ProductRepository
                     fragrance_type_id,
                     family_name,
                     name,
+                    concentration_label,
                     slug,
                     description,
                     gender
@@ -492,6 +503,7 @@ class ProductRepository
                     :fragrance_type_id,
                     :family_name,
                     :name,
+                    :concentration_label,
                     :slug,
                     :description,
                     :gender
@@ -503,6 +515,7 @@ class ProductRepository
                 'fragrance_type_id' => $data['fragrance_type_id'] ?: null,
                 'family_name' => $data['family_name'] ?: null,
                 'name' => $data['name'],
+                'concentration_label' => $data['concentration_label'] ?: null,
                 'slug' => $data['slug'],
                 'description' => $data['description'],
                 'gender' => $data['gender'],
@@ -533,6 +546,7 @@ class ProductRepository
                     fragrance_type_id = :fragrance_type_id,
                     family_name = :family_name,
                     name = :name,
+                    concentration_label = :concentration_label,
                     slug = :slug,
                     description = :description,
                     gender = :gender
@@ -545,6 +559,7 @@ class ProductRepository
                 'fragrance_type_id' => $data['fragrance_type_id'] ?: null,
                 'family_name' => $data['family_name'] ?: null,
                 'name' => $data['name'],
+                'concentration_label' => $data['concentration_label'] ?: null,
                 'slug' => $data['slug'],
                 'description' => $data['description'],
                 'gender' => $data['gender'],
@@ -693,36 +708,38 @@ class ProductRepository
     public function findFeaturedActive(int $limit = 4): array
     {
         $stmt = $this->pdo->prepare("
-        SELECT
-            p.id,
-            p.name,
-            p.slug,
-            p.gender,
-            b.name AS brand_name,
-            ft.name AS fragrance_type_name,
-            MIN(v.price) AS price,
-            COUNT(v.id) AS variant_count,
-            COALESCE(SUM(CASE WHEN v.stock > 0 THEN 1 ELSE 0 END), 0) AS in_stock_variant_count,
-            pi.image_url
-        FROM products p
-        INNER JOIN brands b ON b.id = p.brand_id
-        LEFT JOIN fragrance_types ft ON ft.id = p.fragrance_type_id
-        LEFT JOIN product_variants v ON v.product_id = p.id
-        LEFT JOIN product_images pi
-            ON pi.product_id = p.id
-            AND pi.position = 0
-        WHERE p.deleted_at IS NULL
-        GROUP BY
-            p.id,
-            p.name,
-            p.slug,
-            p.gender,
-            b.name,
-            ft.name,
-            pi.image_url
-        ORDER BY p.id DESC
-        LIMIT :limit
-    ");
+            SELECT
+                p.id,
+                p.name,
+                p.concentration_label,
+                p.slug,
+                p.gender,
+                b.name AS brand_name,
+                ft.name AS fragrance_type_name,
+                MIN(v.price) AS price,
+                COUNT(v.id) AS variant_count,
+                COALESCE(SUM(CASE WHEN v.stock > 0 THEN 1 ELSE 0 END), 0) AS in_stock_variant_count,
+                pi.image_url
+            FROM products p
+            INNER JOIN brands b ON b.id = p.brand_id
+            LEFT JOIN fragrance_types ft ON ft.id = p.fragrance_type_id
+            LEFT JOIN product_variants v ON v.product_id = p.id
+            LEFT JOIN product_images pi
+                ON pi.product_id = p.id
+                AND pi.position = 0
+            WHERE p.deleted_at IS NULL
+            GROUP BY
+                p.id,
+                p.name,
+                p.concentration_label,
+                p.slug,
+                p.gender,
+                b.name,
+                ft.name,
+                pi.image_url
+            ORDER BY p.id DESC
+            LIMIT :limit
+        ");
 
         $stmt->bindValue('limit', $limit, PDO::PARAM_INT);
         $stmt->execute();
@@ -767,12 +784,12 @@ class ProductRepository
     public function findProductIdBySlug(string $slug): ?int
     {
         $stmt = $this->pdo->prepare("
-        SELECT id
-        FROM products
-        WHERE slug = :slug
-          AND deleted_at IS NULL
-        LIMIT 1
-    ");
+            SELECT id
+            FROM products
+            WHERE slug = :slug
+              AND deleted_at IS NULL
+            LIMIT 1
+        ");
 
         $stmt->execute([
             'slug' => $slug,
@@ -786,26 +803,26 @@ class ProductRepository
     public function replaceVariantPrimaryImage(int $variantId, string $imageUrl): void
     {
         $deleteStmt = $this->pdo->prepare("
-        DELETE FROM product_variant_images
-        WHERE product_variant_id = :variant_id
-          AND position = 0
-    ");
+            DELETE FROM product_variant_images
+            WHERE product_variant_id = :variant_id
+              AND position = 0
+        ");
 
         $deleteStmt->execute([
             'variant_id' => $variantId,
         ]);
 
         $insertStmt = $this->pdo->prepare("
-        INSERT INTO product_variant_images (
-            product_variant_id,
-            image_url,
-            position
-        ) VALUES (
-            :variant_id,
-            :image_url,
-            0
-        )
-    ");
+            INSERT INTO product_variant_images (
+                product_variant_id,
+                image_url,
+                position
+            ) VALUES (
+                :variant_id,
+                :image_url,
+                0
+            )
+        ");
 
         $insertStmt->execute([
             'variant_id' => $variantId,
@@ -813,22 +830,22 @@ class ProductRepository
         ]);
     }
 
-
     public function findVariantById(int $variantId): ?array
     {
         $stmt = $this->pdo->prepare("
-        SELECT
-            v.id,
-            v.product_id,
-            v.size_ml,
-            v.price,
-            v.stock,
-            p.name AS product_name
-        FROM product_variants v
-        INNER JOIN products p ON p.id = v.product_id
-        WHERE v.id = :id
-        LIMIT 1
-    ");
+            SELECT
+                v.id,
+                v.product_id,
+                v.size_ml,
+                v.price,
+                v.stock,
+                p.name AS product_name,
+                p.concentration_label
+            FROM product_variants v
+            INNER JOIN products p ON p.id = v.product_id
+            WHERE v.id = :id
+            LIMIT 1
+        ");
 
         $stmt->execute([
             'id' => $variantId,
@@ -850,7 +867,7 @@ class ProductRepository
         $params = [];
 
         if ($search !== '') {
-            $conditions[] = '(p.name LIKE :search OR p.description LIKE :search)';
+            $conditions[] = '(p.name LIKE :search OR p.description LIKE :search OR p.concentration_label LIKE :search)';
             $params['search'] = '%' . $search . '%';
         }
 
@@ -872,10 +889,10 @@ class ProductRepository
         $whereSql = implode(' AND ', $conditions);
 
         $stmt = $this->pdo->prepare("
-        SELECT COUNT(*) 
-        FROM products p
-        WHERE {$whereSql}
-    ");
+            SELECT COUNT(*) 
+            FROM products p
+            WHERE {$whereSql}
+        ");
 
         $stmt->execute($params);
 

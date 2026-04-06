@@ -73,15 +73,14 @@ $selectedImage = $selectedVariantImages[0]['image_url'] ?? $selectedVariant['ima
     <div class="product-show-panel">
         <div class="product-meta-line">
             <span class="badge"><?= htmlspecialchars($product['brand_name']) ?></span>
-
-            <?php if (!empty($product['fragrance_type_name'])): ?>
-                <span class="badge"><?= htmlspecialchars($product['fragrance_type_name']) ?></span>
-            <?php endif; ?>
-
             <span class="badge"><?= htmlspecialchars(ucfirst($product['gender'])) ?></span>
         </div>
 
         <h1><?= htmlspecialchars($product['name']) ?></h1>
+
+        <?php if (!empty($product['concentration_label'])): ?>
+            <p class="product-concentration"><?= htmlspecialchars($product['concentration_label']) ?></p>
+        <?php endif; ?>
 
         <div class="product-rating-summary">
             <?php if ($reviewSummary['average_rating'] !== null): ?>
@@ -344,8 +343,8 @@ $selectedImage = $selectedVariantImages[0]['image_url'] ?? $selectedVariant['ima
                         <div class="related-product-body">
                             <div class="muted"><?= htmlspecialchars($related['brand_name']) ?></div>
                             <strong><?= htmlspecialchars($related['name']) ?></strong>
-                            <?php if (!empty($related['fragrance_type_name'])): ?>
-                                <div class="muted"><?= htmlspecialchars($related['fragrance_type_name']) ?></div>
+                            <?php if (!empty($related['concentration_label'])): ?>
+                                <div class="related-product-subtitle"><?= htmlspecialchars($related['concentration_label']) ?></div>
                             <?php endif; ?>
                             <div class="related-product-price">From €<?= number_format((float) $related['price'], 2) ?></div>
                         </div>
@@ -373,8 +372,8 @@ $selectedImage = $selectedVariantImages[0]['image_url'] ?? $selectedVariant['ima
                         <div class="related-product-body">
                             <div class="muted"><?= htmlspecialchars($related['brand_name']) ?></div>
                             <strong><?= htmlspecialchars($related['name']) ?></strong>
-                            <?php if (!empty($related['fragrance_type_name'])): ?>
-                                <div class="muted"><?= htmlspecialchars($related['fragrance_type_name']) ?></div>
+                            <?php if (!empty($related['concentration_label'])): ?>
+                                <div class="related-product-subtitle"><?= htmlspecialchars($related['concentration_label']) ?></div>
                             <?php endif; ?>
                             <div class="related-product-price">From €<?= number_format((float) $related['price'], 2) ?></div>
                         </div>

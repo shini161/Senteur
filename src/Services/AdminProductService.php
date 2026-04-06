@@ -80,7 +80,6 @@ class AdminProductService
         }
 
         $tmpPath = (string) ($file['tmp_name'] ?? '');
-        $originalName = (string) ($file['name'] ?? '');
 
         if ($tmpPath === '' || !is_uploaded_file($tmpPath)) {
             throw new RuntimeException('Invalid uploaded image.');
@@ -128,6 +127,7 @@ class AdminProductService
             'fragrance_type_id' => ($data['fragrance_type_id'] ?? '') !== '' ? (int) $data['fragrance_type_id'] : null,
             'family_name' => trim((string) ($data['family_name'] ?? '')),
             'name' => trim((string) ($data['name'] ?? '')),
+            'concentration_label' => trim((string) ($data['concentration_label'] ?? '')),
             'slug' => trim((string) ($data['slug'] ?? '')),
             'description' => trim((string) ($data['description'] ?? '')),
             'gender' => trim((string) ($data['gender'] ?? '')),
@@ -152,6 +152,9 @@ class AdminProductService
         if (! in_array($product['gender'], ['male', 'female', 'unisex'], true)) {
             throw new RuntimeException('Invalid gender.');
         }
+
+        $product['family_name'] = $product['family_name'] !== '' ? $product['family_name'] : null;
+        $product['concentration_label'] = $product['concentration_label'] !== '' ? $product['concentration_label'] : null;
 
         $variants = [];
 

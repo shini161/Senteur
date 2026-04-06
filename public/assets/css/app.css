@@ -1311,3 +1311,24 @@ p {
     grid-template-columns: 1fr;
   }
 }
+
+.product-card-subtitle {
+  margin: -0.15rem 0 0.75rem;
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.35;
+  min-height: 1.3rem;
+}
+
+.product-concentration {
+  margin: -0.25rem 0 1rem;
+  color: var(--muted);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.related-product-subtitle {
+  margin-top: 0.35rem;
+  color: var(--muted);
+  font-size: 0.94rem;
+}

@@ -122,25 +122,26 @@ INSERT INTO products (
     fragrance_type_id,
     family_name,
     name,
+    concentration_label,
     slug,
     description,
     gender
 ) VALUES
-(1, 1, 2, 'Dior Sauvage', 'Dior Sauvage Eau de Parfum', 'dior-sauvage-edp', 'Fresh spicy fragrance with bergamot, pepper and ambroxan.', 'male'),
-(2, 2, 2, 'Bleu de Chanel', 'Bleu de Chanel Eau de Parfum', 'bleu-de-chanel-edp', 'Woody aromatic fragrance with citrus, incense and cedar.', 'male'),
-(3, 3, 2, 'YSL Libre', 'YSL Libre Eau de Parfum', 'ysl-libre-edp', 'Floral lavender perfume with vanilla and musk.', 'female'),
-(4, 4, 3, 'Creed Aventus', 'Creed Aventus Parfum', 'creed-aventus-parfum', 'Fruity smoky fragrance with pineapple, birch and musk.', 'male'),
-(5, 5, 3, 'Tom Ford Oud Wood', 'Tom Ford Oud Wood Parfum', 'tom-ford-oud-wood-parfum', 'Warm woody fragrance with oud, vanilla and spices.', 'unisex'),
-(6, 6, 2, 'Baccarat Rouge 540', 'Baccarat Rouge 540 Eau de Parfum', 'baccarat-rouge-540-edp', 'Amber floral fragrance with jasmine, saffron and cedar.', 'unisex'),
-(7, 6, 3, 'Baccarat Rouge 540', 'Baccarat Rouge 540 Extrait de Parfum', 'baccarat-rouge-540-extrait', 'A richer and denser Baccarat Rouge 540 interpretation with deeper amber and musk facets.', 'unisex'),
-(8, 7, 3, 'Roja Elysium', 'Roja Elysium Parfum Cologne', 'roja-elysium-parfum-cologne', 'Bright citrus aromatic fragrance with refined woods and musk.', 'male'),
-(9, 7, 3, 'Roja Enigma', 'Roja Enigma Parfum Cologne', 'roja-enigma-parfum-cologne', 'Warm amber-spicy composition with vanilla, cognac and woods.', 'male'),
-(10, 8, 2, 'Xerjoff Naxos', 'Xerjoff Naxos Eau de Parfum', 'xerjoff-naxos-edp', 'Honeyed tobacco fragrance with lavender, citrus and vanilla.', 'unisex'),
-(11, 8, 2, 'Xerjoff Erba Pura', 'Xerjoff Erba Pura Eau de Parfum', 'xerjoff-erba-pura-edp', 'Fruity-musky fragrance with radiant sweetness and soft warmth.', 'unisex'),
-(12, 9, 2, 'Montale Arabians Tonka', 'Montale Arabians Tonka Eau de Parfum', 'montale-arabians-tonka-edp', 'Dense amber-oud profile with rose, sugar and tonka facets.', 'unisex'),
-(13, 10, 3, 'Mercurial Cashmere', 'Electimuss Mercurial Cashmere Parfum', 'electimuss-mercurial-cashmere-parfum', 'Smooth amber-woody fragrance with creamy vanilla and musk.', 'unisex'),
-(14, 11, 2, 'Side Effect', 'Initio Side Effect Eau de Parfum', 'initio-side-effect-edp', 'Rich spicy blend with cinnamon, vanilla, tobacco and rum nuances.', 'unisex'),
-(15, 12, 2, 'Layton', 'Parfums de Marly Layton Eau de Parfum', 'parfums-de-marly-layton-edp', 'Elegant sweet-spicy profile with apple, vanilla and woods.', 'male');
+(1, 1, 2, 'Dior Sauvage', 'Sauvage', 'Eau de Parfum', 'dior-sauvage-edp', 'Fresh spicy fragrance with bergamot, pepper and ambroxan.', 'male'),
+(2, 2, 2, 'Bleu de Chanel', 'Bleu de Chanel', 'Eau de Parfum', 'bleu-de-chanel-edp', 'Woody aromatic fragrance with citrus, incense and cedar.', 'male'),
+(3, 3, 2, 'Libre', 'Libre', 'Eau de Parfum', 'ysl-libre-edp', 'Floral lavender perfume with vanilla and musk.', 'female'),
+(4, 4, 3, 'Aventus', 'Aventus', 'Parfum', 'creed-aventus-parfum', 'Fruity smoky fragrance with pineapple, birch and musk.', 'male'),
+(5, 5, 3, 'Oud Wood', 'Oud Wood', 'Parfum', 'tom-ford-oud-wood-parfum', 'Warm woody fragrance with oud, vanilla and spices.', 'unisex'),
+(6, 6, 2, 'Baccarat Rouge 540', 'Baccarat Rouge 540', 'Eau de Parfum', 'baccarat-rouge-540-edp', 'Amber floral fragrance with jasmine, saffron and cedar.', 'unisex'),
+(7, 6, 3, 'Baccarat Rouge 540', 'Baccarat Rouge 540', 'Extrait de Parfum', 'baccarat-rouge-540-extrait', 'A richer and denser Baccarat Rouge 540 interpretation with deeper amber and musk facets.', 'unisex'),
+(8, 7, 3, 'Elysium', 'Elysium', 'Parfum Cologne', 'roja-elysium-parfum-cologne', 'Bright citrus aromatic fragrance with refined woods and musk.', 'male'),
+(9, 7, 3, 'Enigma', 'Enigma', 'Parfum Cologne', 'roja-enigma-parfum-cologne', 'Warm amber-spicy composition with vanilla, cognac and woods.', 'male'),
+(10, 8, 2, 'Naxos', 'Naxos', 'Eau de Parfum', 'xerjoff-naxos-edp', 'Honeyed tobacco fragrance with lavender, citrus and vanilla.', 'unisex'),
+(11, 8, 2, 'Erba Pura', 'Erba Pura', 'Eau de Parfum', 'xerjoff-erba-pura-edp', 'Fruity-musky fragrance with radiant sweetness and soft warmth.', 'unisex'),
+(12, 9, 2, 'Arabians Tonka', 'Arabians Tonka', 'Eau de Parfum', 'montale-arabians-tonka-edp', 'Dense amber-oud profile with rose, sugar and tonka facets.', 'unisex'),
+(13, 10, 3, 'Mercurial Cashmere', 'Mercurial Cashmere', 'Parfum', 'electimuss-mercurial-cashmere-parfum', 'Smooth amber-woody fragrance with creamy vanilla and musk.', 'unisex'),
+(14, 11, 2, 'Side Effect', 'Side Effect', 'Eau de Parfum', 'initio-side-effect-edp', 'Rich spicy blend with cinnamon, vanilla, tobacco and rum nuances.', 'unisex'),
+(15, 12, 2, 'Layton', 'Layton', 'Eau de Parfum', 'parfums-de-marly-layton-edp', 'Elegant sweet-spicy profile with apple, vanilla and woods.', 'male');
 
 -- ======================
 -- PRODUCT VARIANTS
@@ -385,22 +386,22 @@ INSERT INTO order_items (
     quantity,
     price_at_purchase
 ) VALUES
-(1, 1, 1, 'Dior Sauvage Eau de Parfum', 60, 2, 85.00),
-(2, 1, 4, 'Bleu de Chanel Eau de Parfum', 100, 1, 130.00),
+(1, 1, 1, 'Sauvage', 60, 2, 85.00),
+(2, 1, 4, 'Bleu de Chanel', 100, 1, 130.00),
 
-(3, 2, 11, 'Baccarat Rouge 540 Eau de Parfum', 70, 1, 245.00),
+(3, 2, 11, 'Baccarat Rouge 540', 70, 1, 245.00),
 
-(4, 3, 9, 'Tom Ford Oud Wood Parfum', 50, 1, 210.00),
+(4, 3, 9, 'Oud Wood', 50, 1, 210.00),
 
-(5, 4, 12, 'Baccarat Rouge 540 Eau de Parfum', 200, 1, 430.00),
+(5, 4, 12, 'Baccarat Rouge 540', 200, 1, 430.00),
 
-(6, 5, 5, 'YSL Libre Eau de Parfum', 50, 1, 95.00),
+(6, 5, 5, 'Libre', 50, 1, 95.00),
 
-(7, 6, 17, 'Xerjoff Naxos Eau de Parfum', 100, 1, 205.00),
+(7, 6, 17, 'Naxos', 100, 1, 205.00),
 
-(8, 7, 24, 'Parfums de Marly Layton Eau de Parfum', 75, 1, 180.00),
+(8, 7, 24, 'Layton', 75, 1, 180.00),
 
-(9, 8, 22, 'Initio Side Effect Eau de Parfum', 50, 1, 185.00);
+(9, 8, 22, 'Side Effect', 50, 1, 185.00);
 
 -- ======================
 -- PAYMENTS
