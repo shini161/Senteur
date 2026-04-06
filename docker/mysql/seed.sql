@@ -14,6 +14,7 @@ TRUNCATE TABLE reviews;
 TRUNCATE TABLE user_addresses;
 TRUNCATE TABLE product_notes;
 TRUNCATE TABLE product_categories;
+TRUNCATE TABLE product_variant_images;
 TRUNCATE TABLE product_images;
 TRUNCATE TABLE product_variants;
 TRUNCATE TABLE products;
@@ -59,16 +60,16 @@ INSERT INTO categories (id, name) VALUES
 -- NOTES
 -- ======================
 INSERT INTO notes (id, name, image_url) VALUES
-(1, 'Bergamot', 'notes/bergamot.png'),
-(2, 'Pepper', 'notes/pepper.png'),
-(3, 'Lavender', 'notes/lavender.png'),
-(4, 'Cedarwood', 'notes/cedarwood.png'),
-(5, 'Vanilla', 'notes/vanilla.png'),
-(6, 'Patchouli', 'notes/patchouli.png'),
-(7, 'Jasmine', 'notes/jasmine.png'),
-(8, 'Ambroxan', 'notes/ambroxan.png'),
-(9, 'Pineapple', 'notes/pineapple.png'),
-(10, 'Musk', 'notes/musk.png');
+(1, 'Bergamot', 'uploads/notes/bergamot.png'),
+(2, 'Pepper', 'uploads/notes/pepper.png'),
+(3, 'Lavender', 'uploads/notes/lavender.png'),
+(4, 'Cedarwood', 'uploads/notes/cedarwood.png'),
+(5, 'Vanilla', 'uploads/notes/vanilla.png'),
+(6, 'Patchouli', 'uploads/notes/patchouli.png'),
+(7, 'Jasmine', 'uploads/notes/jasmine.png'),
+(8, 'Ambroxan', 'uploads/notes/ambroxan.png'),
+(9, 'Pineapple', 'uploads/notes/pineapple.png'),
+(10, 'Musk', 'uploads/notes/musk.png');
 
 -- ======================
 -- USERS
@@ -106,8 +107,6 @@ INSERT INTO user_addresses (
 
 -- ======================
 -- PRODUCTS
--- IMPORTANT:
--- requires products.family_name column to exist
 -- ======================
 INSERT INTO products (
     id,
@@ -167,13 +166,43 @@ INSERT INTO product_images (
     image_url,
     position
 ) VALUES
-(1, 1, 'products/sauvage.jpg', 0),
-(2, 2, 'products/bleu.jpg', 0),
-(3, 3, 'products/libre.jpg', 0),
-(4, 4, 'products/aventus.jpg', 0),
-(5, 5, 'products/oud-wood.jpg', 0),
-(6, 6, 'products/baccarat-rouge-540.jpg', 0),
-(7, 7, 'products/baccarat-rouge-540-extrait.jpg', 0);
+(1, 1, 'uploads/products/dior-sauvage-eau-de-parfum.jpg', 0),
+(2, 2, 'uploads/products/chanel-bleu-de-chanel-eau-de-parfum.jpg', 0),
+(3, 3, 'uploads/products/ysl-libre-eau-de-parfum.jpg', 0),
+(4, 4, 'uploads/products/creed-aventus-parfum.jpg', 0),
+(5, 5, 'uploads/products/tom-ford-oud-wood-parfum.jpg', 0),
+(6, 6, 'uploads/products/maison-francis-kurkdjian-baccarat-rouge-540-eau-de-parfum.jpg', 0),
+(7, 7, 'uploads/products/maison-francis-kurkdjian-baccarat-rouge-540-extrait-de-parfum.jpg', 0);
+
+-- ======================
+-- PRODUCT VARIANT IMAGES
+-- ======================
+INSERT INTO product_variant_images (
+    id,
+    product_variant_id,
+    image_url,
+    position
+) VALUES
+(1, 1, 'uploads/products/dior-sauvage-eau-de-parfum-50ml.jpg', 0),
+(2, 2, 'uploads/products/dior-sauvage-eau-de-parfum-100ml.jpg', 0),
+
+(3, 3, 'uploads/products/chanel-bleu-de-chanel-eau-de-parfum-50ml.jpg', 0),
+(4, 4, 'uploads/products/chanel-bleu-de-chanel-eau-de-parfum-100ml.jpg', 0),
+
+(5, 5, 'uploads/products/ysl-libre-eau-de-parfum-50ml.jpg', 0),
+(6, 6, 'uploads/products/ysl-libre-eau-de-parfum-90ml.jpg', 0),
+
+(7, 7, 'uploads/products/creed-aventus-parfum-50ml.jpg', 0),
+(8, 8, 'uploads/products/creed-aventus-parfum-100ml.jpg', 0),
+
+(9, 9, 'uploads/products/tom-ford-oud-wood-parfum-50ml.jpg', 0),
+(10, 10, 'uploads/products/tom-ford-oud-wood-parfum-100ml.jpg', 0),
+
+(11, 11, 'uploads/products/maison-francis-kurkdjian-baccarat-rouge-540-eau-de-parfum-70ml.jpg', 0),
+(12, 12, 'uploads/products/maison-francis-kurkdjian-baccarat-rouge-540-eau-de-parfum-200ml.jpg', 0),
+
+(13, 13, 'uploads/products/maison-francis-kurkdjian-baccarat-rouge-540-extrait-de-parfum-70ml.jpg', 0),
+(14, 14, 'uploads/products/maison-francis-kurkdjian-baccarat-rouge-540-extrait-de-parfum-200ml.jpg', 0);
 
 -- ======================
 -- PRODUCT CATEGORIES

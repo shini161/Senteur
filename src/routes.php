@@ -83,4 +83,6 @@ return [
     ['GET', '/admin/products/{id}/edit', [AdminProductController::class, 'edit']],
     ['POST', '/admin/products/{id}', [AdminProductController::class, 'update']],
     ['POST', '/admin/products/{id}/image', [AdminProductController::class, 'uploadImage']],
+
+    ['POST', '/admin/variants/{id}/image', [AdminProductController::class, 'uploadVariantImage']]
 ];

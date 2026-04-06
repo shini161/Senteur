@@ -34,3 +34,10 @@ notes.md
 
 # Docker Override for SELinux
 docker-compose.override.yml
+
+/public/uploads/*
+!/public/uploads/.gitkeep
+!/public/uploads/products/
+!/public/uploads/products/.gitkeep
+!/public/uploads/notes/
+!/public/uploads/notes/.gitkeep

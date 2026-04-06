@@ -180,4 +180,57 @@ class AdminProductService
             'variants' => $variants,
         ];
     }
+
+    public function uploadVariantImage(int $variantId, array $file): void
+    {
+        $variant = $this->productRepository->findVariantById($variantId);
+
+        if ($variant === null) {
+            throw new RuntimeException('Variant not found.');
+        }
+
+        if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
+            throw new RuntimeException('Image upload failed.');
+        }
+
+        $tmpPath = (string) ($file['tmp_name'] ?? '');
+
+        if ($tmpPath === '' || !is_uploaded_file($tmpPath)) {
+            throw new RuntimeException('Invalid uploaded image.');
+        }
+
+        $mimeType = mime_content_type($tmpPath) ?: '';
+
+        $extension = match ($mimeType) {
+            'image/jpeg' => 'jpg',
+            'image/png' => 'png',
+            'image/webp' => 'webp',
+            default => null,
+        };
+
+        if ($extension === null) {
+            throw new RuntimeException('Only JPG, PNG, and WEBP images are allowed.');
+        }
+
+        if (($file['size'] ?? 0) > 5 * 1024 * 1024) {
+            throw new RuntimeException('Image must be 5MB or smaller.');
+        }
+
+        $uploadDir = dirname(__DIR__, 2) . '/public/uploads/products';
+
+        if (!is_dir($uploadDir) && !mkdir($uploadDir, 0775, true) && !is_dir($uploadDir)) {
+            throw new RuntimeException('Failed to create upload directory.');
+        }
+
+        $safeBaseName = bin2hex(random_bytes(12));
+        $filename = 'variant-' . $variantId . '-' . $safeBaseName . '.' . $extension;
+        $destination = $uploadDir . '/' . $filename;
+
+        if (!move_uploaded_file($tmpPath, $destination)) {
+            throw new RuntimeException('Failed to save uploaded image.');
+        }
+
+        $imageUrl = 'uploads/products/' . $filename;
+        $this->productRepository->replaceVariantPrimaryImage($variantId, $imageUrl);
+    }
 }

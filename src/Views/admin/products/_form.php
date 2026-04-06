@@ -94,7 +94,7 @@ $variants = $formData['variants'] ?? [
     <label>Variants</label>
 
     <?php foreach ($variants as $index => $variant): ?>
-        <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin-bottom: 0.75rem;">
+        <div class="admin-variant-row">
             <input
                 type="number"
                 min="1"
@@ -120,5 +120,37 @@ $variants = $formData['variants'] ?? [
                 value="<?= htmlspecialchars((string) ($variant['stock'] ?? '')) ?>"
                 required>
         </div>
+
+        <?php if (!empty($product['variants'][$index]['id'])): ?>
+            <div class="admin-variant-image-block">
+                <div class="admin-variant-image-meta">
+                    <strong><?= htmlspecialchars((string) ($variant['size_ml'] ?? '')) ?>ml image</strong>
+                </div>
+
+                <?php
+                $variantImage = $product['variants'][$index]['images'][0]['image_url'] ?? null;
+                ?>
+
+                <?php if ($variantImage): ?>
+                    <img
+                        src="/<?= htmlspecialchars($variantImage) ?>"
+                        alt="Variant image"
+                        class="admin-variant-image-preview">
+                <?php else: ?>
+                    <div class="admin-variant-image-empty">No variant image uploaded</div>
+                <?php endif; ?>
+
+                <form
+                    method="POST"
+                    action="/admin/variants/<?= (int) $product['variants'][$index]['id'] ?>/image"
+                    enctype="multipart/form-data"
+                    class="admin-variant-image-form">
+                    <?= \App\Core\Csrf::input() ?>
+                    <input type="hidden" name="product_id" value="<?= (int) $product['id'] ?>">
+                    <input type="file" name="image" accept=".jpg,.jpeg,.png,.webp" required>
+                    <button type="submit" class="button-secondary">Upload variant image</button>
+                </form>
+            </div>
+        <?php endif; ?>
     <?php endforeach; ?>
 </div>

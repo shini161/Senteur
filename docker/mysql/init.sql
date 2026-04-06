@@ -88,6 +88,18 @@ CREATE TABLE product_images (
     UNIQUE (product_id, position)
 );
 
+CREATE TABLE product_variant_images (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+
+    product_variant_id INT NOT NULL,
+    image_url VARCHAR(255) NOT NULL,
+    position INT NOT NULL DEFAULT 0,
+
+    FOREIGN KEY (product_variant_id) REFERENCES product_variants(id) ON DELETE CASCADE,
+
+    UNIQUE (product_variant_id, position)
+);
+
 CREATE TABLE categories (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) UNIQUE NOT NULL CHECK (name <> '')
@@ -260,6 +272,8 @@ CREATE INDEX idx_variants_stock ON product_variants(stock);
 CREATE INDEX idx_variants_product_price ON product_variants(product_id, price);
 
 CREATE INDEX idx_images_product_position ON product_images(product_id, position);
+
+CREATE INDEX idx_variant_images_variant_position ON product_variant_images(product_variant_id, position);
 
 CREATE INDEX idx_notes_name ON notes(name);
 

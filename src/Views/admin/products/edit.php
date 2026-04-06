@@ -2,7 +2,7 @@
     <div class="auth-card" style="max-width: 900px;">
         <p class="section-kicker">Admin</p>
         <h1>Edit Product</h1>
-        <p class="auth-subtitle">Update product data, variants, and image.</p>
+        <p class="auth-subtitle">Update product data, variants, product image, and variant images.</p>
 
         <p>
             <a href="/admin/products">← Back to products</a>
@@ -37,6 +37,10 @@
                 <button type="submit" class="button-secondary">Upload image</button>
             </form>
         </div>
+
+        <?php if (!empty($variantImageError)): ?>
+            <p class="auth-error"><?= htmlspecialchars($variantImageError) ?></p>
+        <?php endif; ?>
 
         <form method="POST" action="/admin/products/<?= (int) $product['id'] ?>" class="auth-form">
             <?= \App\Core\Csrf::input() ?>

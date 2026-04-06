@@ -185,4 +185,47 @@ class AdminProductController extends Controller
             ]);
         }
     }
+
+    public function uploadVariantImage(string $variantId): void
+    {
+        Auth::requireAdmin();
+
+        if (! Csrf::verify($_POST['_csrf'] ?? null)) {
+            http_response_code(403);
+            echo 'Invalid CSRF token';
+            return;
+        }
+
+        $variantIdInt = (int) $variantId;
+
+        try {
+            $this->adminProductService->uploadVariantImage($variantIdInt, $_FILES['image'] ?? []);
+
+            $variant = $this->adminProductService->getProductById((int) ($_POST['product_id'] ?? 0));
+
+            header('Location: /admin/products/' . (int) ($_POST['product_id'] ?? 0) . '/edit');
+            exit;
+        } catch (RuntimeException $e) {
+            $productId = (int) ($_POST['product_id'] ?? 0);
+            $product = $this->adminProductService->getProductById($productId);
+            $meta = $this->adminProductService->getFormMeta();
+
+            if ($product === null) {
+                http_response_code(404);
+                echo 'Product not found';
+                return;
+            }
+
+            $this->render('admin/products/edit', [
+                'title' => 'Edit Product',
+                'error' => null,
+                'imageError' => null,
+                'variantImageError' => $e->getMessage(),
+                'product' => $product,
+                'brands' => $meta['brands'],
+                'fragranceTypes' => $meta['fragranceTypes'],
+                'genders' => $meta['genders'],
+            ]);
+        }
+    }
 }

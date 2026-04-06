@@ -14,7 +14,8 @@ services:
   mysql:
     volumes:
       - mysql_data:/var/lib/mysql:z
-      - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro,z
+      - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro,z
+      - ./docker/mysql/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro,z
 
 volumes:
   mysql_data:
