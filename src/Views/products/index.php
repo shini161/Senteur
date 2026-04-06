@@ -109,8 +109,8 @@
 
                         <h2 class="product-card-title"><?= htmlspecialchars($product['name']) ?></h2>
 
-                        <?php if (!empty($product['fragrance_type_name'])): ?>
-                            <p class="product-card-subtitle"><?= htmlspecialchars($product['fragrance_type_name']) ?></p>
+                        <?php if (!empty($product['concentration_label'])): ?>
+                            <p class="product-card-subtitle"><?= htmlspecialchars($product['concentration_label']) ?></p>
                         <?php endif; ?>
 
                         <div class="product-card-meta">

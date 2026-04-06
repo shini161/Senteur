@@ -38,8 +38,22 @@ class ProductRepository
         $params = [];
 
         if ($search !== '') {
-            $conditions[] = '(p.name LIKE :search OR p.description LIKE :search OR p.concentration_label LIKE :search)';
-            $params['search'] = '%' . $search . '%';
+            $tokens = preg_split('/\s+/', mb_strtolower($search), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+
+            foreach ($tokens as $index => $token) {
+                $paramKey = 'search_' . $index;
+
+                $conditions[] = "(
+                    LOWER(p.name) LIKE :{$paramKey}
+                    OR LOWER(COALESCE(p.family_name, '')) LIKE :{$paramKey}
+                    OR LOWER(COALESCE(p.concentration_label, '')) LIKE :{$paramKey}
+                    OR LOWER(COALESCE(p.description, '')) LIKE :{$paramKey}
+                    OR LOWER(b.name) LIKE :{$paramKey}
+                    OR LOWER(COALESCE(ft.name, '')) LIKE :{$paramKey}
+                )";
+
+                $params[$paramKey] = '%' . $token . '%';
+            }
         }
 
         if ($brandId > 0) {
@@ -867,8 +881,22 @@ class ProductRepository
         $params = [];
 
         if ($search !== '') {
-            $conditions[] = '(p.name LIKE :search OR p.description LIKE :search OR p.concentration_label LIKE :search)';
-            $params['search'] = '%' . $search . '%';
+            $tokens = preg_split('/\s+/', mb_strtolower($search), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+
+            foreach ($tokens as $index => $token) {
+                $paramKey = 'search_' . $index;
+
+                $conditions[] = "(
+                    LOWER(p.name) LIKE :{$paramKey}
+                    OR LOWER(COALESCE(p.family_name, '')) LIKE :{$paramKey}
+                    OR LOWER(COALESCE(p.concentration_label, '')) LIKE :{$paramKey}
+                    OR LOWER(COALESCE(p.description, '')) LIKE :{$paramKey}
+                    OR LOWER(b.name) LIKE :{$paramKey}
+                    OR LOWER(COALESCE(ft.name, '')) LIKE :{$paramKey}
+                )";
+
+                $params[$paramKey] = '%' . $token . '%';
+            }
         }
 
         if ($brandId > 0) {
@@ -889,8 +917,10 @@ class ProductRepository
         $whereSql = implode(' AND ', $conditions);
 
         $stmt = $this->pdo->prepare("
-            SELECT COUNT(*) 
+            SELECT COUNT(*)
             FROM products p
+            INNER JOIN brands b ON b.id = p.brand_id
+            LEFT JOIN fragrance_types ft ON ft.id = p.fragrance_type_id
             WHERE {$whereSql}
         ");
 

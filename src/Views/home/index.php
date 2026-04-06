@@ -46,9 +46,9 @@
                                 <?= htmlspecialchars($product['name']) ?>
                             </h2>
 
-                            <?php if (!empty($product['fragrance_type_name'])): ?>
+                            <?php if (!empty($product['concentration_label'])): ?>
                                 <div class="product-card-subtitle product-card-subtitle-featured">
-                                    <?= htmlspecialchars($product['fragrance_type_name']) ?>
+                                    <?= htmlspecialchars($product['concentration_label']) ?>
                                 </div>
                             <?php endif; ?>
 

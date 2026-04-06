@@ -78,8 +78,8 @@ $selectedImage = $selectedVariantImages[0]['image_url'] ?? $selectedVariant['ima
 
             <h1><?= htmlspecialchars($product['name']) ?></h1>
 
-            <?php if (!empty($product['fragrance_type_name'])): ?>
-                <p class="product-subtitle"><?= htmlspecialchars($product['fragrance_type_name']) ?></p>
+            <?php if (!empty($product['concentration_label'])): ?>
+                <p class="product-subtitle"><?= htmlspecialchars($product['concentration_label']) ?></p>
             <?php endif; ?>
 
             <div class="product-meta-line">
@@ -354,9 +354,9 @@ $selectedImage = $selectedVariantImages[0]['image_url'] ?? $selectedVariant['ima
                                 <?= htmlspecialchars($related['name']) ?>
                             </div>
 
-                            <?php if (!empty($related['fragrance_type_name'])): ?>
+                            <?php if (!empty($related['concentration_label'])): ?>
                                 <div class="related-product-subtitle">
-                                    <?= htmlspecialchars($related['fragrance_type_name']) ?>
+                                    <?= htmlspecialchars($related['concentration_label']) ?>
                                 </div>
                             <?php endif; ?>
 
@@ -394,9 +394,9 @@ $selectedImage = $selectedVariantImages[0]['image_url'] ?? $selectedVariant['ima
                                 <?= htmlspecialchars($related['name']) ?>
                             </div>
 
-                            <?php if (!empty($related['fragrance_type_name'])): ?>
+                            <?php if (!empty($related['concentration_label'])): ?>
                                 <div class="related-product-subtitle">
-                                    <?= htmlspecialchars($related['fragrance_type_name']) ?>
+                                    <?= htmlspecialchars($related['concentration_label']) ?>
                                 </div>
                             <?php endif; ?>
 
