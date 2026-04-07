@@ -35,18 +35,15 @@
                         value="<?= htmlspecialchars($_GET['search'] ?? '') ?>">
                 </form>
 
-                <?php if ($user): ?>
-                    <a href="/cart">Cart</a>
-                    <a href="/profile">Profile</a>
-                    <span class="nav-user"><?= htmlspecialchars($user['username']) ?></span>
+                <div class="nav-actions">
+                    <a href="/cart" class="nav-action-link">Cart</a>
 
-                    <form method="POST" action="/logout" class="inline-form">
-                        <?= \App\Core\Csrf::input() ?>
-                        <button type="submit" class="button-secondary">Logout</button>
-                    </form>
-                <?php else: ?>
-                    <a href="/login" class="button-secondary">Login</a>
-                <?php endif; ?>
+                    <?php if ($user): ?>
+                        <a href="/profile" class="button-secondary">Profile</a>
+                    <?php else: ?>
+                        <a href="/login" class="button-secondary">Login</a>
+                    <?php endif; ?>
+                </div>
             </div>
         </nav>
     </header>
