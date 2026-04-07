@@ -15,17 +15,50 @@
             <?php else: ?>
                 <div class="checkout-items">
                     <?php foreach ($items as $item): ?>
-                        <div class="checkout-item">
-                            <div>
-                                <strong><?= htmlspecialchars($item['product_name']) ?></strong>
-                                <div><?= htmlspecialchars((string) $item['size_ml']) ?>ml</div>
+                        <article class="checkout-item">
+                            <div class="checkout-item-left">
+                                <div class="checkout-item-media">
+                                    <?php if (!empty($item['image_url'])): ?>
+                                        <img
+                                            src="/<?= htmlspecialchars((string) $item['image_url']) ?>"
+                                            alt="<?= htmlspecialchars((string) $item['product_name']) ?>">
+                                    <?php else: ?>
+                                        <div class="product-placeholder">SENTEUR</div>
+                                    <?php endif; ?>
+                                </div>
+
+                                <div class="checkout-item-main">
+                                    <?php if (!empty($item['brand_name'])): ?>
+                                        <div class="checkout-item-brand">
+                                            <?= htmlspecialchars((string) $item['brand_name']) ?>
+                                        </div>
+                                    <?php endif; ?>
+
+                                    <div class="checkout-item-name">
+                                        <?= htmlspecialchars((string) $item['product_name']) ?>
+                                    </div>
+
+                                    <div class="checkout-item-meta muted">
+                                        <?php if (!empty($item['concentration_label'])): ?>
+                                            <span><?= htmlspecialchars((string) $item['concentration_label']) ?></span>
+                                            <span class="cart-meta-separator">·</span>
+                                        <?php endif; ?>
+
+                                        <span><?= htmlspecialchars((string) $item['size_ml']) ?>ml</span>
+                                    </div>
+                                </div>
                             </div>
 
-                            <div class="checkout-item-meta">
-                                <div>Qty: <?= htmlspecialchars((string) $item['quantity']) ?></div>
-                                <div><?= number_format((float) $item['subtotal'], 2) ?>€</div>
+                            <div class="checkout-item-side">
+                                <div class="checkout-item-price">
+                                    €<?= number_format((float) $item['subtotal'], 2) ?>
+                                </div>
+
+                                <div class="checkout-item-qty muted">
+                                    Qty <?= htmlspecialchars((string) $item['quantity']) ?>
+                                </div>
                             </div>
-                        </div>
+                        </article>
                     <?php endforeach; ?>
                 </div>
 
@@ -44,7 +77,11 @@
                     <?= \App\Core\Csrf::input() ?>
 
                     <div class="form-group">
-                        <label for="shipping_address_id">Choose address</label>
+                        <div class="form-group-header">
+                            <label for="shipping_address_id">Choose address</label>
+                            <a href="/addresses" class="button-link">Add new address</a>
+                        </div>
+
                         <select id="shipping_address_id" name="shipping_address_id" class="checkout-select" required>
                             <option value="">Select an address</option>
 
@@ -62,7 +99,9 @@
                         </select>
                     </div>
 
-                    <button type="submit" class="auth-button">Place order</button>
+                    <div class="checkout-actions">
+                        <button type="submit" class="auth-button">Place order</button>
+                    </div>
                 </form>
             <?php elseif (empty($addresses)): ?>
                 <p>You need a saved address before checkout.</p>
