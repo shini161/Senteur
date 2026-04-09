@@ -57,6 +57,10 @@ class AddressService
             throw new RuntimeException('Country is too long.');
         }
 
+        if ($this->addresses->countByUserId($userId) >= 10) {
+            throw new RuntimeException('You can save up to 10 addresses. Delete one to add another.');
+        }
+
         if ($isDefault || ! $this->addresses->hasAnyForUser($userId)) {
             $this->addresses->clearDefaultForUser($userId);
             $isDefault = true;

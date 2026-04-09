@@ -178,4 +178,17 @@ class AddressRepository
 
         return (bool) $stmt->fetchColumn();
     }
+
+    public function countByUserId(int $userId): int
+    {
+        $stmt = $this->pdo->prepare("
+        SELECT COUNT(*)
+        FROM user_addresses
+        WHERE user_id = :user_id
+    ");
+
+        $stmt->execute(['user_id' => $userId]);
+
+        return (int) $stmt->fetchColumn();
+    }
 }

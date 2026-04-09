@@ -21,10 +21,12 @@ class AddressController extends Controller
         Auth::requireAuth();
 
         $userId = Auth::id();
+        $addresses = $this->addressService->getAllForUser((int) $userId);
 
         $this->render('user/addresses', [
             'title' => 'Addresses',
-            'addresses' => $this->addressService->getAllForUser((int) $userId),
+            'addresses' => $addresses,
+            'can_add_address' => count($addresses) < 10,
             'error' => null,
             'old' => [],
         ]);
@@ -60,6 +62,7 @@ class AddressController extends Controller
             $this->render('user/addresses', [
                 'title' => 'Addresses',
                 'addresses' => $this->addressService->getAllForUser($userId),
+                'can_add_address' => count($this->addressService->getAllForUser($userId)) < 10,
                 'error' => $e->getMessage(),
                 'old' => $data,
             ]);
