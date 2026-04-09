@@ -15,20 +15,14 @@
                 <span class="profile-label">Email</span>
                 <span><?= htmlspecialchars($user['email']) ?></span>
             </div>
-
             <div class="profile-field">
                 <span class="profile-label">Phone</span>
-                <span><?= htmlspecialchars($user['phone'] ?? '—') ?></span>
-            </div>
-
-            <div class="profile-field">
-                <span class="profile-label">Role</span>
-                <span><?= htmlspecialchars($user['role']) ?></span>
+                <span><?= htmlspecialchars(!empty($user['phone']) ? formatPhone((string) $user['phone']) : '—') ?></span>
             </div>
 
             <div class="profile-field">
                 <span class="profile-label">Member since</span>
-                <span><?= htmlspecialchars($user['created_at']) ?></span>
+                <span><?= htmlspecialchars(date('F j, Y', strtotime((string) $user['created_at']))) ?></span>
             </div>
 
             <div class="profile-links">
@@ -39,6 +33,13 @@
                 <a href="/orders" class="profile-link">
                     My orders →
                 </a>
+
+                <form method="POST" action="/logout" class="profile-logout-form">
+                    <?= \App\Core\Csrf::input() ?>
+                    <button type="submit" class="button-danger profile-logout-button">
+                        Logout
+                    </button>
+                </form>
             </div>
         <?php endif; ?>
     </div>
