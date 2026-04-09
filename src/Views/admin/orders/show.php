@@ -51,8 +51,23 @@
 
             <?php foreach ($order['items'] as $item): ?>
                 <div style="padding: 0.75rem 0; border-bottom: 1px solid #ddd;">
-                    <p><strong><?= htmlspecialchars($item['product_name_snapshot']) ?></strong></p>
-                    <p><?= (int) $item['size_ml_snapshot'] ?>ml</p>
+                    <p><strong><?= htmlspecialchars((string) $item['product_name_snapshot']) ?></strong></p>
+
+                    <?php if (!empty($item['brand_name_snapshot'])): ?>
+                        <p><?= htmlspecialchars((string) $item['brand_name_snapshot']) ?></p>
+                    <?php endif; ?>
+
+                    <p>
+                        <?php if (!empty($item['concentration_label_snapshot'])): ?>
+                            <?= htmlspecialchars((string) $item['concentration_label_snapshot']) ?> ·
+                        <?php endif; ?>
+                        <?= (int) $item['size_ml_snapshot'] ?>ml
+                    </p>
+
+                    <?php if (!empty($item['image_url_snapshot'])): ?>
+                        <p><?= htmlspecialchars((string) $item['image_url_snapshot']) ?></p>
+                    <?php endif; ?>
+
                     <p>Qty: <?= (int) $item['quantity'] ?></p>
                     <p>Unit: €<?= number_format((float) $item['price_at_purchase'], 2) ?></p>
                     <p>Line total: €<?= number_format((float) $item['line_total'], 2) ?></p>

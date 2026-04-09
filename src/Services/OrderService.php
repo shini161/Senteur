@@ -12,9 +12,9 @@ class OrderService
         private OrderRepository $orderRepository
     ) {}
 
-    public function getUserOrders(int $userId): array
+    public function getUserOrders(int $userId, ?string $status = null): array
     {
-        return $this->orderRepository->findByUserId($userId);
+        return $this->orderRepository->findByUserId($userId, $status);
     }
 
     public function getUserOrderByPublicId(int $userId, string $publicId): ?array
@@ -36,5 +36,21 @@ class OrderService
         $order['items'] = $items;
 
         return $order;
+    }
+
+    public function getUserOrdersPaginated(int $userId, ?string $status, int $page, int $perPage): array
+    {
+        $total = $this->orderRepository->countByUserId($userId, $status);
+        $pages = max(1, (int) ceil($total / $perPage));
+        $page = min($page, $pages);
+        $offset = ($page - 1) * $perPage;
+
+        $orders = $this->orderRepository->findByUserIdPaginated($userId, $status, $perPage, $offset);
+
+        return [
+            'orders' => $orders,
+            'total' => $total,
+            'pages' => $pages,
+        ];
     }
 }

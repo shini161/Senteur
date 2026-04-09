@@ -61,6 +61,9 @@ class OrderRepository
                     order_id,
                     product_variant_id,
                     product_name_snapshot,
+                    brand_name_snapshot,
+                    concentration_label_snapshot,
+                    image_url_snapshot,
                     size_ml_snapshot,
                     quantity,
                     price_at_purchase
@@ -68,6 +71,9 @@ class OrderRepository
                     :order_id,
                     :product_variant_id,
                     :product_name_snapshot,
+                    :brand_name_snapshot,
+                    :concentration_label_snapshot,
+                    :image_url_snapshot,
                     :size_ml_snapshot,
                     :quantity,
                     :price_at_purchase
@@ -77,11 +83,18 @@ class OrderRepository
             foreach ($items as $item) {
                 $itemStmt->execute([
                     'order_id' => $orderId,
-                    'product_variant_id' => $item['variant_id'],
-                    'product_name_snapshot' => $item['product_name'],
-                    'size_ml_snapshot' => $item['size_ml'],
-                    'quantity' => $item['quantity'],
-                    'price_at_purchase' => $item['price'],
+                    'product_variant_id' => (int) $item['variant_id'],
+                    'product_name_snapshot' => (string) $item['product_name'],
+                    'brand_name_snapshot' => (string) $item['brand_name'],
+                    'concentration_label_snapshot' => $item['concentration_label'] !== null
+                        ? (string) $item['concentration_label']
+                        : null,
+                    'image_url_snapshot' => $item['image_url'] !== null
+                        ? (string) $item['image_url']
+                        : null,
+                    'size_ml_snapshot' => (int) $item['size_ml'],
+                    'quantity' => (int) $item['quantity'],
+                    'price_at_purchase' => (float) $item['price'],
                 ]);
             }
 
@@ -89,12 +102,15 @@ class OrderRepository
 
             return $orderData['public_id'];
         } catch (Throwable $e) {
-            $this->pdo->rollBack();
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+
             throw $e;
         }
     }
 
-    public function findByUserId(int $userId): array
+    public function findByUserId(int $userId, ?string $status = null): array
     {
         $stmt = $this->pdo->prepare("
             SELECT
@@ -109,6 +125,7 @@ class OrderRepository
             FROM orders o
             LEFT JOIN order_items oi ON oi.order_id = o.id
             WHERE o.user_id = :user_id
+              AND (:status IS NULL OR o.status = :status)
             GROUP BY
                 o.id,
                 o.public_id,
@@ -122,6 +139,7 @@ class OrderRepository
 
         $stmt->execute([
             'user_id' => $userId,
+            'status' => $status,
         ]);
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -209,6 +227,9 @@ class OrderRepository
                 order_id,
                 product_variant_id,
                 product_name_snapshot,
+                brand_name_snapshot,
+                concentration_label_snapshot,
+                image_url_snapshot,
                 size_ml_snapshot,
                 quantity,
                 price_at_purchase,
@@ -236,7 +257,11 @@ class OrderRepository
                 throw new RuntimeException('Order not found.');
             }
 
-            if ($order['status'] === 'processing' || $order['status'] === 'shipped' || $order['status'] === 'delivered') {
+            if (
+                $order['status'] === 'processing'
+                || $order['status'] === 'shipped'
+                || $order['status'] === 'delivered'
+            ) {
                 $this->pdo->commit();
                 return;
             }
@@ -279,7 +304,10 @@ class OrderRepository
 
             $this->pdo->commit();
         } catch (Throwable $e) {
-            $this->pdo->rollBack();
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+
             throw $e;
         }
     }
@@ -394,15 +422,15 @@ class OrderRepository
     public function userHasPurchasedProduct(int $userId, int $productId): bool
     {
         $stmt = $this->pdo->prepare("
-        SELECT 1
-        FROM orders o
-        INNER JOIN order_items oi ON oi.order_id = o.id
-        INNER JOIN product_variants pv ON pv.id = oi.product_variant_id
-        WHERE o.user_id = :user_id
-          AND pv.product_id = :product_id
-          AND o.status IN ('processing', 'shipped', 'delivered')
-        LIMIT 1
-    ");
+            SELECT 1
+            FROM orders o
+            INNER JOIN order_items oi ON oi.order_id = o.id
+            INNER JOIN product_variants pv ON pv.id = oi.product_variant_id
+            WHERE o.user_id = :user_id
+              AND pv.product_id = :product_id
+              AND o.status IN ('processing', 'shipped', 'delivered')
+            LIMIT 1
+        ");
 
         $stmt->execute([
             'user_id' => $userId,
@@ -410,5 +438,66 @@ class OrderRepository
         ]);
 
         return (bool) $stmt->fetchColumn();
+    }
+
+    public function countByUserId(int $userId, ?string $status = null): int
+    {
+        $stmt = $this->pdo->prepare("
+            SELECT COUNT(*)
+            FROM orders o
+            WHERE o.user_id = :user_id
+              AND (:status IS NULL OR o.status = :status)
+        ");
+
+        $stmt->execute([
+            'user_id' => $userId,
+            'status' => $status,
+        ]);
+
+        return (int) $stmt->fetchColumn();
+    }
+
+    public function findByUserIdPaginated(int $userId, ?string $status = null, int $limit = 5, int $offset = 0): array
+    {
+        $stmt = $this->pdo->prepare("
+            SELECT
+                o.id,
+                o.public_id,
+                o.status,
+                o.subtotal_amount,
+                o.shipping_cost,
+                o.total_amount,
+                o.created_at,
+                COALESCE(SUM(oi.quantity), 0) AS items_count
+            FROM orders o
+            LEFT JOIN order_items oi ON oi.order_id = o.id
+            WHERE o.user_id = :user_id
+              AND (:status IS NULL OR o.status = :status)
+            GROUP BY
+                o.id,
+                o.public_id,
+                o.status,
+                o.subtotal_amount,
+                o.shipping_cost,
+                o.total_amount,
+                o.created_at
+            ORDER BY o.created_at DESC
+            LIMIT :limit OFFSET :offset
+        ");
+
+        $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
+
+        if ($status === null) {
+            $stmt->bindValue(':status', null, PDO::PARAM_NULL);
+        } else {
+            $stmt->bindValue(':status', $status, PDO::PARAM_STR);
+        }
+
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }

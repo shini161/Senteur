@@ -186,6 +186,9 @@ CREATE TABLE order_items (
     product_variant_id INT NOT NULL,
 
     product_name_snapshot VARCHAR(150) NOT NULL,
+    brand_name_snapshot VARCHAR(100) NOT NULL,
+    concentration_label_snapshot VARCHAR(100) NULL,
+    image_url_snapshot VARCHAR(255) NULL,
     size_ml_snapshot INT NOT NULL,
 
     quantity INT NOT NULL CHECK (quantity > 0),

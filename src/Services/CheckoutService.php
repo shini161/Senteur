@@ -64,6 +64,10 @@ class CheckoutService
             if ((int) $item['stock'] < (int) $item['quantity']) {
                 throw new RuntimeException('One or more cart items no longer have enough stock.');
             }
+
+            if (! isset($item['product_name'], $item['brand_name'], $item['size_ml'], $item['price'])) {
+                throw new RuntimeException('Cart item data is incomplete.');
+            }
         }
 
         $subtotal = 0.0;

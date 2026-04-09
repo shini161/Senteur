@@ -1,72 +1,125 @@
-<h1>Order #<?= htmlspecialchars($order['public_id']) ?></h1>
+<section class="order-page">
+    <div class="order-container">
 
-<p>Status: <?= htmlspecialchars(ucfirst($order['status'])) ?></p>
-<p>Placed on: <?= htmlspecialchars($order['created_at']) ?></p>
+        <div class="order-header">
+            <div>
+                <h1>Order #<?= htmlspecialchars($order['public_id']) ?></h1>
+                <p class="order-page-date">
+                    Placed on <?= date('d M Y, H:i', strtotime($order['created_at'])) ?>
+                </p>
+            </div>
 
-<?php if (!empty($order['paid_at'])): ?>
-    <p>Paid at: <?= htmlspecialchars($order['paid_at']) ?></p>
-<?php endif; ?>
+            <span class="order-status status-<?= htmlspecialchars($order['status']) ?>">
+                <?= ucfirst($order['status']) ?>
+            </span>
+        </div>
 
-<?php if (!empty($order['shipped_at'])): ?>
-    <p>Shipped at: <?= htmlspecialchars($order['shipped_at']) ?></p>
-<?php endif; ?>
+        <div class="order-actions">
+            <button type="button" class="button-secondary">Download receipt</button>
+            <button type="button" class="button-secondary">Track order</button>
+        </div>
 
-<?php if (!empty($order['delivered_at'])): ?>
-    <p>Delivered at: <?= htmlspecialchars($order['delivered_at']) ?></p>
-<?php endif; ?>
+        <div class="order-grid">
+            <div class="order-main">
+                <div class="order-card">
+                    <h2>Items</h2>
 
-<hr>
+                    <?php if (empty($order['items'])): ?>
+                        <p class="muted">No items found.</p>
+                    <?php else: ?>
+                        <div class="order-items-list">
+                            <?php foreach ($order['items'] as $item): ?>
+                                <div class="order-item-row">
+                                    <div class="order-item-left">
+                                        <div class="order-item-image-wrap">
+                                            <?php if (!empty($item['image_url_snapshot'])): ?>
+                                                <img
+                                                    src="/<?= htmlspecialchars((string) $item['image_url_snapshot']) ?>"
+                                                    alt="<?= htmlspecialchars((string) $item['product_name_snapshot']) ?>"
+                                                    class="order-item-image">
+                                            <?php else: ?>
+                                                <div class="order-item-image-placeholder">SENTEUR</div>
+                                            <?php endif; ?>
+                                        </div>
 
-<h2>Shipping Address</h2>
+                                        <div class="order-item-info">
+                                            <?php if (!empty($item['brand_name_snapshot'])): ?>
+                                                <div class="order-item-brand">
+                                                    <?= htmlspecialchars((string) $item['brand_name_snapshot']) ?>
+                                                </div>
+                                            <?php endif; ?>
 
-<?php if (!empty($order['full_name']) || !empty($order['address_line'])): ?>
-    <p>
-        <?= htmlspecialchars($order['full_name'] ?? '') ?><br>
-        <?= htmlspecialchars($order['address_line'] ?? '') ?><br>
-        <?= htmlspecialchars($order['postal_code'] ?? '') ?>
-        <?= htmlspecialchars($order['city'] ?? '') ?><br>
-        <?= htmlspecialchars($order['country'] ?? '') ?>
-    </p>
-<?php else: ?>
-    <p>Shipping address unavailable.</p>
-<?php endif; ?>
+                                            <div class="order-item-name">
+                                                <?= htmlspecialchars((string) $item['product_name_snapshot']) ?>
+                                            </div>
 
-<hr>
+                                            <div class="order-item-meta muted">
+                                                <?php if (!empty($item['concentration_label_snapshot'])): ?>
+                                                    <span><?= htmlspecialchars((string) $item['concentration_label_snapshot']) ?></span>
+                                                    <span class="cart-meta-separator">·</span>
+                                                <?php endif; ?>
 
-<h2>Items</h2>
+                                                <span><?= (int) $item['size_ml_snapshot'] ?> ml</span>
+                                            </div>
+                                        </div>
+                                    </div>
 
-<?php if (empty($order['items'])): ?>
-    <p>No items found.</p>
-<?php else: ?>
-    <table>
-        <thead>
-            <tr>
-                <th>Product</th>
-                <th>Size</th>
-                <th>Unit Price</th>
-                <th>Qty</th>
-                <th>Total</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php foreach ($order['items'] as $item): ?>
-                <tr>
-                    <td><?= htmlspecialchars($item['product_name_snapshot']) ?></td>
-                    <td><?= (int) $item['size_ml_snapshot'] ?> ml</td>
-                    <td>€<?= number_format((float) $item['price_at_purchase'], 2) ?></td>
-                    <td><?= (int) $item['quantity'] ?></td>
-                    <td>€<?= number_format((float) $item['line_total'], 2) ?></td>
-                </tr>
-            <?php endforeach; ?>
-        </tbody>
-    </table>
-<?php endif; ?>
+                                    <div class="order-item-right">
+                                        <div class="order-item-qty muted">
+                                            Qty <?= (int) $item['quantity'] ?>
+                                        </div>
+                                        <div class="order-item-unit muted">
+                                            €<?= number_format((float) $item['price_at_purchase'], 2) ?> each
+                                        </div>
+                                        <div class="order-item-total">
+                                            €<?= number_format((float) $item['line_total'], 2) ?>
+                                        </div>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
 
-<hr>
+            <aside class="order-sidebar">
+                <div class="order-card">
+                    <h2>Summary</h2>
 
-<h2>Summary</h2>
-<p>Subtotal: €<?= number_format((float) $order['subtotal_amount'], 2) ?></p>
-<p>Shipping: €<?= number_format((float) $order['shipping_cost'], 2) ?></p>
-<p>Total: €<?= number_format((float) $order['total_amount'], 2) ?></p>
+                    <div class="summary-row">
+                        <span>Subtotal</span>
+                        <span>€<?= number_format((float) $order['subtotal_amount'], 2) ?></span>
+                    </div>
 
-<p><a href="/orders">← Back to orders</a></p>
+                    <div class="summary-row">
+                        <span>Shipping</span>
+                        <span>€<?= number_format((float) $order['shipping_cost'], 2) ?></span>
+                    </div>
+
+                    <div class="summary-total">
+                        <span>Total</span>
+                        <span>€<?= number_format((float) $order['total_amount'], 2) ?></span>
+                    </div>
+                </div>
+
+                <div class="order-card">
+                    <h2>Shipping</h2>
+
+                    <?php if (!empty($order['full_name']) || !empty($order['address_line'])): ?>
+                        <p class="order-shipping-address">
+                            <?= htmlspecialchars($order['full_name'] ?? '') ?><br>
+                            <?= htmlspecialchars($order['address_line'] ?? '') ?><br>
+                            <?= htmlspecialchars($order['postal_code'] ?? '') ?>
+                            <?= htmlspecialchars($order['city'] ?? '') ?><br>
+                            <?= htmlspecialchars($order['country'] ?? '') ?>
+                        </p>
+                    <?php else: ?>
+                        <p class="muted">Shipping address unavailable.</p>
+                    <?php endif; ?>
+                </div>
+            </aside>
+        </div>
+
+        <a href="/orders" class="back-link">← Back to orders</a>
+    </div>
+</section>

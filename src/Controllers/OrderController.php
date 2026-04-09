@@ -23,11 +23,26 @@ class OrderController extends Controller
             exit;
         }
 
-        $orders = $this->orderService->getUserOrders($userId);
+        $allowedStatuses = ['pending', 'processing', 'shipped', 'delivered'];
+        $status = $_GET['status'] ?? null;
+
+        if (!is_string($status) || !in_array($status, $allowedStatuses, true)) {
+            $status = null;
+        }
+
+        $page = max(1, (int) ($_GET['page'] ?? 1));
+        $perPage = 5;
+
+        $result = $this->orderService->getUserOrdersPaginated($userId, $status, $page, $perPage);
 
         $this->render('orders/index', [
             'title' => 'My Orders',
-            'orders' => $orders,
+            'orders' => $result['orders'],
+            'status' => $status,
+            'page' => $page,
+            'perPage' => $perPage,
+            'totalOrders' => $result['total'],
+            'totalPages' => $result['pages'],
         ]);
     }
 

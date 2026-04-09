@@ -53,10 +53,13 @@ class CartRepository
                 p.name AS product_name,
                 b.name AS brand_name,
                 p.concentration_label,
-                pi.image_url
+                COALESCE(pvi.image_url, pi.image_url) AS image_url
             FROM product_variants v
             INNER JOIN products p ON p.id = v.product_id
             INNER JOIN brands b ON b.id = p.brand_id
+            LEFT JOIN product_variant_images pvi
+                ON pvi.product_variant_id = v.id
+                AND pvi.position = 0
             LEFT JOIN product_images pi
                 ON pi.product_id = p.id
                 AND pi.position = 0
@@ -66,7 +69,7 @@ class CartRepository
 
         $stmt->execute($variantIds);
 
-        return $stmt->fetchAll();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public function findVariantStockForUpdate(int $variantId): ?int

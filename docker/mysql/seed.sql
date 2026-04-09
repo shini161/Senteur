@@ -382,26 +382,29 @@ INSERT INTO order_items (
     order_id,
     product_variant_id,
     product_name_snapshot,
+    brand_name_snapshot,
+    concentration_label_snapshot,
+    image_url_snapshot,
     size_ml_snapshot,
     quantity,
     price_at_purchase
 ) VALUES
-(1, 1, 1, 'Sauvage', 60, 2, 85.00),
-(2, 1, 4, 'Bleu de Chanel', 100, 1, 130.00),
+(1, 1, 1, 'Sauvage', 'Dior', 'Eau de Parfum', 'uploads/products/dior-sauvage-eau-de-parfum-60ml.jpg', 60, 2, 85.00),
+(2, 1, 4, 'Bleu de Chanel', 'Chanel', 'Eau de Parfum', 'uploads/products/chanel-bleu-de-chanel-eau-de-parfum-100ml.jpg', 100, 1, 130.00),
 
-(3, 2, 11, 'Baccarat Rouge 540', 70, 1, 245.00),
+(3, 2, 11, 'Baccarat Rouge 540', 'Maison Francis Kurkdjian', 'Eau de Parfum', 'uploads/products/maison-francis-kurkdjian-baccarat-rouge-540-eau-de-parfum-70ml.jpg', 70, 1, 245.00),
 
-(4, 3, 9, 'Oud Wood', 50, 1, 210.00),
+(4, 3, 9, 'Oud Wood', 'Tom Ford', 'Parfum', 'uploads/products/tom-ford-oud-wood-parfum-50ml.jpg', 50, 1, 210.00),
 
-(5, 4, 12, 'Baccarat Rouge 540', 200, 1, 430.00),
+(5, 4, 12, 'Baccarat Rouge 540', 'Maison Francis Kurkdjian', 'Eau de Parfum', 'uploads/products/maison-francis-kurkdjian-baccarat-rouge-540-eau-de-parfum-200ml.jpg', 200, 1, 430.00),
 
-(6, 5, 5, 'Libre', 50, 1, 95.00),
+(6, 5, 5, 'Libre', 'Yves Saint Laurent', 'Eau de Parfum', 'uploads/products/ysl-libre-eau-de-parfum-50ml.jpg', 50, 1, 95.00),
 
-(7, 6, 17, 'Naxos', 100, 1, 205.00),
+(7, 6, 17, 'Naxos', 'Xerjoff', 'Eau de Parfum', 'uploads/products/xerjoff-naxos-eau-de-parfum-100ml.jpg', 100, 1, 205.00),
 
-(8, 7, 24, 'Layton', 75, 1, 180.00),
+(8, 7, 24, 'Layton', 'Parfums de Marly', 'Eau de Parfum', 'uploads/products/parfums-de-marly-layton-eau-de-parfum-75ml.jpg', 75, 1, 180.00),
 
-(9, 8, 22, 'Side Effect', 50, 1, 185.00);
+(9, 8, 22, 'Side Effect', 'Initio Parfums Privés', 'Eau de Parfum', 'uploads/products/initio-side-effect-eau-de-parfum-50ml.jpg', 50, 1, 185.00);
 
 -- ======================
 -- PAYMENTS
