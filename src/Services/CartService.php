@@ -127,6 +127,11 @@ class CartService
         $this->storeCart($cart);
     }
 
+    public function clear(): void
+    {
+        $this->storeCart([]);
+    }
+
     private function getCart(): array
     {
         $cart = $_SESSION['cart'] ?? [];
