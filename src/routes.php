@@ -16,6 +16,8 @@ use App\Controllers\AdminOrderController;
 use App\Controllers\AdminProductController;
 use App\Controllers\ReviewController;
 
+// The router consumes a flat route table of `[method, path, [controller, action]]`
+// entries so the request flow stays explicit and easy to scan.
 return [
     // [HTTP METHOD, URL PATH, [Controller, Method]]
 

@@ -1,3 +1,6 @@
+<?php
+// Payment cancellation page with quick routes back to checkout or the cart.
+?>
 <section class="auth-page">
     <div class="auth-card">
         <h1>Payment cancelled</h1>

@@ -10,12 +10,18 @@ use App\Core\Csrf;
 use App\Services\AdminOrderService;
 use RuntimeException;
 
+/**
+ * Provides admin order listing, detail, and status management.
+ */
 class AdminOrderController extends Controller
 {
     public function __construct(
         private AdminOrderService $adminOrderService
     ) {}
 
+    /**
+     * Shows the admin order dashboard.
+     */
     public function index(): void
     {
         Auth::requireAdmin();
@@ -29,6 +35,9 @@ class AdminOrderController extends Controller
         ]);
     }
 
+    /**
+     * Shows a single order with admin-only operational details.
+     */
     public function show(string $publicId): void
     {
         Auth::requireAdmin();
@@ -48,6 +57,9 @@ class AdminOrderController extends Controller
         ]);
     }
 
+    /**
+     * Updates an order status from the admin panel.
+     */
     public function updateStatus(string $publicId): void
     {
         Auth::requireAdmin();

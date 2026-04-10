@@ -1,4 +1,9 @@
 <?php
+// Product detail page with variant switching, gallery updates, purchase actions,
+// scent breakdown, reviews, and related-product recommendations.
+
+// Review dates use relative wording for recent entries and fall back to an
+// absolute date for older reviews.
 $formatReviewDate = static function (string $date): string {
     $reviewDate = new DateTime($date);
     $now = new DateTime();
@@ -23,6 +28,8 @@ $formatReviewDate = static function (string $date): string {
     return (new DateTime($date))->format('d M Y');
 };
 
+// Filled and empty star markup are generated server-side so review lists render
+// correctly before any JavaScript enhancements run.
 $renderStars = static function (int $rating): string {
     $rating = max(0, min(5, $rating));
 
@@ -35,6 +42,7 @@ $renderStars = static function (int $rating): string {
     return $html;
 };
 
+// Average ratings support half-star display for a slightly richer summary UI.
 $renderAverageStars = static function (float $rating): string {
     $rating = max(0, min(5, $rating));
     $html = '';
@@ -59,6 +67,7 @@ $selectedImage = $selectedVariantImages[0]['image_url'] ?? $selectedVariant['ima
 ?>
 
 <section class="product-show">
+    <?php // Left column: initial gallery state for the first selectable variant. ?>
     <div class="product-show-gallery">
         <div class="product-show-image-wrap">
             <?php if ($selectedImage): ?>
@@ -88,6 +97,7 @@ $selectedImage = $selectedVariantImages[0]['image_url'] ?? $selectedVariant['ima
     </div>
 
     <div class="product-show-panel">
+        <?php // Right column: product metadata plus the add-to-cart form. ?>
         <div class="product-show-header">
             <div class="product-show-brand">
                 <?= htmlspecialchars($product['brand_name']) ?>
@@ -135,6 +145,8 @@ $selectedImage = $selectedVariantImages[0]['image_url'] ?? $selectedVariant['ima
                 <div class="variant-selector" id="variant-selector">
                     <?php foreach ($variants as $index => $variant): ?>
                         <?php
+                        // Each variant button carries the data needed for client-side
+                        // switching so the page does not need round-trips for size changes.
                         $variantImageSet = $variant['images'] ?? [];
                         $variantPrimaryImage = $variantImageSet[0]['image_url'] ?? $variant['image_url'] ?? $product['image_url'] ?? '';
                         ?>
@@ -207,6 +219,7 @@ $selectedImage = $selectedVariantImages[0]['image_url'] ?? $selectedVariant['ima
 
 <section class="product-detail-sections">
     <div class="panel">
+        <?php // Categories and notes explain the fragrance profile beneath the purchase area. ?>
         <h2>Scent profile</h2>
 
         <?php if (!empty($product['categories'])): ?>
@@ -264,6 +277,7 @@ $selectedImage = $selectedVariantImages[0]['image_url'] ?? $selectedVariant['ima
     </div>
 
     <div class="panel" id="reviews">
+        <?php // Review access is gated by purchase history in the review service. ?>
         <h2>Reviews</h2>
         <div class="reviews-overview">
             <p class="muted">
@@ -364,6 +378,7 @@ $selectedImage = $selectedVariantImages[0]['image_url'] ?? $selectedVariant['ima
         <?php else: ?>
             <div class="reviews-list">
                 <?php foreach ($reviews as $review): ?>
+                    <?php // The current user's review can be toggled back into edit mode inline. ?>
                     <article class="panel review-card">
                         <div class="review-card-header">
                             <div class="review-card-author">
@@ -399,6 +414,7 @@ $selectedImage = $selectedVariantImages[0]['image_url'] ?? $selectedVariant['ima
 
     <?php if (!empty($product['related_family_products'])): ?>
         <div class="panel">
+            <?php // Same-family products help users compare concentrations or flankers. ?>
             <h2>Also in this line</h2>
 
             <div class="related-products-grid">
@@ -439,6 +455,7 @@ $selectedImage = $selectedVariantImages[0]['image_url'] ?? $selectedVariant['ima
 
     <?php if (!empty($product['related_products'])): ?>
         <div class="panel">
+            <?php // Broader recommendations are based on brand/type/gender similarity. ?>
             <h2>You may also like</h2>
 
             <div class="related-products-grid">
@@ -479,6 +496,8 @@ $selectedImage = $selectedVariantImages[0]['image_url'] ?? $selectedVariant['ima
 </section>
 
 <script>
+    // Product interactions are kept in one small page-local script: variant
+    // switching, gallery thumbnails, quantity clamping, and review helpers.
     document.addEventListener('DOMContentLoaded', function() {
         const variantButtons = document.querySelectorAll('.variant-option');
         const variantIdInput = document.getElementById('selected-variant-id');
@@ -635,6 +654,8 @@ $selectedImage = $selectedVariantImages[0]['image_url'] ?? $selectedVariant['ima
         const ratingWidget = document.querySelector('[data-rating-widget]');
 
         if (ratingWidget) {
+            // The rating widget keeps plain radio inputs accessible while the
+            // star UI provides faster visual feedback.
             const stars = Array.from(ratingWidget.querySelectorAll('.star-rating-star'));
             const inputs = Array.from(ratingWidget.querySelectorAll('input[name="rating"]'));
             const caption = ratingWidget.querySelector('[data-rating-caption]');

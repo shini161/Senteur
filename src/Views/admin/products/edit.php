@@ -1,3 +1,7 @@
+<?php
+// Admin product editing screen combining the shared form partial with product
+// and variant image upload controls.
+?>
 <section class="auth-page">
     <div class="auth-card" style="max-width: 900px;">
         <p class="section-kicker">Admin</p>
@@ -9,6 +13,7 @@
         </p>
 
         <div style="margin: 1.25rem 0; padding: 1rem; border: 1px solid #e5e8e2; border-radius: 16px; background: #fcfbf8;">
+            <?php // Product-level image upload is kept separate from textual data updates. ?>
             <h2 style="margin-top: 0;">Primary image</h2>
 
             <?php if (!empty($imageError)): ?>

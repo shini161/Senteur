@@ -7,12 +7,18 @@ namespace App\Controllers;
 use App\Core\Controller;
 use App\Services\ProductService;
 
+/**
+ * Renders the storefront landing page.
+ */
 class HomeController extends Controller
 {
     public function __construct(
         private ProductService $productService
     ) {}
 
+    /**
+     * Shows featured products and prebuilt discovery collections.
+     */
     public function index(): void
     {
         $featuredProducts = $this->productService->getFeatured(4);

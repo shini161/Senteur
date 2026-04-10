@@ -1,3 +1,4 @@
+# Default local development stack: PHP-FPM app, Nginx front-end, and MySQL.
 services:
   app:
     build:

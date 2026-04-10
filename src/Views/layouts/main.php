@@ -1,3 +1,7 @@
+<?php
+// Shared storefront layout. Feature templates render into `$content` while the
+// layout owns global navigation, search, and footer chrome.
+?>
 <!doctype html>
 <html lang="en">
 
@@ -10,6 +14,7 @@
 </head>
 
 <body>
+    <!-- Global navigation stays consistent across storefront and admin-auth pages. -->
     <header class="site-header">
         <nav class="navbar">
             <div class="nav-left">
@@ -52,6 +57,7 @@
         <?= $content ?? '' ?>
     </main>
 
+    <!-- Footer links intentionally stay lightweight and static. -->
     <footer class="site-footer">
         <div class="footer-inner">
             <div class="footer-left">

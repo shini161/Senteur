@@ -7,6 +7,9 @@ namespace App\Models;
 use App\Core\Database;
 use PDO;
 
+/**
+ * Repository for user authentication and profile records.
+ */
 class UserRepository
 {
     public function __construct(
@@ -15,6 +18,9 @@ class UserRepository
         $this->pdo ??= Database::getConnection();
     }
 
+    /**
+     * Returns the full user row used during authentication.
+     */
     public function findByEmail(string $email): ?array
     {
         $stmt = $this->pdo->prepare("
@@ -30,6 +36,9 @@ class UserRepository
         return $user ?: null;
     }
 
+    /**
+     * Returns the safe subset of user fields exposed to the app after login.
+     */
     public function findById(int $id): ?array
     {
         $stmt = $this->pdo->prepare("
@@ -54,6 +63,9 @@ class UserRepository
         return $user ?: null;
     }
 
+    /**
+     * Creates a user and returns the stored row.
+     */
     public function create(array $data): array
     {
         $stmt = $this->pdo->prepare("
@@ -77,6 +89,9 @@ class UserRepository
         return $this->findByEmail($data['email']);
     }
 
+    /**
+     * Checks whether the email is already reserved.
+     */
     public function existsByEmail(string $email): bool
     {
         $stmt = $this->pdo->prepare("
@@ -91,6 +106,9 @@ class UserRepository
         return (bool) $stmt->fetchColumn();
     }
 
+    /**
+     * Checks whether the username is already reserved.
+     */
     public function existsByUsername(string $username): bool
     {
         $stmt = $this->pdo->prepare("

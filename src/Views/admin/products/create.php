@@ -1,3 +1,7 @@
+<?php
+// Admin product creation screen. The shared `_form.php` partial keeps create
+// and edit validation behavior aligned.
+?>
 <section class="auth-page">
     <div class="auth-card" style="max-width: 900px;">
         <p class="section-kicker">Admin</p>

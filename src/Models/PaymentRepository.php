@@ -7,6 +7,9 @@ namespace App\Models;
 use App\Core\Database;
 use PDO;
 
+/**
+ * Repository for local payment records linked to orders.
+ */
 class PaymentRepository
 {
     public function __construct(
@@ -15,6 +18,9 @@ class PaymentRepository
         $this->pdo ??= Database::getConnection();
     }
 
+    /**
+     * Creates a local pending payment record before redirecting to a provider.
+     */
     public function createPendingPayment(
         int $orderId,
         string $provider,
@@ -47,6 +53,9 @@ class PaymentRepository
         return (int) $this->pdo->lastInsertId();
     }
 
+    /**
+     * Returns the payment associated with one order.
+     */
     public function findByOrderId(int $orderId): ?array
     {
         $stmt = $this->pdo->prepare("
@@ -65,6 +74,9 @@ class PaymentRepository
         return $payment ?: null;
     }
 
+    /**
+     * Returns the payment associated with one Stripe Checkout session id.
+     */
     public function findByStripeSessionId(string $stripeSessionId): ?array
     {
         $stmt = $this->pdo->prepare("
@@ -83,6 +95,9 @@ class PaymentRepository
         return $payment ?: null;
     }
 
+    /**
+     * Returns a payment by provider transaction id.
+     */
     public function findByTransactionId(string $transactionId): ?array
     {
         $stmt = $this->pdo->prepare("
@@ -101,6 +116,9 @@ class PaymentRepository
         return $payment ?: null;
     }
 
+    /**
+     * Persists the Stripe Checkout session id created for a payment.
+     */
     public function updateStripeSessionId(int $paymentId, string $stripeSessionId): void
     {
         $stmt = $this->pdo->prepare("
@@ -115,6 +133,9 @@ class PaymentRepository
         ]);
     }
 
+    /**
+     * Marks a payment as successful and stores provider metadata for auditing.
+     */
     public function markPaid(
         int $paymentId,
         string $transactionId,
@@ -137,6 +158,9 @@ class PaymentRepository
         ]);
     }
 
+    /**
+     * Marks a payment as failed while keeping the provider payload for diagnosis.
+     */
     public function markFailed(
         int $paymentId,
         ?string $providerPayload = null

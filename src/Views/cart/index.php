@@ -1,3 +1,7 @@
+<?php
+// Session-cart view with quantity controls, removal actions, and a lightweight
+// summary card that funnels the user into checkout.
+?>
 <section class="cart-page">
     <div class="cart-header">
         <h1>Cart</h1>
@@ -14,6 +18,7 @@
         <div class="cart-layout">
             <div class="cart-items">
                 <?php foreach ($items as $item): ?>
+                    <?php // Each line renders the variant snapshot returned by the cart service. ?>
                     <article class="panel cart-item">
                         <div class="cart-item-media">
                             <?php if (!empty($item['image_url'])): ?>
@@ -98,6 +103,7 @@
             </div>
 
             <aside class="panel cart-summary">
+                <?php // Summary values are derived from the already-normalized cart items. ?>
                 <h2>Order summary</h2>
 
                 <div class="cart-summary-row">
@@ -123,6 +129,8 @@
 </section>
 
 <script>
+    // Keep the quantity stepper and manual input aligned with each variant's
+    // allowed min/max quantity without making another server request.
     document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('.cart-qty-form').forEach((form) => {
             const input = form.querySelector('.qty-input');

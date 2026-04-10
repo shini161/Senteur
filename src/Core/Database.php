@@ -8,13 +8,15 @@ use PDO;
 use RuntimeException;
 
 /**
- * Creates a PDO connection using environment variables.
- * Uses a singleton-style static connection reused within the request.
+ * Lazily creates and reuses a PDO connection for the duration of the request.
  */
 class Database
 {
     private static ?PDO $connection = null;
 
+    /**
+     * Returns a configured UTF-8 MySQL PDO instance.
+     */
     public static function getConnection(): PDO
     {
         if (self::$connection === null) {
@@ -41,6 +43,9 @@ class Database
         return self::$connection;
     }
 
+    /**
+     * Fails fast when a required environment variable is missing.
+     */
     private static function getEnv(string $key): string
     {
         $value = $_ENV[$key] ?? null;

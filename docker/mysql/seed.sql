@@ -1,3 +1,4 @@
+-- Demo seed data for local development and portfolio screenshots.
 USE senteur;
 
 SET NAMES utf8mb4;

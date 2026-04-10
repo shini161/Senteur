@@ -7,17 +7,26 @@ namespace App\Services;
 use App\Models\AddressRepository;
 use RuntimeException;
 
+/**
+ * Owns validation and default-address rules for user shipping addresses.
+ */
 class AddressService
 {
     public function __construct(
         private AddressRepository $addresses
     ) {}
 
+    /**
+     * Returns every saved address for a user ordered by default/newest first.
+     */
     public function getAllForUser(int $userId): array
     {
         return $this->addresses->findByUserId($userId);
     }
 
+    /**
+     * Validates and creates a new address while maintaining the single-default rule.
+     */
     public function createForUser(int $userId, array $data): void
     {
         $fullName = trim($data['full_name'] ?? '');
@@ -61,6 +70,8 @@ class AddressService
             throw new RuntimeException('You can save up to 10 addresses. Delete one to add another.');
         }
 
+        // The first address, or any explicitly default address, becomes the
+        // user's sole default shipping destination.
         if ($isDefault || ! $this->addresses->hasAnyForUser($userId)) {
             $this->addresses->clearDefaultForUser($userId);
             $isDefault = true;
@@ -77,6 +88,9 @@ class AddressService
         ]);
     }
 
+    /**
+     * Deletes one address and reassigns the default flag when needed.
+     */
     public function deleteForUser(int $id, int $userId): void
     {
         $address = $this->addresses->findByIdForUser($id, $userId);
@@ -99,6 +113,9 @@ class AddressService
         }
     }
 
+    /**
+     * Makes one of the user's addresses the default choice for checkout.
+     */
     public function setDefaultForUser(int $id, int $userId): void
     {
         $address = $this->addresses->findByIdForUser($id, $userId);

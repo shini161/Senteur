@@ -9,12 +9,18 @@ use App\Core\Csrf;
 use App\Services\ReviewService;
 use RuntimeException;
 
+/**
+ * Accepts product review submissions from authenticated purchasers.
+ */
 class ReviewController
 {
     public function __construct(
         private ReviewService $reviewService
     ) {}
 
+    /**
+     * Creates or updates the current user's review for a product slug.
+     */
     public function store(string $slug): void
     {
         Auth::requireAuth();

@@ -7,12 +7,18 @@ namespace App\Controllers;
 use App\Services\PaymentService;
 use RuntimeException;
 
+/**
+ * Receives Stripe webhook callbacks and forwards them to the payment service.
+ */
 class StripeWebhookController
 {
     public function __construct(
         private PaymentService $paymentService
     ) {}
 
+    /**
+     * Validates the raw webhook payload shape before signature verification.
+     */
     public function handle(): void
     {
         $payload = file_get_contents('php://input');

@@ -1,3 +1,6 @@
+<?php
+// Customer login form. Validation feedback is re-rendered by the controller.
+?>
 <section class="auth-page">
     <div class="auth-card">
         <h1>Login</h1>

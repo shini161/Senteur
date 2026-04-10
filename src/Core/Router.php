@@ -35,7 +35,10 @@ use App\Services\AdminOrderService;
 use App\Services\AdminProductService;
 use App\Services\ReviewService;
 
-
+/**
+ * Matches incoming requests against the route table and manually wires
+ * controller dependencies for this lightweight MVC application.
+ */
 class Router
 {
 	/**
@@ -49,6 +52,10 @@ class Router
 		private array $routes,
 	) {}
 
+	/**
+	 * Finds the first matching route, extracts named parameters, and invokes
+	 * the configured controller action.
+	 */
 	public function dispatch(Request $request): void
 	{
 		$requestPath = $this->normalizePath($request->path);
@@ -58,6 +65,8 @@ class Router
 				continue;
 			}
 
+			// Route placeholders like `/products/{slug}` are converted into
+			// named capture groups so controller method arguments stay readable.
 			$pattern = $this->convertRouteToRegex($path);
 
 			if (! preg_match($pattern, $requestPath, $matches)) {
@@ -98,6 +107,9 @@ class Router
 		echo 'Not found';
 	}
 
+	/**
+	 * Translates route placeholders into regular expressions the dispatcher can match.
+	 */
 	private function convertRouteToRegex(string $path): string
 	{
 		$path = $this->normalizePath($path);
@@ -111,6 +123,9 @@ class Router
 		return '#^' . $pattern . '$#';
 	}
 
+	/**
+	 * Normalizes route paths so matching stays consistent across definitions and requests.
+	 */
 	private function normalizePath(string $path): string
 	{
 		$path = parse_url($path, PHP_URL_PATH) ?? '/';
@@ -124,6 +139,7 @@ class Router
 
 	/**
 	 * Resolves current controllers and their dependencies explicitly.
+	 * This keeps construction simple without introducing a full DI container.
 	 */
 	private function resolve(string $class): object
 	{

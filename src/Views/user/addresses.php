@@ -1,7 +1,12 @@
+<?php
+// Address-book view showing saved addresses alongside the creation form used
+// during checkout preparation and profile management.
+?>
 <section class="addresses-page">
     <div class="addresses-grid">
 
         <div class="addresses-card">
+            <?php // Existing saved addresses and default-address actions. ?>
             <h1>Addresses</h1>
             <p class="addresses-subtitle">Manage your shipping addresses.</p>
 
@@ -54,6 +59,7 @@
         </div>
 
         <div class="addresses-card">
+            <?php // Address creation stays on the same page for a faster account flow. ?>
             <h2>Add address</h2>
             <p class="addresses-subtitle">Save a delivery address for future orders.</p>
 

@@ -1,3 +1,4 @@
+# Optional SELinux-friendly volume labels for Fedora and similar environments.
 services:
   app:
     volumes:

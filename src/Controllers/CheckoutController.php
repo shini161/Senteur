@@ -12,6 +12,9 @@ use App\Services\CheckoutService;
 use App\Services\PaymentService;
 use RuntimeException;
 
+/**
+ * Coordinates checkout, Stripe redirection, and post-payment pages.
+ */
 class CheckoutController extends Controller
 {
     public function __construct(
@@ -20,6 +23,9 @@ class CheckoutController extends Controller
         private CartService $cartService
     ) {}
 
+    /**
+     * Shows the checkout page with cart totals and available addresses.
+     */
     public function index(): void
     {
         Auth::requireAuth();
@@ -49,6 +55,9 @@ class CheckoutController extends Controller
         }
     }
 
+    /**
+     * Creates an order and redirects the user to Stripe Checkout.
+     */
     public function store(): void
     {
         Auth::requireAuth();
@@ -102,6 +111,9 @@ class CheckoutController extends Controller
         }
     }
 
+    /**
+     * Shows the payment confirmation page after Stripe redirects back.
+     */
     public function success(): void
     {
         Auth::requireAuth();
@@ -147,6 +159,9 @@ class CheckoutController extends Controller
         ]);
     }
 
+    /**
+     * Shows the checkout cancellation page when Stripe payment is abandoned.
+     */
     public function cancel(): void
     {
         Auth::requireAuth();

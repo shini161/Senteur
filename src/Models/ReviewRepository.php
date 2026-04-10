@@ -7,6 +7,9 @@ namespace App\Models;
 use App\Core\Database;
 use PDO;
 
+/**
+ * Repository for product reviews and rating aggregates.
+ */
 class ReviewRepository
 {
     public function __construct(
@@ -15,6 +18,9 @@ class ReviewRepository
         $this->pdo ??= Database::getConnection();
     }
 
+    /**
+     * Returns review count and average rating for one product.
+     */
     public function findSummaryByProductId(int $productId): array
     {
         $stmt = $this->pdo->prepare("
@@ -42,6 +48,9 @@ class ReviewRepository
         ];
     }
 
+    /**
+     * Returns every review for a product with the review author's username.
+     */
     public function findByProductId(int $productId): array
     {
         $stmt = $this->pdo->prepare("
@@ -65,6 +74,9 @@ class ReviewRepository
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    /**
+     * Returns the current user's review for a product when it exists.
+     */
     public function findByUserAndProduct(int $userId, int $productId): ?array
     {
         $stmt = $this->pdo->prepare("
@@ -92,6 +104,9 @@ class ReviewRepository
         return $review ?: null;
     }
 
+    /**
+     * Inserts a new review or updates the existing one for the same user/product pair.
+     */
     public function upsert(int $userId, int $productId, int $rating, ?string $title, ?string $comment): void
     {
         $existing = $this->findByUserAndProduct($userId, $productId);

@@ -1,4 +1,6 @@
 <?php
+// Shared admin product form partial. The controller passes either `$product`
+// or `$old` so create and edit flows can reuse the same fields.
 $formData = $product ?? $old ?? [];
 $variants = $formData['variants'] ?? [
     ['size_ml' => '', 'price' => '', 'stock' => ''],
@@ -105,6 +107,7 @@ $variants = $formData['variants'] ?? [
     <label>Variants</label>
 
     <?php foreach ($variants as $index => $variant): ?>
+        <?php // Variant rows stay simple because the repository fully replaces them on save. ?>
         <div class="admin-variant-row">
             <input
                 type="number"
@@ -133,6 +136,7 @@ $variants = $formData['variants'] ?? [
         </div>
 
         <?php if (!empty($product['variants'][$index]['id'])): ?>
+            <?php // Existing variants can receive dedicated image uploads after creation. ?>
             <div class="admin-variant-image-block">
                 <div class="admin-variant-image-meta">
                     <strong><?= htmlspecialchars((string) ($variant['size_ml'] ?? '')) ?>ml image</strong>

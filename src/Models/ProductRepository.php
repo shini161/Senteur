@@ -9,6 +9,9 @@ use PDO;
 use RuntimeException;
 use Throwable;
 
+/**
+ * Repository for storefront catalogue queries and admin product management.
+ */
 class ProductRepository
 {
     public function __construct(
@@ -17,6 +20,13 @@ class ProductRepository
         $this->pdo ??= Database::getConnection();
     }
 
+    // ---------------------------------------------------------------------
+    // Public catalogue queries
+    // ---------------------------------------------------------------------
+
+    /**
+     * Returns active products for the public catalogue using dynamic filters.
+     */
     public function findAllActive(array $filters = [], int $limit = 12, int $offset = 0): array
     {
         $search = trim((string) ($filters['search'] ?? ''));
@@ -40,6 +50,7 @@ class ProductRepository
             static fn(int $id): bool => $id > 0
         ));
 
+        // Sorting is whitelisted so user input never becomes raw SQL.
         $allowedSorts = [
             'newest' => 'p.id DESC',
             'name_asc' => 'p.name ASC',
@@ -53,6 +64,7 @@ class ProductRepository
         $params = [];
 
         if ($search !== '') {
+            // Split free-text searches into tokens so multi-word queries remain flexible.
             $tokens = preg_split('/\s+/', mb_strtolower($search), -1, PREG_SPLIT_NO_EMPTY) ?: [];
 
             foreach ($tokens as $index => $token) {
@@ -201,6 +213,9 @@ class ProductRepository
         return $products;
     }
 
+    /**
+     * Returns the full product detail payload used on the product page.
+     */
     public function findActiveBySlug(string $slug): ?array
     {
         $productStmt = $this->pdo->prepare("
@@ -260,6 +275,8 @@ class ProductRepository
 
         $product['variants'] = $variantStmt->fetchAll(PDO::FETCH_ASSOC);
 
+        // Variant-specific image galleries are loaded separately so the page can
+        // switch images client-side without extra requests.
         foreach ($product['variants'] as &$variant) {
             $imageStmt = $this->pdo->prepare("
                 SELECT
@@ -336,6 +353,8 @@ class ProductRepository
         $product['related_family_products'] = [];
 
         if (!empty($product['family_name'])) {
+            // Products in the same family line are shown separately from the
+            // broader "you may also like" recommendation block.
             $relatedStmt = $this->pdo->prepare("
                 SELECT
                     p.id,
@@ -438,6 +457,13 @@ class ProductRepository
         return $product;
     }
 
+    // ---------------------------------------------------------------------
+    // Admin catalogue reads
+    // ---------------------------------------------------------------------
+
+    /**
+     * Returns the admin catalogue listing including stock and price ranges.
+     */
     public function findAllForAdmin(): array
     {
         $stmt = $this->pdo->query("
@@ -478,6 +504,9 @@ class ProductRepository
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    /**
+     * Returns one product and its variants for the admin edit form.
+     */
     public function findByIdForAdmin(int $id): ?array
     {
         $stmt = $this->pdo->prepare("
@@ -550,6 +579,13 @@ class ProductRepository
         return $product;
     }
 
+    // ---------------------------------------------------------------------
+    // Shared lookup tables
+    // ---------------------------------------------------------------------
+
+    /**
+     * Returns all brands used in select inputs.
+     */
     public function getBrands(): array
     {
         $stmt = $this->pdo->query("
@@ -561,6 +597,9 @@ class ProductRepository
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    /**
+     * Returns all notes used in filters and product details.
+     */
     public function getNotes(): array
     {
         $stmt = $this->pdo->query("
@@ -572,6 +611,9 @@ class ProductRepository
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    /**
+     * Returns all fragrance types used by the catalogue.
+     */
     public function getFragranceTypes(): array
     {
         $stmt = $this->pdo->query("
@@ -583,6 +625,13 @@ class ProductRepository
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    // ---------------------------------------------------------------------
+    // Admin write operations
+    // ---------------------------------------------------------------------
+
+    /**
+     * Creates a product and its variants in a single transaction.
+     */
     public function createForAdmin(array $data, array $variants): int
     {
         $this->pdo->beginTransaction();
@@ -634,6 +683,9 @@ class ProductRepository
         }
     }
 
+    /**
+     * Updates a product and fully replaces its variants inside one transaction.
+     */
     public function updateForAdmin(int $id, array $data, array $variants): void
     {
         $this->pdo->beginTransaction();
@@ -665,6 +717,8 @@ class ProductRepository
                 'gender' => $data['gender'],
             ]);
 
+            // Variants are replaced wholesale so the admin form can stay simple
+            // without managing deleted/created/updated lines separately.
             $deleteStmt = $this->pdo->prepare("
                 DELETE FROM product_variants
                 WHERE product_id = :product_id
@@ -683,6 +737,9 @@ class ProductRepository
         }
     }
 
+    /**
+     * Returns whether the slug already belongs to another product.
+     */
     public function slugExists(string $slug, ?int $excludeId = null): bool
     {
         $sql = "
@@ -706,6 +763,9 @@ class ProductRepository
         return (bool) $stmt->fetchColumn();
     }
 
+    /**
+     * Replaces the product's primary image pointer.
+     */
     public function replacePrimaryImage(int $productId, string $imageUrl): void
     {
         $deleteStmt = $this->pdo->prepare("
@@ -736,6 +796,9 @@ class ProductRepository
         ]);
     }
 
+    /**
+     * Rebuilds the variant rows for a product while enforcing basic constraints.
+     */
     private function replaceVariants(int $productId, array $variants): void
     {
         if ($variants === []) {
@@ -790,6 +853,13 @@ class ProductRepository
         }
     }
 
+    // ---------------------------------------------------------------------
+    // Public metadata and discovery helpers
+    // ---------------------------------------------------------------------
+
+    /**
+     * Returns all metadata needed by the public catalogue filters.
+     */
     public function getPublicFilterMeta(): array
     {
         return [
@@ -806,6 +876,9 @@ class ProductRepository
         ];
     }
 
+    /**
+     * Returns the newest active products for the home page featured section.
+     */
     public function findFeaturedActive(int $limit = 4): array
     {
         $stmt = $this->pdo->prepare("
@@ -856,6 +929,9 @@ class ProductRepository
         return $products;
     }
 
+    /**
+     * Builds the curated home-page collection shortcuts from known note slugs.
+     */
     public function findCategoryHighlights(): array
     {
         $noteIds = $this->findNoteIdsBySlugs([
@@ -898,6 +974,9 @@ class ProductRepository
         ];
     }
 
+    /**
+     * Finds a public product id by its slug.
+     */
     public function findProductIdBySlug(string $slug): ?int
     {
         $stmt = $this->pdo->prepare("
@@ -917,6 +996,13 @@ class ProductRepository
         return $id === false ? null : (int) $id;
     }
 
+    // ---------------------------------------------------------------------
+    // Media and auxiliary lookups
+    // ---------------------------------------------------------------------
+
+    /**
+     * Replaces the primary image pointer for a product variant.
+     */
     public function replaceVariantPrimaryImage(int $variantId, string $imageUrl): void
     {
         $deleteStmt = $this->pdo->prepare("
@@ -947,6 +1033,9 @@ class ProductRepository
         ]);
     }
 
+    /**
+     * Returns one variant with enough product context for the admin upload flow.
+     */
     public function findVariantById(int $variantId): ?array
     {
         $stmt = $this->pdo->prepare("
@@ -973,6 +1062,9 @@ class ProductRepository
         return $variant ?: null;
     }
 
+    /**
+     * Counts active products matching the public catalogue filters.
+     */
     public function countAllActive(array $filters = []): int
     {
         $search = trim((string) ($filters['search'] ?? ''));
@@ -1107,6 +1199,9 @@ class ProductRepository
         return (int) $stmt->fetchColumn();
     }
 
+    /**
+     * Maps note names to ids for any internal helper flows that need them.
+     */
     public function findNoteIdsByNames(array $names): array
     {
         if ($names === []) {
@@ -1136,6 +1231,9 @@ class ProductRepository
         return $mapped;
     }
 
+    /**
+     * Maps note slugs to ids for curated query generation.
+     */
     public function findNoteIdsBySlugs(array $slugs): array
     {
         if ($slugs === []) {

@@ -10,12 +10,18 @@ use App\Core\Csrf;
 use App\Services\AuthService;
 use RuntimeException;
 
+/**
+ * Handles admin-only authentication flows.
+ */
 class AdminAuthController extends Controller
 {
     public function __construct(
         private AuthService $authService
     ) {}
 
+    /**
+     * Renders the admin login form.
+     */
     public function showLogin(): void
     {
         Auth::requireAdminGuest();
@@ -27,6 +33,9 @@ class AdminAuthController extends Controller
         ]);
     }
 
+    /**
+     * Attempts to authenticate an admin user and redirect to the admin area.
+     */
     public function login(): void
     {
         if (! Csrf::verify($_POST['_csrf'] ?? null)) {
@@ -69,6 +78,9 @@ class AdminAuthController extends Controller
         }
     }
 
+    /**
+     * Logs the current admin out.
+     */
     public function logout(): void
     {
         if (! Csrf::verify($_POST['_csrf'] ?? null)) {

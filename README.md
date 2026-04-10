@@ -1,216 +1,151 @@
 # Senteur
 
-**Senteur** is a portfolio-level web application: a small e-commerce platform focused on **perfumes**, built with **plain PHP** (no full framework), **MySQL**, and **Docker**.
+**Senteur** is a perfume-focused e-commerce portfolio project built with plain PHP, MySQL, and Docker. It uses a lightweight MVC structure with custom routing, service and repository layers, and a Stripe test-mode checkout flow.
 
-The project emphasizes clean architecture (MVC), explicit infrastructure setup, and reproducibility across environments.
+The repo is designed to be easy to review: application code lives in `src/`, the public entrypoint is `public/index.php`, and the local environment is fully defined in Docker.
 
-> Originally developed in an academic context, but extended beyond requirements to demonstrate real-world backend architecture and deployment practices.
+## Features
 
----
-
-# Features
-
-* User authentication (register / login / logout)
-* Product catalog with filtering
-* Product variants (size, concentration)
-* Reviews and ratings system
-* Admin panel for product and brand management
-* Image uploads
-* MVC architecture (custom lightweight framework)
-* Dockerized environment (Nginx + PHP-FPM + MySQL)
-* Orders system
-* Stripe payment integration (test mode)
-
----
-
-# What this repo contains
-
-* A **Docker** stack: **Nginx** (web server) → **PHP-FPM** (app) → **MySQL** (database).
-* A **custom “mini framework”** folder under `src/Core/` (router, request/response, database helper).
-* **MVC-style folders**: controllers, models, services, views.
-* A **database schema** in `docker/mysql/init.sql`.
-
----
+- Customer registration, login, logout, and profile pages
+- Product catalogue with search, sorting, and advanced note filters
+- Product detail pages with variants, scent notes, reviews, and related products
+- Session-based cart and address book
+- Checkout flow with Stripe Checkout integration
+- Order history and order detail pages
+- Admin authentication
+- Admin order management
+- Admin product management with product and variant image uploads
+- Dockerized local environment with Nginx, PHP-FPM, and MySQL
 
 ## Stack
 
-| Layer      | Technology                            |
-| ---------- | ------------------------------------- |
-| Language   | PHP 8.3 (see `docker/php/Dockerfile`) |
-| Web server | Nginx                                 |
-| App server | PHP-FPM                               |
-| Database   | MySQL 8                               |
-| Containers | Docker Compose                        |
+| Layer | Technology |
+| --- | --- |
+| Language | PHP 8.3 |
+| Web server | Nginx |
+| App runtime | PHP-FPM |
+| Database | MySQL 8 |
+| Payments | Stripe PHP SDK + Stripe Checkout |
+| Containers | Docker Compose |
 
----
+## Architecture
 
-## How to run it
+- Request flow: Nginx -> `public/index.php` -> `src/bootstrap.php` -> router -> controller -> service -> repository
+- Controllers stay thin and focus on HTTP concerns
+- Services own validation and business rules
+- Repositories encapsulate PDO queries and transactions
+- Views are plain PHP templates rendered through `App\Core\Controller`
 
-**Prerequisites:** Docker with Compose, ports **8080** and **3306** free (or change mappings in `docker-compose.yml`).
+## Getting started
 
-1. Clone the repository and enter the project directory.
+Prerequisites: Docker with Compose, plus ports `8080` and `3306` available unless you change the mappings in `docker-compose.yml`.
 
-2. Copy environment file:
+1. Copy the environment template:
 
    ```bash
    cp .env.example .env
    ```
 
-3. Start containers:
+2. Build and start the stack:
 
    ```bash
    docker compose up --build
    ```
 
-4. Open **[http://localhost:8080](http://localhost:8080)**
+3. Open `http://localhost:8080`
 
-5. Stop:
+4. Stop the stack when finished:
 
    ```bash
    docker compose down
    ```
 
----
+## Demo accounts
 
-## Stripe (Payments – Development)
+The seed file includes development accounts from `docker/mysql/seed.sql`:
 
-Stripe is configured in **test mode** for development.
+- Customer: `mario@example.com` / `password123`
+- Customer: `giulia@example.com` / `password123`
+- Admin: `admin@example.com` / `password123`
 
-### 1. Add environment variables
+## Stripe test setup
 
-In `.env`:
+Stripe is configured for development usage through `.env`.
+
+Required variables:
 
 ```env
 APP_URL=http://localhost:8080
 STRIPE_SECRET_KEY=sk_test_...
 STRIPE_PUBLISHABLE_KEY=pk_test_...
-STRIPE_WEBHOOK_SECRET=
-```
-
----
-
-### 2. Install Stripe CLI
-
-Download and install from Stripe releases (Linux RPM recommended for Fedora):
-
-```bash
-sudo dnf install ./stripe_*.rpm
-```
-
----
-
-### 3. Authenticate
-
-```bash
-stripe login
-```
-
----
-
-### 4. Start webhook listener
-
-Run this **while your app is running**:
-
-```bash
-stripe listen --forward-to localhost:8080/webhooks/stripe
-```
-
-You will get:
-
-```text
-whsec_...
-```
-
-Add it to `.env`:
-
-```env
 STRIPE_WEBHOOK_SECRET=whsec_...
 ```
 
----
+Recommended local workflow:
 
-### 5. Test payments
+1. Install the Stripe CLI from Stripe's official releases for your platform.
+2. Authenticate:
 
-Use Stripe test card:
+   ```bash
+   stripe login
+   ```
 
-```
+3. Start the webhook forwarder while the app is running:
+
+   ```bash
+   stripe listen --forward-to localhost:8080/webhooks/stripe
+   ```
+
+4. Copy the returned `whsec_...` value into `STRIPE_WEBHOOK_SECRET` in `.env`.
+
+Stripe test card:
+
+```text
 4242 4242 4242 4242
 any future date
 any CVC
 ```
 
----
-
 ## Fedora / SELinux note
 
-On Fedora or other SELinux-enabled systems, Docker bind mounts may fail with permission errors.
-
-If you encounter errors like:
-
-```bash
-Permission denied
-```
-
-create a local override file:
+If bind mounts fail with permission errors on Fedora or another SELinux-enabled system, create a local override file from `docker-compose.override.example.yml`:
 
 ```bash
 cp docker-compose.override.example.yml docker-compose.override.yml
 ```
 
-Then run:
-
-```bash
-docker compose up --build
-```
-
----
+Then start the stack normally with `docker compose up --build`.
 
 ## Environment variables
 
-Defined in `.env` (see `.env.example`):
+See `.env.example` for the full template. The app currently expects:
 
-* `APP_ENV`, `APP_DEBUG`
-* `DB_*`
-* `STRIPE_*`
+- `APP_ENV`, `APP_DEBUG`, `APP_URL`
+- `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`
+- `STRIPE_SECRET_KEY`, `STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET`
 
----
+## Database
 
-## Database diagram
-
-* Interactive: [https://dbdiagram.io/d/SenteurSQLDiagram-69c288c3fb2db18e3bf07cf6](https://dbdiagram.io/d/SenteurSQLDiagram-69c288c3fb2db18e3bf07cf6)
-
----
-
-## Application architecture
-
-* Router → Controller → Service → Repository → DB
-* Thin controllers
-* Business logic in services
-* PDO for DB access
-
----
+- Schema: `docker/mysql/init.sql`
+- Demo data: `docker/mysql/seed.sql`
+- Interactive diagram: https://dbdiagram.io/d/SenteurSQLDiagram-69c288c3fb2db18e3bf07cf6
 
 ## Project layout
 
-```
+```text
 senteur/
-├── docker/
-├── public/
-├── src/
-│   ├── Core/
-│   ├── Controllers/
-│   ├── Models/
-│   ├── Services/
-│   ├── Views/
-│   ├── routes.php
-│   └── bootstrap.php
-├── docs/
+├── docker/      # Dockerfiles, Nginx config, MySQL schema and seed files
+├── docs/        # Structure docs, flow diagrams, page notes
+├── public/      # Web root and compiled/static assets
+├── resources/   # Demo upload assets copied into public/uploads by the container
+├── src/         # Application source (Core, Controllers, Models, Services, Views)
 ├── .env.example
+├── composer.json
 ├── docker-compose.yml
 └── README.md
 ```
 
----
+For a more detailed walkthrough of the repository tree, see `docs/PROJECT_STRUCTURE.md`.
 
 ## License
 

@@ -10,12 +10,18 @@ use App\Core\Controller;
 use App\Services\AuthService;
 use RuntimeException;
 
+/**
+ * Handles storefront registration, login, and logout flows.
+ */
 class AuthController extends Controller
 {
     public function __construct(
         private AuthService $authService
     ) {}
 
+    /**
+     * Renders the customer login form.
+     */
     public function showLogin(): void
     {
         Auth::requireGuest();
@@ -27,6 +33,9 @@ class AuthController extends Controller
         ]);
     }
 
+    /**
+     * Attempts to authenticate a storefront user.
+     */
     public function login(): void
     {
         if (! Csrf::verify($_POST['_csrf'] ?? null)) {
@@ -69,6 +78,9 @@ class AuthController extends Controller
         }
     }
 
+    /**
+     * Renders the registration form.
+     */
     public function showRegister(): void
     {
         Auth::requireGuest();
@@ -80,6 +92,9 @@ class AuthController extends Controller
         ]);
     }
 
+    /**
+     * Creates a new customer account and signs the user in immediately.
+     */
     public function register(): void
     {
         if (! Csrf::verify($_POST['_csrf'] ?? null)) {
@@ -131,6 +146,9 @@ class AuthController extends Controller
         }
     }
 
+    /**
+     * Ends the current storefront session.
+     */
     public function logout(): void
     {
         if (! Csrf::verify($_POST['_csrf'] ?? null)) {

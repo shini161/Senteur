@@ -9,6 +9,9 @@ use PDO;
 use RuntimeException;
 use Throwable;
 
+/**
+ * Repository for order creation, stock confirmation, and order history queries.
+ */
 class OrderRepository
 {
     public function __construct(
@@ -19,6 +22,13 @@ class OrderRepository
         $this->cartRepository ??= new CartRepository($this->pdo);
     }
 
+    // ---------------------------------------------------------------------
+    // Order creation and customer reads
+    // ---------------------------------------------------------------------
+
+    /**
+     * Persists an order and its line-item snapshots in one transaction.
+     */
     public function createOrderWithItems(array $orderData, array $items): string
     {
         $this->pdo->beginTransaction();
@@ -80,6 +90,8 @@ class OrderRepository
                 )
             ");
 
+            // Order items store snapshots so later catalogue changes do not
+            // rewrite historical orders.
             foreach ($items as $item) {
                 $itemStmt->execute([
                     'order_id' => $orderId,
@@ -110,6 +122,9 @@ class OrderRepository
         }
     }
 
+    /**
+     * Returns one user's orders with summary totals and item counts.
+     */
     public function findByUserId(int $userId, ?string $status = null): array
     {
         $stmt = $this->pdo->prepare("
@@ -145,6 +160,9 @@ class OrderRepository
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    /**
+     * Returns one order enriched with shipping address details for the account page.
+     */
     public function findByPublicIdForUser(string $publicId, int $userId): ?array
     {
         $stmt = $this->pdo->prepare("
@@ -181,6 +199,9 @@ class OrderRepository
         return $order ?: null;
     }
 
+    /**
+     * Returns the raw order row scoped to the owning user.
+     */
     public function findOrderByPublicIdForUser(string $publicId, int $userId): ?array
     {
         $stmt = $this->pdo->prepare("
@@ -201,6 +222,9 @@ class OrderRepository
         return $order ?: null;
     }
 
+    /**
+     * Returns one order by numeric id.
+     */
     public function findById(int $orderId): ?array
     {
         $stmt = $this->pdo->prepare("
@@ -219,6 +243,9 @@ class OrderRepository
         return $order ?: null;
     }
 
+    /**
+     * Returns all order items for a given order id.
+     */
     public function findItemsByOrderId(int $orderId): array
     {
         $stmt = $this->pdo->prepare("
@@ -246,6 +273,13 @@ class OrderRepository
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    // ---------------------------------------------------------------------
+    // Payment confirmation flow
+    // ---------------------------------------------------------------------
+
+    /**
+     * Marks an order as paid, decrements stock, and moves it into processing.
+     */
     public function markAsPaidAndProcessing(int $orderId): void
     {
         $this->pdo->beginTransaction();
@@ -268,6 +302,8 @@ class OrderRepository
 
             $items = $this->findItemsByOrderId($orderId);
 
+            // Lock all relevant variants first so stock checks and decrements
+            // happen atomically during webhook processing.
             foreach ($items as $item) {
                 $variantId = (int) $item['product_variant_id'];
                 $quantity = (int) $item['quantity'];
@@ -312,6 +348,13 @@ class OrderRepository
         }
     }
 
+    // ---------------------------------------------------------------------
+    // Admin order reads and writes
+    // ---------------------------------------------------------------------
+
+    /**
+     * Returns all orders visible in the admin dashboard.
+     */
     public function findAllForAdmin(): array
     {
         $stmt = $this->pdo->query("
@@ -341,6 +384,9 @@ class OrderRepository
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    /**
+     * Returns one order with customer and address context for admins.
+     */
     public function findByPublicIdForAdmin(string $publicId): ?array
     {
         $stmt = $this->pdo->prepare("
@@ -378,6 +424,9 @@ class OrderRepository
         return $order ?: null;
     }
 
+    /**
+     * Updates the status of an order and the related lifecycle timestamps.
+     */
     public function updateStatusByPublicId(string $publicId, string $status): void
     {
         $allowed = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
@@ -386,6 +435,8 @@ class OrderRepository
             throw new RuntimeException('Invalid order status.');
         }
 
+        // Timestamp fields are composed dynamically so the SQL stays explicit
+        // while still tracking lifecycle milestones correctly.
         $fields = [
             'shipped_at = shipped_at',
             'delivered_at = delivered_at',
@@ -419,6 +470,13 @@ class OrderRepository
         }
     }
 
+    // ---------------------------------------------------------------------
+    // Eligibility checks and pagination helpers
+    // ---------------------------------------------------------------------
+
+    /**
+     * Returns whether the user has a completed-enough purchase for review eligibility.
+     */
     public function userHasPurchasedProduct(int $userId, int $productId): bool
     {
         $stmt = $this->pdo->prepare("
@@ -440,6 +498,9 @@ class OrderRepository
         return (bool) $stmt->fetchColumn();
     }
 
+    /**
+     * Counts orders for one user and optional status filter.
+     */
     public function countByUserId(int $userId, ?string $status = null): int
     {
         $stmt = $this->pdo->prepare("
@@ -457,6 +518,9 @@ class OrderRepository
         return (int) $stmt->fetchColumn();
     }
 
+    /**
+     * Returns paginated order summaries for the account area.
+     */
     public function findByUserIdPaginated(int $userId, ?string $status = null, int $limit = 5, int $offset = 0): array
     {
         $stmt = $this->pdo->prepare("

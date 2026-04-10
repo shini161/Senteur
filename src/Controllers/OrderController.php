@@ -8,12 +8,18 @@ use App\Core\Auth;
 use App\Core\Controller;
 use App\Services\OrderService;
 
+/**
+ * Handles authenticated order history and order detail pages.
+ */
 class OrderController extends Controller
 {
     public function __construct(
         private OrderService $orderService
     ) {}
 
+    /**
+     * Lists the current user's orders with optional status filtering.
+     */
     public function index(): void
     {
         $userId = Auth::id();
@@ -46,6 +52,9 @@ class OrderController extends Controller
         ]);
     }
 
+    /**
+     * Shows a single order owned by the authenticated user.
+     */
     public function show(string $publicId): void
     {
         $userId = Auth::id();

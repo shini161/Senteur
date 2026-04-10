@@ -6,6 +6,9 @@ namespace App\Services;
 
 use App\Models\CartRepository;
 
+/**
+ * Manages the cart stored in the PHP session and enriches it with product data.
+ */
 class CartService
 {
     public function __construct(
@@ -18,6 +21,9 @@ class CartService
         $_SESSION['cart'] ??= [];
     }
 
+    /**
+     * Returns cart lines enriched with variant details, capped quantities, and subtotals.
+     */
     public function getItems(): array
     {
         $cart = $this->getCart();
@@ -41,6 +47,8 @@ class CartService
 
             $price = (float) $variant['price'];
             $stock = (int) $variant['stock'];
+            // The UI and business rules cap cart quantities at 5 per variant
+            // even if stock is higher to keep the demo storefront manageable.
             $maxQuantity = max(0, min($stock, 5));
             $finalQuantity = min($quantity, $maxQuantity > 0 ? $maxQuantity : $quantity);
 
@@ -64,6 +72,9 @@ class CartService
         return $items;
     }
 
+    /**
+     * Calculates the cart total from the normalized cart lines.
+     */
     public function getTotal(): float
     {
         $total = 0.0;
@@ -75,6 +86,9 @@ class CartService
         return $total;
     }
 
+    /**
+     * Adds quantity to an existing cart line while respecting stock and hard caps.
+     */
     public function addItem(int $variantId, int $quantity): void
     {
         if ($variantId <= 0 || $quantity <= 0) {
@@ -95,6 +109,9 @@ class CartService
         $this->storeCart($cart);
     }
 
+    /**
+     * Replaces the quantity for one cart line or removes it when quantity drops to zero.
+     */
     public function updateItem(int $variantId, int $quantity): void
     {
         if ($variantId <= 0) {
@@ -119,6 +136,9 @@ class CartService
         $this->storeCart($cart);
     }
 
+    /**
+     * Removes a variant from the session cart.
+     */
     public function removeItem(int $variantId): void
     {
         $cart = $this->getCart();
@@ -127,11 +147,17 @@ class CartService
         $this->storeCart($cart);
     }
 
+    /**
+     * Empties the cart, typically after a confirmed payment.
+     */
     public function clear(): void
     {
         $this->storeCart([]);
     }
 
+    /**
+     * Returns a sanitized cart map of `variantId => quantity`.
+     */
     private function getCart(): array
     {
         $cart = $_SESSION['cart'] ?? [];
@@ -154,6 +180,9 @@ class CartService
         return $normalized;
     }
 
+    /**
+     * Persists the normalized cart back into the active session.
+     */
     private function storeCart(array $cart): void
     {
         $_SESSION['cart'] = $cart;

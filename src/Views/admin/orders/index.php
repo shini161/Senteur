@@ -1,3 +1,6 @@
+<?php
+// Admin order listing with a compact operational overview of recent purchases.
+?>
 <section class="auth-page">
     <div class="auth-card" style="max-width: 1100px;">
         <h1>Orders</h1>
@@ -12,6 +15,7 @@
             <p>No orders found.</p>
         <?php else: ?>
             <div style="overflow-x:auto;">
+                <?php // Keep the table horizontally scrollable on narrower screens. ?>
                 <table style="width:100%; border-collapse: collapse;">
                     <thead>
                         <tr>

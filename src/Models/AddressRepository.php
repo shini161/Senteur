@@ -7,6 +7,9 @@ namespace App\Models;
 use App\Core\Database;
 use PDO;
 
+/**
+ * Repository for persisted user shipping addresses.
+ */
 class AddressRepository
 {
     public function __construct(
@@ -15,6 +18,9 @@ class AddressRepository
         $this->pdo ??= Database::getConnection();
     }
 
+    /**
+     * Returns every address for a user ordered with the default address first.
+     */
     public function findByUserId(int $userId): array
     {
         $stmt = $this->pdo->prepare("
@@ -38,6 +44,9 @@ class AddressRepository
         return $stmt->fetchAll();
     }
 
+    /**
+     * Returns one address scoped to the owning user.
+     */
     public function findByIdForUser(int $id, int $userId): ?array
     {
         $stmt = $this->pdo->prepare("
@@ -67,6 +76,9 @@ class AddressRepository
         return $address ?: null;
     }
 
+    /**
+     * Inserts a new user address row.
+     */
     public function create(array $data): void
     {
         $stmt = $this->pdo->prepare("
@@ -100,6 +112,9 @@ class AddressRepository
         ]);
     }
 
+    /**
+     * Deletes one address owned by the user.
+     */
     public function delete(int $id, int $userId): void
     {
         $stmt = $this->pdo->prepare("
@@ -114,6 +129,9 @@ class AddressRepository
         ]);
     }
 
+    /**
+     * Clears the default flag from every address for one user.
+     */
     public function clearDefaultForUser(int $userId): void
     {
         $stmt = $this->pdo->prepare("
@@ -125,6 +143,9 @@ class AddressRepository
         $stmt->execute(['user_id' => $userId]);
     }
 
+    /**
+     * Marks one address as the default for the user.
+     */
     public function setDefault(int $id, int $userId): void
     {
         $stmt = $this->pdo->prepare("
@@ -140,6 +161,9 @@ class AddressRepository
         ]);
     }
 
+    /**
+     * Returns the oldest address for fallback default reassignment.
+     */
     public function findAnyForUser(int $userId): ?array
     {
         $stmt = $this->pdo->prepare("
@@ -165,6 +189,9 @@ class AddressRepository
         return $address ?: null;
     }
 
+    /**
+     * Returns whether the user has at least one saved address.
+     */
     public function hasAnyForUser(int $userId): bool
     {
         $stmt = $this->pdo->prepare("
@@ -179,6 +206,9 @@ class AddressRepository
         return (bool) $stmt->fetchColumn();
     }
 
+    /**
+     * Returns the number of saved addresses for the user.
+     */
     public function countByUserId(int $userId): int
     {
         $stmt = $this->pdo->prepare("

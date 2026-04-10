@@ -2,6 +2,10 @@
 
 declare(strict_types=1);
 
+/**
+ * Formats phone numbers for display without mutating the stored raw value.
+ * The storefront currently applies extra formatting only to Italian numbers.
+ */
 function formatPhone(string $phone): string
 {
     $phone = preg_replace('/[^\d+]/', '', $phone);

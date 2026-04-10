@@ -10,12 +10,18 @@ use App\Core\Csrf;
 use App\Services\AddressService;
 use RuntimeException;
 
+/**
+ * Lets authenticated users manage their saved shipping addresses.
+ */
 class AddressController extends Controller
 {
     public function __construct(
         private AddressService $addressService
     ) {}
 
+    /**
+     * Shows the address book and address creation form.
+     */
     public function index(): void
     {
         Auth::requireAuth();
@@ -32,6 +38,9 @@ class AddressController extends Controller
         ]);
     }
 
+    /**
+     * Validates and stores a new address for the signed-in user.
+     */
     public function store(): void
     {
         Auth::requireAuth();
@@ -69,6 +78,9 @@ class AddressController extends Controller
         }
     }
 
+    /**
+     * Deletes an address owned by the current user.
+     */
     public function delete(): void
     {
         Auth::requireAuth();
@@ -90,6 +102,9 @@ class AddressController extends Controller
         exit;
     }
 
+    /**
+     * Promotes one address to the default shipping address.
+     */
     public function setDefault(): void
     {
         Auth::requireAuth();

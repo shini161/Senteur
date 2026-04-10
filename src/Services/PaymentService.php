@@ -13,6 +13,9 @@ use Stripe\Stripe;
 use Stripe\Webhook;
 use UnexpectedValueException;
 
+/**
+ * Bridges local order/payment records with Stripe Checkout and webhooks.
+ */
 class PaymentService
 {
     public function __construct(
@@ -20,6 +23,9 @@ class PaymentService
         private OrderRepository $orderRepository
     ) {}
 
+    /**
+     * Creates or reuses a local pending payment before opening a Stripe session.
+     */
     public function createCheckoutSession(array $order): string
     {
         $secretKey = $_ENV['STRIPE_SECRET_KEY'] ?? null;
@@ -34,7 +40,9 @@ class PaymentService
         $existingPayment = $this->paymentRepository->findByOrderId((int) $order['id']);
 
         if ($existingPayment === null) {
-            $paymentId = $this->paymentRepository->createPendingPayment(
+            // Persisting the payment first gives the app a local record even if
+            // the browser never returns from Stripe.
+            $this->paymentRepository->createPendingPayment(
                 (int) $order['id'],
                 'stripe',
                 (float) $order['total_amount'],
@@ -77,6 +85,9 @@ class PaymentService
         return $session->url;
     }
 
+    /**
+     * Resolves the order/payment pair shown on the checkout success page.
+     */
     public function getCheckoutSuccessData(int $userId, string $stripeSessionId): ?array
     {
         $payment = $this->paymentRepository->findByStripeSessionId($stripeSessionId);
@@ -97,6 +108,9 @@ class PaymentService
         ];
     }
 
+    /**
+     * Validates and processes Stripe webhook events relevant to payment capture.
+     */
     public function handleStripeWebhook(string $payload, string $signature): void
     {
         $secretKey = $_ENV['STRIPE_SECRET_KEY'] ?? null;
@@ -114,6 +128,7 @@ class PaymentService
             throw new RuntimeException('Invalid Stripe webhook payload.', 0, $e);
         }
 
+        // Ignore unrelated events so Stripe can keep sending the full event stream.
         if ($event->type !== 'checkout.session.completed') {
             return;
         }
@@ -138,6 +153,7 @@ class PaymentService
             throw new RuntimeException('Payment record not found for order.');
         }
 
+        // Webhooks may be retried, so the handler must remain idempotent.
         if ($payment['status'] === 'paid') {
             return;
         }

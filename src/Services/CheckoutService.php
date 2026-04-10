@@ -8,6 +8,9 @@ use App\Models\AddressRepository;
 use App\Models\OrderRepository;
 use RuntimeException;
 
+/**
+ * Validates checkout prerequisites and turns cart contents into orders.
+ */
 class CheckoutService
 {
     public function __construct(
@@ -16,6 +19,9 @@ class CheckoutService
         private OrderRepository $orderRepository
     ) {}
 
+    /**
+     * Returns the cart snapshot and address book needed to render checkout.
+     */
     public function getCheckoutData(int $userId): array
     {
         $items = $this->cartService->getItems();
@@ -37,11 +43,17 @@ class CheckoutService
         ];
     }
 
+    /**
+     * Fetches a freshly placed order scoped to the current user.
+     */
     public function getPlacedOrder(int $userId, string $publicId): ?array
     {
         return $this->orderRepository->findOrderByPublicIdForUser($publicId, $userId);
     }
 
+    /**
+     * Validates cart and address state, then persists an order snapshot.
+     */
     public function placeOrder(int $userId, int $addressId): string
     {
         $items = $this->cartService->getItems();
@@ -56,6 +68,8 @@ class CheckoutService
             throw new RuntimeException('Invalid shipping address.');
         }
 
+        // Orders keep product snapshots, so validate everything up front before
+        // the repository writes both the order and the order items.
         foreach ($items as $item) {
             if ((int) $item['quantity'] <= 0) {
                 throw new RuntimeException('Invalid cart item quantity.');
@@ -94,6 +108,9 @@ class CheckoutService
         return $publicId;
     }
 
+    /**
+     * Generates an uppercase public order id shown in URLs and user-facing pages.
+     */
     private function generatePublicId(): string
     {
         return strtoupper(substr(bin2hex(random_bytes(10)), 0, 10));

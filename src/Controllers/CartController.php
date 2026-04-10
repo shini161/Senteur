@@ -8,10 +8,16 @@ use App\Core\Csrf;
 use App\Core\Controller;
 use App\Services\CartService;
 
+/**
+ * Manages the session-backed shopping cart.
+ */
 class CartController extends Controller
 {
     public function __construct(private CartService $cartService) {}
 
+    /**
+     * Displays cart contents and the calculated total.
+     */
     public function index(): void
     {
         $items = $this->cartService->getItems();
@@ -24,6 +30,9 @@ class CartController extends Controller
         ]);
     }
 
+    /**
+     * Adds a product variant to the cart after validating user input and CSRF state.
+     */
     public function add(): void
     {
         if (! Csrf::verify($_POST['_csrf'] ?? null)) {
@@ -47,6 +56,9 @@ class CartController extends Controller
         exit;
     }
 
+    /**
+     * Updates the quantity of a cart line item.
+     */
     public function update(): void
     {
         if (! Csrf::verify($_POST['_csrf'] ?? null)) {
@@ -70,6 +82,9 @@ class CartController extends Controller
         exit;
     }
 
+    /**
+     * Removes a cart line item entirely.
+     */
     public function remove(): void
     {
         if (! Csrf::verify($_POST['_csrf'] ?? null)) {

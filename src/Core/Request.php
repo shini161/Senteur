@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Core;
 
+/**
+ * Minimal HTTP request object built from PHP superglobals.
+ */
 class Request
 {
     /** HTTP method (GET, POST, etc.) */
@@ -13,27 +16,20 @@ class Request
     public string $path;
 
     /**
-     * Creates a Request instance from PHP superglobals.
-     *
-     * Extracts:
-     * - HTTP method from $_SERVER
-     * - URL path (without query string)
-     *
-     * Also normalizes the path:
-     * - removes trailing slashes ("/products/" → "/products")
-     * - ensures root stays "/"
+     * Creates a normalized request instance from PHP's runtime globals.
      */
     public static function fromGlobals(): self
     {
         $request = new self();
 
-        // Get HTTP method (default: GET)
+        // Default to GET so local CLI or malformed requests still produce
+        // a valid object the router can reason about.
         $request->method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 
-        // Extract path from URL (ignore query string)
+        // Ignore the query string because route matching only works on paths.
         $rawPath = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?? '/';
 
-        // Normalize path (remove trailing slash except for root)
+        // Treat `/products/` and `/products` as the same endpoint.
         $request->path = rtrim($rawPath, '/') ?: '/';
 
         return $request;

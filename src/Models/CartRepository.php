@@ -8,6 +8,9 @@ use App\Core\Database;
 use PDO;
 use RuntimeException;
 
+/**
+ * Repository used by the session cart to inspect product variant data.
+ */
 class CartRepository
 {
     public function __construct(
@@ -16,6 +19,9 @@ class CartRepository
         $this->pdo ??= Database::getConnection();
     }
 
+    /**
+     * Returns the available stock for one variant.
+     */
     public function findVariantStock(int $variantId): ?int
     {
         $stmt = $this->pdo->prepare("
@@ -34,12 +40,17 @@ class CartRepository
         return $stock === false ? null : (int) $stock;
     }
 
+    /**
+     * Returns the cart-ready product snapshot for the given variant ids.
+     */
     public function findItemsByVariantIds(array $variantIds): array
     {
         if ($variantIds === []) {
             return [];
         }
 
+        // PDO cannot bind an array directly into an `IN (...)` clause, so
+        // placeholders are generated dynamically based on the cart contents.
         $placeholders = implode(',', array_fill(0, count($variantIds), '?'));
 
         $stmt = $this->pdo->prepare("
@@ -72,6 +83,9 @@ class CartRepository
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    /**
+     * Locks one variant row while an order is being confirmed.
+     */
     public function findVariantStockForUpdate(int $variantId): ?int
     {
         $stmt = $this->pdo->prepare("
@@ -91,6 +105,9 @@ class CartRepository
         return $stock === false ? null : (int) $stock;
     }
 
+    /**
+     * Decrements stock atomically and fails when stock is no longer sufficient.
+     */
     public function decrementVariantStock(int $variantId, int $quantity): void
     {
         $stmt = $this->pdo->prepare("

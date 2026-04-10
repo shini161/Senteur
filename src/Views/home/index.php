@@ -1,3 +1,7 @@
+<?php
+// Home page view combining hero messaging, featured products, and curated
+// collection shortcuts derived from repository-backed note filters.
+?>
 <section class="home-hero panel" style="padding: 2rem; margin-bottom: 1.5rem;">
     <p class="section-kicker">Senteur</p>
     <h1>Discover your next fragrance</h1>
@@ -13,6 +17,7 @@
 </section>
 
 <section style="margin-bottom: 2rem;">
+    <?php // Featured catalogue entries surfaced on the landing page. ?>
     <div class="section-heading">
         <p class="section-kicker">Featured</p>
         <h2 style="margin-top: 0;">Featured products</h2>
@@ -70,6 +75,7 @@
 </section>
 
 <section style="margin-bottom: 2rem;">
+    <?php // Collection cards link into the catalogue with pre-filled queries. ?>
     <div class="section-heading">
         <p class="section-kicker">Explore</p>
         <h2 style="margin-top: 0;">Shop by style</h2>
@@ -87,6 +93,7 @@
 </section>
 
 <section class="panel" style="padding: 1.5rem;">
+    <?php // Closing value proposition block for the storefront landing page. ?>
     <div class="section-heading" style="margin-bottom: 1rem;">
         <p class="section-kicker">Why Senteur</p>
         <h2 style="margin-top: 0;">Fragrance shopping, made more intuitive</h2>

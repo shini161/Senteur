@@ -1,3 +1,7 @@
+<?php
+// Public catalogue page with filter controls, advanced note selection, product
+// cards, and pagination that preserves the current filter state.
+?>
 <section class="products-hero">
     <p class="section-kicker">Catalogue</p>
     <h1>Discover perfumes worth wearing</h1>
@@ -7,6 +11,7 @@
 </section>
 
 <section class="panel" style="margin-bottom: 1.5rem;">
+    <?php // Primary catalogue filters are server-rendered from repository metadata. ?>
     <form method="GET" action="/products" class="auth-form">
         <div class="catalog-filters-grid">
             <div class="form-group catalog-filter-search">
@@ -89,6 +94,8 @@
         </div>
 
         <?php
+        // The note picker JavaScript reads a serialized copy of the note list so
+        // advanced filters can stay interactive without another API endpoint.
         $showNoteFilters = !empty($filters['top_note_ids']) || !empty($filters['middle_note_ids']) || !empty($filters['base_note_ids']);
         $allNotesJson = htmlspecialchars(json_encode(array_map(
             static fn(array $note): array => [
@@ -106,6 +113,8 @@
             </div>
 
             <?php
+            // Each note group maps to a distinct query-string field handled by
+            // `ProductService::normalizePublicFilters()`.
             $noteGroups = [
                 'top' => [
                     'label' => 'Top notes',
@@ -185,6 +194,7 @@
 <?php else: ?>
     <section class="products-grid">
         <?php foreach ($products as $product): ?>
+            <?php // Each card is already enriched with brand, price, and sellable state. ?>
             <article class="product-card">
                 <a href="/products/<?= htmlspecialchars($product['slug']) ?>" class="product-card-link">
                     <div class="product-card-media">
@@ -229,6 +239,7 @@
     $queryParams = $filters;
     unset($queryParams['page']);
 
+    // Rebuild pagination URLs while preserving the currently applied filters.
     $buildPageUrl = static function (int $pageNumber) use ($queryParams): string {
         $params = array_merge($queryParams, ['page' => $pageNumber]);
 
@@ -258,6 +269,8 @@
     </nav>
 <?php endif; ?>
 <script>
+    // The advanced note picker stays client-side to keep the PHP route layer
+    // simple while still giving the catalogue a richer filtering experience.
     document.addEventListener('DOMContentLoaded', function() {
         const toggleButton = document.getElementById('toggle-note-filters');
         const noteFilters = document.getElementById('catalog-note-filters');

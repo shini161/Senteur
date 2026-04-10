@@ -10,12 +10,22 @@ use App\Core\Csrf;
 use App\Services\AdminProductService;
 use RuntimeException;
 
+/**
+ * Provides CRUD-style product management for administrators.
+ */
 class AdminProductController extends Controller
 {
     public function __construct(
         private AdminProductService $adminProductService
     ) {}
 
+    // ---------------------------------------------------------------------
+    // Listing and form pages
+    // ---------------------------------------------------------------------
+
+    /**
+     * Lists products in the admin catalogue table.
+     */
     public function index(): void
     {
         Auth::requireAdmin();
@@ -26,6 +36,9 @@ class AdminProductController extends Controller
         ]);
     }
 
+    /**
+     * Shows the product creation form with metadata needed by the partial.
+     */
     public function create(): void
     {
         Auth::requireAdmin();
@@ -47,6 +60,13 @@ class AdminProductController extends Controller
         ]);
     }
 
+    // ---------------------------------------------------------------------
+    // Product write actions
+    // ---------------------------------------------------------------------
+
+    /**
+     * Validates and persists a newly created product.
+     */
     public function store(): void
     {
         Auth::requireAdmin();
@@ -76,6 +96,9 @@ class AdminProductController extends Controller
         }
     }
 
+    /**
+     * Loads a product and renders the edit screen.
+     */
     public function edit(string $id): void
     {
         Auth::requireAdmin();
@@ -101,6 +124,9 @@ class AdminProductController extends Controller
         ]);
     }
 
+    /**
+     * Saves admin changes to an existing product and its variants.
+     */
     public function update(string $id): void
     {
         Auth::requireAdmin();
@@ -148,6 +174,13 @@ class AdminProductController extends Controller
         }
     }
 
+    // ---------------------------------------------------------------------
+    // Media uploads
+    // ---------------------------------------------------------------------
+
+    /**
+     * Uploads the product-level primary image.
+     */
     public function uploadImage(string $id): void
     {
         Auth::requireAdmin();
@@ -187,6 +220,9 @@ class AdminProductController extends Controller
         }
     }
 
+    /**
+     * Uploads the primary image for an individual variant.
+     */
     public function uploadVariantImage(string $variantId): void
     {
         Auth::requireAdmin();
@@ -201,8 +237,6 @@ class AdminProductController extends Controller
 
         try {
             $this->adminProductService->uploadVariantImage($variantIdInt, $_FILES['image'] ?? []);
-
-            $variant = $this->adminProductService->getProductById((int) ($_POST['product_id'] ?? 0));
 
             header('Location: /admin/products/' . (int) ($_POST['product_id'] ?? 0) . '/edit');
             exit;

@@ -9,6 +9,9 @@ use App\Core\Controller;
 use App\Services\ProductService;
 use App\Services\ReviewService;
 
+/**
+ * Handles public catalogue browsing and product detail pages.
+ */
 class ProductController extends Controller
 {
     public function __construct(
@@ -16,6 +19,9 @@ class ProductController extends Controller
         private ReviewService $reviewService
     ) {}
 
+    /**
+     * Lists products with normalized filters and basic pagination.
+     */
     public function index(): void
     {
         $filters = $this->productService->normalizePublicFilters($_GET);
@@ -51,6 +57,9 @@ class ProductController extends Controller
         ]);
     }
 
+    /**
+     * Shows the product detail page together with review metadata.
+     */
     public function show(string $slug): void
     {
         $slug = trim($slug);

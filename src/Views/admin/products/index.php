@@ -1,3 +1,6 @@
+<?php
+// Admin product catalogue table summarizing media, stock, and price ranges.
+?>
 <section class="auth-page">
     <div class="auth-card" style="max-width: 1200px;">
         <p class="section-kicker">Admin</p>

@@ -1,4 +1,9 @@
+/*
+ * Global stylesheet for the storefront and lightweight admin pages.
+ * Sections are grouped by layout area so visual updates stay easy to trace.
+ */
 :root {
+  /* Brand-aligned color tokens reused across the application. */
   --bg: #f6f4ef;
   --surface: #ffffff;
   --surface-soft: #fcfbf8;
@@ -1220,21 +1225,6 @@ p {
 
 .related-product-body {
   padding: 1rem;
-}
-
-.related-product-subtitle {
-  margin-top: 0.35rem;
-  color: var(--muted);
-  font-size: 0.94rem;
-}
-
-.related-product-price {
-  margin-top: 0.6rem;
-  font-weight: 700;
-}
-
-.related-product-body {
-  padding: 1rem;
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
@@ -1254,6 +1244,7 @@ p {
 }
 
 .related-product-subtitle {
+  margin-top: 0.35rem;
   color: var(--muted);
   font-size: 0.95rem;
   line-height: 1.35;
@@ -1264,7 +1255,7 @@ p {
   font-weight: 700;
 }
 
-/* CART / PAGINATION */
+/* CATALOG FILTERS / PAGINATION */
 
 .catalog-pagination {
   display: flex;
@@ -1288,12 +1279,6 @@ p {
 
 .catalog-filter-search {
   grid-column: span 1;
-}
-
-.catalog-filters-grid {
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
-  gap: 0.9rem;
 }
 
 .catalog-filter-actions {
@@ -1424,22 +1409,6 @@ p {
   padding: 0.7rem 0.8rem;
   color: var(--muted);
   font-size: 0.92rem;
-}
-
-@media (max-width: 980px) {
-  .catalog-filters-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .catalog-note-filters.is-open {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 640px) {
-  .catalog-filters-grid {
-    grid-template-columns: 1fr;
-  }
 }
 
 @media (max-width: 980px) {
@@ -1765,21 +1734,6 @@ p {
 
 .review-card {
   padding: 1.2rem;
-}
-
-.review-card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 1rem;
-  flex-wrap: wrap;
-  margin-bottom: 0.8rem;
-}
-
-.review-card-author {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
 }
 
 .review-card .review-stars {
@@ -2350,122 +2304,7 @@ p {
   margin-top: 0.6rem;
 }
 
-.orders-container {
-  max-width: 800px;
-  margin: 0 auto;
-}
-
-.orders-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.order-card {
-  display: block;
-  padding: 16px;
-  border: 1px solid #e5e5e5;
-  border-radius: 12px;
-  text-decoration: none;
-  color: inherit;
-  transition: 0.2s;
-}
-
-.order-card:hover {
-  border-color: #999;
-}
-
-.order-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.order-bottom {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 10px;
-}
-
-.order-status {
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-size: 12px;
-}
-
-/* statuses */
-.status-pending {
-  background: #eee;
-}
-
-.status-processing {
-  background: #dbeafe;
-}
-
-.status-shipped {
-  background: #fef3c7;
-}
-
-.status-delivered {
-  background: #dcfce7;
-}
-
-/* show page */
-.order-container {
-  max-width: 1100px;
-  margin: 0 auto;
-}
-
-.order-grid {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 20px;
-}
-
-.order-card {
-  padding: 16px;
-  border: 1px solid #e5e5e5;
-  border-radius: 12px;
-}
-
-.order-item {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 10px;
-}
-
-.summary-row {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 6px;
-}
-
-.summary-total {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 10px;
-  font-weight: bold;
-}
-
-.orders-filters {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 16px;
-}
-
-.orders-filters a {
-  padding: 6px 12px;
-  border-radius: 999px;
-  background: #f3f3f3;
-  text-decoration: none;
-  color: #333;
-  font-size: 14px;
-}
-
-.orders-filters a.active {
-  background: #1f2937;
-  color: white;
-}
+/* ORDERS */
 
 .orders-page {
   padding: 1rem 0;
@@ -2608,11 +2447,6 @@ p {
 .orders-pagination-info {
   color: var(--muted);
   font-size: 0.94rem;
-}
-
-.pagination-disabled {
-  opacity: 0.5;
-  pointer-events: none;
 }
 
 @media (max-width: 640px) {

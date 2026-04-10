@@ -9,6 +9,9 @@ use App\Models\ProductRepository;
 use App\Models\ReviewRepository;
 use RuntimeException;
 
+/**
+ * Handles review visibility and purchase-gated review submission rules.
+ */
 class ReviewService
 {
     public function __construct(
@@ -17,6 +20,9 @@ class ReviewService
         private ProductRepository $productRepository
     ) {}
 
+    /**
+     * Returns everything the product page needs to render reviews and review permissions.
+     */
     public function getProductReviewData(int $productId, ?int $userId): array
     {
         return [
@@ -31,6 +37,9 @@ class ReviewService
         ];
     }
 
+    /**
+     * Creates or updates the current user's review for a product looked up by slug.
+     */
     public function saveByProductSlug(int $userId, string $slug, array $data): void
     {
         $productId = $this->productRepository->findProductIdBySlug($slug);

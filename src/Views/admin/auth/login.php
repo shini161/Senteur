@@ -1,3 +1,6 @@
+<?php
+// Admin-only login form used before accessing catalogue and order operations.
+?>
 <section class="auth-page">
     <div class="auth-card">
         <h1>Admin Login</h1>

@@ -1,3 +1,4 @@
+-- Base schema loaded when MySQL initializes the Senteur database volume.
 CREATE DATABASE IF NOT EXISTS senteur
 CHARACTER SET utf8mb4
 COLLATE utf8mb4_unicode_ci;

@@ -1,3 +1,7 @@
+<?php
+// Profile dashboard for the authenticated user. The shared layout injects the
+// `$user` variable so the template can stay read-only.
+?>
 <section class="profile-page">
     <div class="profile-card">
         <h1>Profile</h1>

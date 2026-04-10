@@ -1,3 +1,7 @@
+<?php
+// Admin order detail page with lifecycle timestamps, shipping info, and status
+// controls used to manage the fulfillment flow.
+?>
 <section class="auth-page">
     <div class="auth-card" style="max-width: 1100px;">
         <h1>Order <?= htmlspecialchars($order['public_id']) ?></h1>
@@ -30,6 +34,7 @@
         </div>
 
         <div style="margin: 1rem 0;">
+            <?php // Status changes are intentionally handled inline on the detail page. ?>
             <h2>Update status</h2>
             <form method="POST" action="/admin/orders/<?= urlencode($order['public_id']) ?>/status">
                 <?= \App\Core\Csrf::input() ?>
