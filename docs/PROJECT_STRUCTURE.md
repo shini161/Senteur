@@ -33,7 +33,10 @@ This document mirrors the current repository layout so a reviewer can move throu
 | Path | Role |
 | --- | --- |
 | `public/index.php` | Front controller for the application. |
-| `public/assets/css/app.css` | Main stylesheet for the storefront and lightweight admin pages. |
+| `public/assets/css/app.css` | Shared base stylesheet for layout, forms, admin, and profile pages. |
+| `public/assets/css/pages/` | Page-focused CSS split out for products, cart, and orders. |
+| `public/assets/css/responsive.css` | Shared responsive overrides and utility rules loaded after page styles. |
+| `public/assets/js/` | Browser-side scripts organized by feature/page. |
 | `public/assets/images/` | Logo and static branding assets. |
 | `public/uploads/` | Runtime upload destination exposed by the web server. |
 
@@ -48,6 +51,7 @@ This document mirrors the current repository layout so a reviewer can move throu
 | `src/Controllers/` | HTTP-layer classes that validate request intent and delegate business logic to services. |
 | `src/Services/` | Business rules, orchestration, validation, and payment/checkout coordination. |
 | `src/Models/` | Repository classes containing PDO queries and transactions. |
+| `src/Models/Concerns/` | Internal repository traits used to keep large data-access classes split by responsibility. |
 | `src/Views/` | Plain PHP templates grouped by feature area. |
 
 ## `src/Views/`
@@ -57,6 +61,7 @@ This document mirrors the current repository layout so a reviewer can move throu
 | `src/Views/layouts/` | Shared page chrome used by rendered templates. |
 | `src/Views/home/` | Landing page. |
 | `src/Views/products/` | Catalogue listing and product detail pages. |
+| `src/Views/products/partials/` | Reusable product-page fragments such as review and related-product sections. |
 | `src/Views/cart/` | Session-cart review page. |
 | `src/Views/auth/` | Customer login and registration pages. |
 | `src/Views/user/` | Profile and address-book pages. |

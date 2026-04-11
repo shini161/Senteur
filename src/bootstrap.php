@@ -5,24 +5,6 @@ declare(strict_types=1);
 use App\Core\Request;
 use App\Core\Router;
 
-// Register a lightweight PSR-4-style autoloader for the local `App\` namespace.
-// Composer is still loaded in `public/index.php` for third-party packages.
-
-spl_autoload_register(function (string $class): void {
-    $prefix = 'App\\';
-
-    if (! str_starts_with($class, $prefix)) {
-        return;
-    }
-
-    $relative = str_replace('\\', '/', substr($class, strlen($prefix)));
-    $file = __DIR__ . '/' . $relative . '.php';
-
-    if (is_file($file)) {
-        require $file;
-    }
-});
-
 // Global helper functions are intentionally kept framework-agnostic.
 require_once __DIR__ . '/helpers.php';
 

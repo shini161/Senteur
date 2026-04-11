@@ -1,0 +1,101 @@
+/* RESPONSIVE */
+
+@media (max-width: 980px) {
+  .products-grid,
+  .home-featured-grid,
+  .home-collections-grid,
+  .related-products-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .product-show {
+    grid-template-columns: 1fr;
+  }
+
+  .navbar {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+
+  .nav-left,
+  .nav-center,
+  .nav-right {
+    justify-self: center;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .home-why-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .panel form > div[style*="grid-template-columns: 2fr 1fr 1fr 1fr 1fr"] {
+    grid-template-columns: 1fr 1fr !important;
+  }
+}
+
+@media (max-width: 860px) {
+  .addresses-grid,
+  .checkout-grid,
+  .scent-profile-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  main {
+    padding: 1.5rem 1rem 2.5rem;
+  }
+
+  .products-grid,
+  .home-featured-grid,
+  .home-collections-grid,
+  .related-products-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .variant-selector,
+  .product-purchase-summary,
+  .admin-variant-row {
+    grid-template-columns: 1fr;
+  }
+
+  .variant-card {
+    grid-template-columns: 1fr;
+  }
+
+  .variant-form,
+  .product-purchase-actions {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .search-form input {
+    width: 100%;
+    min-width: 220px;
+  }
+
+  .panel form > div[style*="grid-template-columns: 2fr 1fr 1fr 1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+.qty-input::-webkit-outer-spin-button,
+.qty-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.qty-input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+.is-hidden {
+  display: none;
+}
+
+.review-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}

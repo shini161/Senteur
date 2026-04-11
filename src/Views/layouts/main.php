@@ -1,6 +1,18 @@
 <?php
 // Shared storefront layout. Feature templates render into `$content` while the
 // layout owns global navigation, search, and footer chrome.
+
+$publicDir = dirname(__DIR__, 3) . '/public';
+$assetUrl = static function (string $path) use ($publicDir): string {
+    $normalizedPath = '/' . ltrim($path, '/');
+    $filePath = $publicDir . $normalizedPath;
+
+    if (! is_file($filePath)) {
+        return $normalizedPath;
+    }
+
+    return $normalizedPath . '?v=' . filemtime($filePath);
+};
 ?>
 <!doctype html>
 <html lang="en">
@@ -9,7 +21,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($title ?? 'Senteur', ENT_QUOTES, 'UTF-8') ?> · Senteur</title>
-    <link rel="stylesheet" href="/assets/css/app.css">
+    <link rel="stylesheet" href="<?= htmlspecialchars($assetUrl('/assets/css/app.css'), ENT_QUOTES, 'UTF-8') ?>">
+    <link rel="stylesheet" href="<?= htmlspecialchars($assetUrl('/assets/css/pages/products.css'), ENT_QUOTES, 'UTF-8') ?>">
+    <link rel="stylesheet" href="<?= htmlspecialchars($assetUrl('/assets/css/pages/cart.css'), ENT_QUOTES, 'UTF-8') ?>">
+    <link rel="stylesheet" href="<?= htmlspecialchars($assetUrl('/assets/css/pages/orders.css'), ENT_QUOTES, 'UTF-8') ?>">
+    <link rel="stylesheet" href="<?= htmlspecialchars($assetUrl('/assets/css/responsive.css'), ENT_QUOTES, 'UTF-8') ?>">
     <link rel="icon" href="/assets/images/logo-favicon.svg" type="image/svg+xml">
 </head>
 
@@ -78,6 +94,10 @@
             <span>© <?= date('Y') ?> Senteur</span>
         </div>
     </footer>
+
+    <?php foreach (($scripts ?? []) as $script): ?>
+        <script src="<?= htmlspecialchars($assetUrl($script), ENT_QUOTES, 'UTF-8') ?>" defer></script>
+    <?php endforeach; ?>
 </body>
 
 </html>

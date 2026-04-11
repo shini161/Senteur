@@ -1,8 +1,8 @@
 <?php
 // Customer registration form. Old input is repopulated after validation errors.
 ?>
-<section class="auth-page">
-    <div class="auth-card">
+<section class="auth-page auth-page-register">
+    <div class="auth-card auth-card-wide">
         <h1>Register</h1>
         <p class="auth-subtitle">Create your account.</p>
 

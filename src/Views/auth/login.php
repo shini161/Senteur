@@ -1,8 +1,8 @@
 <?php
 // Customer login form. Validation feedback is re-rendered by the controller.
 ?>
-<section class="auth-page">
-    <div class="auth-card">
+<section class="auth-page auth-page-login">
+    <div class="auth-card auth-card-login" style="width: min(100%, 560px); max-width: 560px; padding: 1.75rem 2rem;">
         <h1>Login</h1>
         <p class="auth-subtitle">Access your account.</p>
 
