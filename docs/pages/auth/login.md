@@ -1,59 +1,45 @@
 # Login
 
 ## Purpose
-Allows users to authenticate and access their account.
+Authenticates storefront customers and starts the session used by the account area, checkout, and order pages.
 
 ---
 
-## Route
+## Routes
 ```bash
-GET /login
+GET  /login
 POST /login
 ```
 
 ---
 
+## Access Rules
+- Guest-only page
+- Authenticated users are redirected to `/`
+
+---
+
 ## Form Fields
-| Field            | Type   | Required | Notes                       |
-| ---------------- | ------ | -------- | --------------------------- |
-| email            | string | ✅       | valid email format          |
-| password         | string | ✅       |                             |
+| Field    | Type     | Required | Notes |
+| -------- | -------- | -------- | ----- |
+| email    | email    | ✅       | repopulated after a failed attempt |
+| password | password | ✅       | not repopulated |
 
 ---
 
-## Additional UI Elements
-- Link to `/register`
-- Link to password reset
-
----
-
-## Validation Rules
-- email
-> - required
-> - valid email
-
-- password
-> - required
+## UI Elements
+- error banner for invalid credentials
+- link to `/register`
 
 ---
 
 ## Request Flow
 
-![Login Flow](../../flows/auth//login.png)
-
----
-
-## Authentication Flow
-
-- retrieve user by email
-- if not found → treat as invalid credentials
-- verify password using `password_verify`
-- on success → return user
+![Login Flow](../../flows/auth/login.png)
 
 ---
 
 ## Controller
-
 ```php
 AuthController::showLogin()
 AuthController::login()
@@ -63,69 +49,47 @@ AuthController::login()
 
 ## Service Layer
 ```php
-AuthService::login(string $email, string $password): User
+AuthService::login(string $email, string $password): array
 ```
 
 ---
 
-## Responsibilities
-- validate input
-- verify credentials
-- create session
-- handle errors
-- prevent user enumeration (generic errors)
+## Current Behavior
+- `POST /login` requires a valid CSRF token.
+- Empty `email` or `password` re-renders the form with the generic message `Invalid credentials`.
+- Authentication looks up the user by email and verifies the stored hash with `password_verify()`.
+- Successful login calls `Auth::login($user)` and redirects to `/`.
+- Failed authentication keeps the response generic, whether the email is missing from the database or the password is wrong.
 
 ---
 
-## Database Actions
-### Select user
+## Persistence
 ```sql
-SELECT * FROM users WHERE email = ? LIMIT 1;
+SELECT *
+FROM users
+WHERE email = :email
+LIMIT 1;
 ```
-
-### Notes
-- use index on `email`
-- always return generic error on failure
 
 ---
 
 ## Session Handling
-On success:
+On success the auth helper stores the authenticated user id:
+
 ```php
-$_SESSION['user_id'] = $user->id;
+$_SESSION['user_id'] = $user['id'];
 ```
 
 ---
 
-## Response
-### Success
-```
-302 Redirect ⟶ /
-```
-
-### Errors
-Return to `/login` with:
-- old input (email only)
-- generic error message ("Invalid credentials")
+## Responses
+- Success: `302` redirect to `/`
+- Invalid credentials: re-render `auth/login` with the old email value
+- Invalid CSRF: `403 Invalid CSRF token`
 
 ---
 
 ## Security
-- Use `password_verify()`
-- Don't reveal whether email exists
-- CSRF token required
-- Rate-limiting
-
----
-
-## Future Extensions
-- remember me (persistent cookie + token storage)
-- password reset
-- login with username
-
----
-
-## View Requirements
-- form
-- error display
-- old input persistence
+- CSRF protection on `POST /login`
+- generic credential errors to avoid user enumeration
+- password validation uses PHP's `password_verify()`

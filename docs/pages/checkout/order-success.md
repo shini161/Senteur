@@ -1,32 +1,34 @@
-# Order Success
+# Payment Confirmation
 
 ## Purpose
-
-Confirm that the order has been successfully placed and provide basic order details.
+Shows the post-Stripe confirmation state for the current user's order and reflects the local payment status stored by the app.
 
 ---
 
 ## Route
-
 ```bash
-GET /order/success
+GET /checkout/success?session_id={CHECKOUT_SESSION_ID}
 ```
 
 ---
 
-## Page Data
-
-* order public_id
-* total amount
-* order status
-* optional: summary of items
+## Access Rules
+- authenticated users only
+- unauthenticated requests are redirected to `/login`
 
 ---
 
-## Preconditions
+## Query Parameters
+| Param      | Type   | Required | Notes |
+| ---------- | ------ | -------- | ----- |
+| session_id | string | ✅       | Stripe Checkout session id returned in the success URL |
 
-* user must be authenticated
-* must come from successful checkout
+---
+
+## Page Data
+- `orderPublicId`
+- `paymentStatus`
+- `error`
 
 ---
 
@@ -37,94 +39,57 @@ GET /order/success
 ---
 
 ## Controller
-
 ```php
-OrderController::success()
+CheckoutController::success()
 ```
 
 ---
 
 ## Service Layer
-
 ```php
-OrderService::getLastOrder(int $userId): Order
+PaymentService::getCheckoutSuccessData(int $userId, string $stripeSessionId): ?array
+CartService::clear(): void
 ```
 
 ---
 
-## Responsibilities
-
-* retrieve last created order for user
-* display confirmation details
-* prevent direct access without valid order
+## Current Behavior
+- The page reads `session_id` from the query string.
+- If `session_id` is missing, the app returns `400` and renders an error message.
+- The payment lookup is done through the local `payments` table using `stripe_session_id`.
+- The linked order must belong to the current authenticated user.
+- If the payment record cannot be resolved for the current user, the app returns `404` and renders an error message.
+- If the payment status is `paid`, the cart is cleared.
+- The page shows a different confirmation message for `paid` vs still-pending payment states.
+- When an order id is available, the page links to `/orders/{publicId}` and also offers a link back to `/products`.
 
 ---
 
-## Database Actions
+## Payment Timing Notes
+The success page reads the app's local payment status. Because Stripe webhook processing happens separately, a user can land on this page before the webhook has finished and temporarily see a pending payment state.
 
-### Get last order
+---
 
+## Persistence
 ```sql
 SELECT *
-FROM orders
-WHERE user_id = ?
-ORDER BY created_at DESC
+FROM payments
+WHERE stripe_session_id = :stripe_session_id
 LIMIT 1;
 ```
 
----
-
-## Response
-
-### Success
-
-* render confirmation page with:
-
-  * order ID
-  * total amount
-  * status
+The linked order is then loaded and checked against the current `user_id`.
 
 ---
 
-### Errors
-
-If no valid order:
-
-```
-302 Redirect ⟶ /
-```
+## Responses
+- Success: render `checkout/success`
+- Missing `session_id`: `400` with an error message
+- Unknown or unauthorized payment/order pair: `404` with an error message
 
 ---
 
 ## Security
-
-* ensure order belongs to user
-* avoid exposing other users' orders
-* do not rely on client-provided order ID
-
----
-
-## UX Notes
-
-* show success message ("Order placed successfully")
-* show order reference (public_id)
-* provide link to:
-
-  * `/profile/orders`
-  * continue shopping (`/`)
-
----
-
-## Future Extensions
-
-* email confirmation
-* detailed order summary
-* estimated delivery date
-
----
-
-## View Requirements
-
-* success message
-* order summary
-* navigation links
+- authentication required
+- order ownership verified before showing confirmation data
+- the page does not trust an order id passed directly by the browser

@@ -1,233 +1,129 @@
 # Cart
 
 ## Purpose
-
-Allow users (guest or authenticated) to manage products before checkout.
+Provides the session-backed shopping cart used by both guests and authenticated users before checkout.
 
 ---
 
-## Route
-
+## Routes
 ```bash
-GET    /cart
-POST   /cart/items        # add item
-PATCH  /cart/items        # update quantity
-DELETE /cart/items        # remove item
+GET  /cart
+POST /cart/add
+POST /cart/update
+POST /cart/remove
 ```
 
 ---
 
-## Page Data
-
-* cart items:
-
-  * product name
-  * size (ml)
-  * price
-  * quantity
-  * subtotal
-* total price
+## Access Rules
+- public page
+- works for guests and signed-in users
 
 ---
 
-## Request Flo
+## Page Data
+- cart lines enriched from product and variant data
+- total price derived from current cart lines
+- per-line quantity cap based on `min(stock, 5)`
+
+Each rendered line includes:
+- `variant_id`
+- `product_slug`
+- `product_name`
+- `brand_name`
+- `concentration_label`
+- `size_ml`
+- `price`
+- `stock`
+- `image_url`
+- `quantity`
+- `max_quantity`
+- `subtotal`
+
+---
+
+## Request Flow
 
 ### Add Item
-
 ![Cart Add Flow](../../flows/cart/cart-add-item-flow.png)
 
----
-
 ### Update Item
-
 ![Cart Update Flow](../../flows/cart/cart-update-item-flow.png)
 
----
-
 ### Remove Item
-
 ![Cart Remove Flow](../../flows/cart/cart-delete-item-flow.png)
 
 ---
 
 ## Controller
-
 ```php
-CartController::show()
-CartController::addItem()
-CartController::updateItem()
-CartController::removeItem()
+CartController::index()
+CartController::add()
+CartController::update()
+CartController::remove()
 ```
 
 ---
 
 ## Service Layer
-
 ```php
-CartService::getCart(): Cart
+CartService::getItems(): array
+CartService::getTotal(): float
 CartService::addItem(int $variantId, int $quantity): void
 CartService::updateItem(int $variantId, int $quantity): void
 CartService::removeItem(int $variantId): void
+CartService::clear(): void
 ```
 
 ---
 
-## Responsibilities
-
-* retrieve cart (session or user)
-* add/update/remove items
-* validate stock availability
-* calculate totals
-* merge guest cart on login
-
----
-
-## Cart Ownership Logic
-
-* guest ⟶ identified by `session_id`
-* logged user ⟶ linked via `user_id`
-
-Rules:
-
-* guest adds items ⟶ stored using session cart
-* on login ⟶ merge guest cart into user cart
+## Current Behavior
+- The cart is stored in `$_SESSION['cart']` as a `variant_id => quantity` map.
+- `GET /cart` reloads product data from the database instead of trusting anything stored in the session except ids and quantities.
+- Adding an item increments the existing quantity for that variant.
+- Updating an item replaces the stored quantity; quantities less than or equal to zero remove the line.
+- Quantities are capped to the lower of stock and `5`.
+- Variants that no longer exist or no longer have stock are ignored or removed when the cart is normalized.
+- The page includes quantity steppers, update forms, remove forms, a summary card, and a link to `/checkout`.
 
 ---
 
-## Validation Rules
-
-* variant_id
-
-> - required
-> - exists in `product_variants`
-
-* quantity
-
-> - required
-> - integer ≥ 1
-
----
-
-## Database Actions
-
-### Get cart
+## Persistence
+The current repo does not persist carts in database tables. It only queries product data needed to enrich the session cart.
 
 ```sql
-SELECT * FROM carts 
-WHERE user_id = ? OR session_id = ?
-LIMIT 1;
+SELECT
+    v.id AS variant_id,
+    v.size_ml,
+    v.price,
+    v.stock,
+    p.id AS product_id,
+    p.slug AS product_slug,
+    p.name AS product_name,
+    b.name AS brand_name,
+    p.concentration_label,
+    COALESCE(pvi.image_url, pi.image_url) AS image_url
+FROM product_variants v
+INNER JOIN products p ON p.id = v.product_id
+INNER JOIN brands b ON b.id = p.brand_id
+LEFT JOIN product_variant_images pvi ON pvi.product_variant_id = v.id AND pvi.position = 0
+LEFT JOIN product_images pi ON pi.product_id = p.id AND pi.position = 0
+WHERE v.id IN (...);
 ```
 
 ---
 
-### Get cart items
-
-```sql
-SELECT ci.*, pv.price, pv.size_ml, p.name
-FROM cart_items ci
-JOIN product_variants pv ON ci.product_variant_id = pv.id
-JOIN products p ON pv.product_id = p.id
-WHERE ci.cart_id = ?;
-```
-
----
-
-### Add item
-
-```sql
-INSERT INTO cart_items (cart_id, product_variant_id, quantity)
-VALUES (?, ?, ?)
-ON DUPLICATE KEY UPDATE quantity = quantity + VALUES(quantity);
-```
-
----
-
-### Update item
-
-```sql
-UPDATE cart_items
-SET quantity = ?
-WHERE cart_id = ? AND product_variant_id = ?;
-```
-
----
-
-### Remove item
-
-```sql
-DELETE FROM cart_items
-WHERE cart_id = ? AND product_variant_id = ?;
-```
-
----
-
-## Stock Handling
-
-* check stock before adding/updating
-* do NOT reserve stock at cart stage
-* final validation happens at checkout
-
----
-
-## Session Handling
-
-* store `session_id` in cookie
-* use it to retrieve guest cart
-* after login → associate cart with `user_id`
-
----
-
-## Response
-
-### GET /cart
-
-* render cart page
-
----
-
-### POST /cart/items
-
-```
-302 Redirect ⟶ /cart
-```
-
----
-
-### PATCH /cart/items
-
-```
-200 OK (or redirect)
-```
-
----
-
-### DELETE /cart/items
-
-```
-200 OK (or redirect)
-```
+## Responses
+- `GET /cart`: render `cart/index`
+- `POST /cart/add`: `302` redirect to `/cart`
+- `POST /cart/update`: `302` redirect to `/cart`
+- `POST /cart/remove`: `302` redirect to `/cart`
+- invalid cart input: `400 Invalid cart input`
+- invalid CSRF: `403 Invalid CSRF token`
 
 ---
 
 ## Security
-
-* validate ownership of cart
-* CSRF protection required
-* never trust client-side price
-
----
-
-## Future Extensions
-
-* AJAX cart updates
-* persistent carts (long-lived)
-
----
-
-## View Requirements
-
-* list of items
-* quantity controls
-* remove button
-* total price
-* checkout button
+- CSRF protection on every mutating request
+- prices and stock are reloaded from the database
+- cart mutations only accept positive numeric variant ids

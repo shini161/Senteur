@@ -1,236 +1,130 @@
 # Addresses
 
 ## Purpose
-
-Allow users to manage their shipping addresses for checkout.
+Lets authenticated users manage the saved shipping addresses used during checkout.
 
 ---
 
-## Route
-
+## Routes
 ```bash
-GET    /profile/addresses
-POST   /profile/addresses        # create
-PATCH  /profile/addresses/{id}   # update
-DELETE /profile/addresses/{id}   # delete
+GET  /addresses
+POST /addresses
+POST /addresses/default
+POST /addresses/delete
 ```
 
 ---
 
+## Access Rules
+- authenticated users only
+- unauthenticated requests are redirected to `/login`
+
+---
+
 ## Page Data
+- all saved addresses for the current user
+- `can_add_address` flag
+- validation error message for the creation form
+- old form values after a failed create request
 
-* list of user addresses:
-
-  * full_name
-  * address_line
-  * city
-  * postal_code
-  * country
-  * is_default
+Each address row includes:
+- `id`
+- `full_name`
+- `address_line`
+- `city`
+- `postal_code`
+- `country`
+- `is_default`
+- `created_at`
 
 ---
 
 ## Request Flow
 
-### Create / Update Address
-
+### Create Address
 ![Address Save Flow](../../flows/user/address-save.png)
 
----
-
 ### Delete Address
-
 ![Address Delete Flow](../../flows/user/address-delete.png)
-
 
 ---
 
 ## Controller
-
 ```php
 AddressController::index()
 AddressController::store()
-AddressController::update(int $id)
-AddressController::delete(int $id)
+AddressController::setDefault()
+AddressController::delete()
 ```
 
 ---
 
 ## Service Layer
-
 ```php
-AddressService::getAll(int $userId): array
-AddressService::create(int $userId, array $data): void
-AddressService::update(int $userId, int $addressId, array $data): void
-AddressService::delete(int $userId, int $addressId): void
+AddressService::getAllForUser(int $userId): array
+AddressService::createForUser(int $userId, array $data): void
+AddressService::setDefaultForUser(int $id, int $userId): void
+AddressService::deleteForUser(int $id, int $userId): void
 ```
 
 ---
 
-## Responsibilities
-
-* retrieve user addresses
-* create/update/delete addresses
-* ensure ownership (user_id)
-* manage default address
+## Current Behavior
+- The page shows saved addresses on the left and the creation form on the right.
+- Addresses are ordered with the default address first, then newest first.
+- Users can save up to `10` addresses.
+- The form requires `full_name`, `address_line`, `city`, `postal_code`, and `country`.
+- There is no edit route in the current repo; addresses can be created, deleted, or promoted to default.
+- The first saved address automatically becomes the default.
+- Checking `Set as default address` during creation clears the previous default and makes the new row the sole default.
+- Deleting the current default automatically promotes the oldest remaining address to default.
 
 ---
 
 ## Validation Rules
-
-* full_name
-
-> - required
-> - max: 150
-
-* address_line
-
-> - required
-> - max: 255
-
-* city
-
-> - required
-> - max: 100
-
-* postal_code
-
-> - required
-> - max: 20
-
-* country
-
-> - required
-> - max: 100
+- all address fields are required
+- `full_name` max length: `150`
+- `address_line` max length: `255`
+- `city` max length: `100`
+- `postal_code` max length: `20`
+- `country` max length: `100`
+- maximum addresses per user: `10`
 
 ---
 
-## Database Actions
-
-### Get addresses
-
-```sql
-SELECT *
-FROM user_addresses
-WHERE user_id = ?
-ORDER BY is_default DESC, created_at DESC;
-```
-
----
-
-### Create address
+## Persistence
+The address book is backed by `user_addresses`.
 
 ```sql
-INSERT INTO user_addresses (
+SELECT
+    id,
     user_id,
     full_name,
     address_line,
     city,
     postal_code,
     country,
-    is_default
-) VALUES (?, ?, ?, ?, ?, ?, ?);
+    is_default,
+    created_at
+FROM user_addresses
+WHERE user_id = :user_id
+ORDER BY is_default DESC, created_at DESC, id DESC;
 ```
+
+Default changes are handled by clearing the user's current default before setting the new one.
 
 ---
 
-### Update address
-
-```sql
-UPDATE user_addresses
-SET full_name = ?, address_line = ?, city = ?, postal_code = ?, country = ?
-WHERE id = ? AND user_id = ?;
-```
-
----
-
-### Delete address
-
-```sql
-DELETE FROM user_addresses
-WHERE id = ? AND user_id = ?;
-```
-
----
-
-## Default Address Logic
-
-* only one address can be `is_default = TRUE`
-
-### When setting a new default:
-
-```sql
-UPDATE user_addresses
-SET is_default = FALSE
-WHERE user_id = ?;
-
-UPDATE user_addresses
-SET is_default = TRUE
-WHERE id = ? AND user_id = ?;
-```
-
----
-
-## Response
-
-### GET /profile/addresses
-
-* render address list
-
----
-
-### POST /profile/addresses
-
-```txt
-302 Redirect ⟶ /profile/addresses
-```
-
----
-
-### PATCH /profile/addresses/{id}
-
-```txt
-302 Redirect ⟶ /profile/addresses
-```
-
----
-
-### DELETE /profile/addresses/{id}
-
-```txt
-302 Redirect ⟶ /profile/addresses
-```
+## Responses
+- `GET /addresses`: render `user/addresses`
+- `POST /addresses`: `302` redirect to `/addresses` on success, otherwise re-render the page with an error and old input
+- `POST /addresses/default`: `302` redirect to `/addresses`
+- `POST /addresses/delete`: `302` redirect to `/addresses`
+- invalid CSRF on any POST route: `403 Invalid CSRF token`
 
 ---
 
 ## Security
-
-* user must be authenticated
-* enforce `user_id` ownership on all operations
-* CSRF protection required
-
----
-
-## UX Notes
-
-* allow selecting default address
-* show clear address formatting
-* allow editing inline or via form
-* highlight default address
-
----
-
-## Future Extensions
-
-* multiple address types (billing/shipping)
-* address validation (API)
-* country dropdown / normalization
-
----
-
-## View Requirements
-
-* address list
-* create/edit form
-* delete button
-* default selector
+- authentication required on every route
+- address ownership is enforced server-side
+- CSRF protection on create, set-default, and delete actions

@@ -1,37 +1,45 @@
 # Orders
 
 ## Purpose
-
-Display a list of the user’s orders with basic information and access to order details.
+Shows the authenticated user's order history with status filtering and pagination.
 
 ---
 
 ## Route
-
 ```bash
-GET /profile/orders
+GET /orders
 ```
 
 ---
 
-## Query Parameters
+## Access Rules
+- authenticated users only
+- unauthenticated requests are redirected to `/login`
 
-| Param  | Type   | Required | Notes                  |
-| ------ | ------ | -------- | ---------------------- |
-| page   | int    | ❌        | pagination page        |
-| status | string | ❌        | filter by order status |
+---
+
+## Query Parameters
+| Param  | Type   | Required | Notes |
+| ------ | ------ | -------- | ----- |
+| page   | int    | ❌       | 1-based page number |
+| status | string | ❌       | allowed values: `pending`, `processing`, `shipped`, `delivered` |
 
 ---
 
 ## Page Data
+- paginated order summaries
+- current status filter
+- current page
+- page size
+- total order count
+- total page count
 
-* list of orders:
-
-  * public_id
-  * status
-  * total_amount
-  * created_at
-* pagination info
+Each order summary includes:
+- `public_id`
+- `status`
+- `created_at`
+- `items_count`
+- `total_amount`
 
 ---
 
@@ -42,7 +50,6 @@ GET /profile/orders
 ---
 
 ## Controller
-
 ```php
 OrderController::index()
 ```
@@ -50,122 +57,58 @@ OrderController::index()
 ---
 
 ## Service Layer
-
 ```php
-OrderService::getUserOrders(int $userId, array $filters): array
+OrderService::getUserOrdersPaginated(
+    int $userId,
+    ?string $status,
+    int $page,
+    int $perPage
+): array
 ```
 
 ---
 
-## Responsibilities
-
-* retrieve user orders
-* apply filters (status)
-* paginate results
-* return minimal order data
-
----
-
-## Validation Rules
-
-* page
-
-> - integer ≥ 1
-
-* status
-
-> - one of: pending, processing, shipped, delivered, cancelled
+## Current Behavior
+- The orders page uses `5` orders per page.
+- Invalid or unsupported `status` values are ignored and treated as no filter.
+- Results are sorted by `created_at DESC`.
+- Each order card links to `/orders/{publicId}`.
+- The filter bar offers `All`, `Pending`, `Processing`, `Shipped`, and `Delivered`.
+- Pagination preserves the selected status filter.
+- Empty results show a `Continue shopping` link back to `/products`.
 
 ---
 
-## Database Actions
-
-### Get orders
+## Persistence
+The page reads from `orders` and aggregates `order_items` quantities into `items_count`.
 
 ```sql
-SELECT 
-    public_id,
-    status,
-    total_amount,
-    created_at
-FROM orders
-WHERE user_id = ?
+SELECT
+    o.id,
+    o.public_id,
+    o.status,
+    o.subtotal_amount,
+    o.shipping_cost,
+    o.total_amount,
+    o.created_at,
+    COALESCE(SUM(oi.quantity), 0) AS items_count
+FROM orders o
+LEFT JOIN order_items oi ON oi.order_id = o.id
+WHERE o.user_id = :user_id
+  AND (:status IS NULL OR o.status = :status)
+GROUP BY ...
+ORDER BY o.created_at DESC
+LIMIT :limit OFFSET :offset;
 ```
 
 ---
 
-### Apply filter (optional)
-
-```sql
-AND status = ?
-```
-
----
-
-### Sorting
-
-```sql
-ORDER BY created_at DESC
-```
-
----
-
-### Pagination
-
-```sql
-LIMIT ? OFFSET ?
-```
-
----
-
-## Response
-
-### Success
-
-* render orders list with:
-
-  * order summaries
-  * pagination
-
----
-
-## Navigation
-
-Each order links to:
-
-```txt
-/profile/orders/{public_id}
-```
+## Responses
+- Success: render `orders/index`
+- Unauthenticated request: redirect to `/login`
 
 ---
 
 ## Security
-
-* enforce ownership (`user_id`)
-* only return user’s own orders
-
----
-
-## UX Notes
-
-* show most recent orders first
-* display clear status labels
-* allow filtering by status
-* show total amount prominently
-
----
-
-## Future Extensions
-
-* search by order ID
-* date range filtering
-* order status badges/colors
-* quick reorder option
-
----
-
-## View Requirements
-
-* orders list (table or cards)
-* status filter
-* pagination controls
+- order queries are scoped to the authenticated `user_id`
+- unsupported status filters are discarded before querying

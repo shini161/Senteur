@@ -1,46 +1,53 @@
 # Product Page
 
 ## Purpose
-
-Display detailed information about a single product, including images, variants, notes, and reviews.
+Shows a public product detail page with variant selection, gallery updates, scent profile data, reviews, and related-product recommendations.
 
 ---
 
-## Route
-
+## Routes
 ```bash
-GET /product/{slug}
+GET  /products/{slug}
+POST /products/{slug}/reviews
 ```
 
 ---
 
-## Parameters
+## Access Rules
+- product view is public
+- review submission requires authentication
+- only customers who purchased the product in an order with status `processing`, `shipped`, or `delivered` can submit a review
 
-| Param | Type   | Required | Notes               |
-| ----- | ------ | -------- | ------------------- |
-| slug  | string | ✅        | unique product slug |
+---
+
+## Parameters
+| Param | Type   | Required | Notes |
+| ----- | ------ | -------- | ----- |
+| slug  | string | ✅       | public product slug |
 
 ---
 
 ## Page Data
+- product metadata
+- product-level primary image
+- variants ordered by price
+- variant-specific image galleries
+- grouped scent notes
+- product categories
+- review summary
+- review list
+- current user's review, when present
+- review eligibility flag
+- related products from the same family line
+- additional related recommendations
 
-* product:
-
-  * name
-  * brand
-  * description
-  * fragrance type
-  * gender
-* images (ordered)
-* variants:
-
-  * size_ml
-  * price
-  * stock
-* notes:
-
-  * grouped by type (top, middle, base)
-* reviews (optional)
+Each variant includes:
+- `id`
+- `size_ml`
+- `price`
+- `stock`
+- `image_url`
+- `images`
 
 ---
 
@@ -51,182 +58,81 @@ GET /product/{slug}
 ---
 
 ## Controller
-
 ```php
 ProductController::show(string $slug)
+ReviewController::store(string $slug)
 ```
 
 ---
 
 ## Service Layer
-
 ```php
-ProductService::getBySlug(string $slug): Product
+ProductService::getBySlug(string $slug): ?array
+ReviewService::getProductReviewData(int $productId, ?int $userId): array
+ReviewService::saveByProductSlug(int $userId, string $slug, array $data): void
 ```
 
 ---
 
-## Responsibilities
-
-* retrieve product by slug
-* load related data (variants, images, notes)
-* structure data for view
-* handle not found case
-
----
-
-## Validation Rules
-
-* slug
-
-> - required
-> - exists in `products`
+## Current Behavior
+- The product lookup only returns non-deleted products.
+- Variants are ordered by price and the first variant is selected when the page loads.
+- Variant buttons carry price, stock, and image data so the page can swap gallery state client-side without another request.
+- The add-to-cart form posts the selected `variant_id` and `quantity` to `/cart/add`.
+- The scent profile section renders categories plus notes grouped into top, middle, and base accords.
+- Review summary shows the average rating and total review count when reviews exist.
+- Review submission is an upsert, so one user can create or update one review per product.
+- The current user's review can be edited inline from the reviews list.
+- Related products are split into two blocks:
+  - products from the same `family_name`
+  - broader recommendations ranked by brand, fragrance type, and gender similarity
 
 ---
 
-## Database Actions
+## Review Submission Rules
+Review input fields:
 
-### Get product
+| Field   | Type     | Required | Notes |
+| ------- | -------- | -------- | ----- |
+| rating  | int      | ✅       | must be between 1 and 5 |
+| title   | text     | ❌       | stored as `NULL` when empty |
+| comment | textarea | ❌       | stored as `NULL` when empty |
 
-```sql
-SELECT 
-    p.id,
-    p.name,
-    p.slug,
-    p.description,
-    p.gender,
-    b.name AS brand_name,
-    ft.name AS fragrance_type
-FROM products p
-JOIN brands b ON p.brand_id = b.id
-LEFT JOIN fragrance_types ft ON p.fragrance_type_id = ft.id
-WHERE p.slug = ? AND p.deleted_at IS NULL
-LIMIT 1;
-```
+Review submission requires:
+- authenticated user
+- valid CSRF token
+- successful product lookup by slug
+- at least one qualifying purchase of the product
 
 ---
 
-### Get images
+## Persistence
+The page reads from:
+- `products`
+- `brands`
+- `fragrance_types`
+- `product_variants`
+- `product_variant_images`
+- `product_images`
+- `product_categories`
+- `categories`
+- `product_notes`
+- `notes`
+- `reviews`
+- `users`
 
-```sql
-SELECT image_url, position
-FROM product_images
-WHERE product_id = ?
-ORDER BY position ASC;
-```
-
----
-
-### Get variants
-
-```sql
-SELECT id, size_ml, price, stock
-FROM product_variants
-WHERE product_id = ?
-ORDER BY size_ml ASC;
-```
+Review eligibility is determined by checking whether the user previously bought a variant that belongs to the product.
 
 ---
 
-### Get notes
-
-```sql
-SELECT n.name, n.image_url, pn.note_type
-FROM product_notes pn
-JOIN notes n ON pn.note_id = n.id
-WHERE pn.product_id = ?;
-```
-
----
-
-### Get reviews (optional)
-
-```sql
-SELECT r.rating, r.title, r.comment, u.username
-FROM reviews r
-JOIN users u ON r.user_id = u.id
-WHERE r.product_id = ?
-ORDER BY r.created_at DESC;
-```
-
----
-
-## Data Structuring
-
-* group notes by:
-
-  * top
-  * middle
-  * base
-
----
-
-## Response
-
-### Success
-
-* render product page with:
-
-  * product details
-  * images
-  * variants
-  * notes
-  * reviews
-
----
-
-### Errors
-
-If not found:
-
-```txt
-404 Not Found
-```
+## Responses
+- Unknown slug on `GET /products/{slug}`: `404 Product not found`
+- Successful review submission: `302` redirect to `/products/{slug}#reviews`
+- Review submission error: `400` with the exception message
 
 ---
 
 ## Security
-
-* validate slug input
-* use prepared statements
-* do not expose internal IDs unnecessarily
-
----
-
-## Performance Considerations
-
-* use indexed fields:
-
-  * `products.slug`
-  * `product_images.product_id`
-  * `product_variants.product_id`
-* avoid N+1 queries (use batched queries)
-* cache product data (optional)
-
----
-
-## UX Notes
-
-* show default selected variant
-* disable out-of-stock variants
-* display "from €X" if multiple variants
-* highlight notes visually
-
----
-
-## Future Extensions
-
-* related products
-* average rating + rating count
-* variant selection persistence
-* lazy load reviews
-
----
-
-## View Requirements
-
-* image gallery
-* variant selector (size)
-* add to cart button
-* notes section
-* reviews section
+- dynamic data is loaded server-side and escaped in the view
+- review submission requires authentication and CSRF protection
+- purchase-gating is enforced server-side, not just in the UI

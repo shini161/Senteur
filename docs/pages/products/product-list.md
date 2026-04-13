@@ -1,13 +1,11 @@
 # Product List
 
 ## Purpose
-
-Display a list of products with support for search, filtering, sorting, and pagination.
+Displays the public catalogue with search, structured filters, advanced note filters, sorting, and server-rendered pagination.
 
 ---
 
 ## Route
-
 ```bash
 GET /products
 ```
@@ -15,30 +13,38 @@ GET /products
 ---
 
 ## Query Parameters
-
-| Param     | Type   | Required | Notes                           |
-| --------- | ------ | -------- | ------------------------------- |
-| q         | string | ❌        | search query (name/description) |
-| brand_id  | int    | ❌        | filter by brand                 |
-| gender    | enum   | ❌        | male, female, unisex            |
-| min_price | number | ❌        | minimum price                   |
-| max_price | number | ❌        | maximum price                   |
-| sort      | string | ❌        | price_asc, price_desc, newest   |
-| page      | int    | ❌        | pagination page                 |
+| Param               | Type        | Required | Notes |
+| ------------------- | ----------- | -------- | ----- |
+| search              | string      | ❌       | matches name, family, concentration, description, brand, and fragrance type |
+| brand_id            | int         | ❌       | `0` means all brands |
+| fragrance_type_id   | int         | ❌       | `0` means all types |
+| gender              | string      | ❌       | `male`, `female`, or `unisex` |
+| sort                | string      | ❌       | `newest`, `name_asc`, `price_asc`, `price_desc` |
+| top_note_ids[]      | int[]       | ❌       | advanced top-note filter |
+| middle_note_ids[]   | int[]       | ❌       | advanced middle-note filter |
+| base_note_ids[]     | int[]       | ❌       | advanced base-note filter |
+| page                | int         | ❌       | 1-based page number |
 
 ---
 
 ## Page Data
+- paginated product cards
+- normalized filter state
+- brand options
+- fragrance type options
+- note list used by the advanced note picker
+- gender options
+- sort options
+- total result count
 
-* list of products:
-
-  * name
-  * slug
-  * brand
-  * main image
-  * lowest price (from variants)
-* pagination info
-* active filters
+Each product card includes:
+- `name`
+- `slug`
+- `brand_name`
+- `concentration_label`
+- `price` as the minimum active variant price
+- `image_url`
+- `is_sellable`
 
 ---
 
@@ -49,7 +55,6 @@ GET /products
 ---
 
 ## Controller
-
 ```php
 ProductController::index()
 ```
@@ -57,156 +62,51 @@ ProductController::index()
 ---
 
 ## Service Layer
-
 ```php
-ProductService::getProducts(array $filters): array
+ProductService::normalizePublicFilters(array $input): array
+ProductService::getPublicFilterMeta(): array
+ProductService::countAll(array $filters = []): int
+ProductService::getAll(array $filters = [], int $limit = 12, int $offset = 0): array
 ```
 
 ---
 
-## Responsibilities
-
-* apply filters
-* handle search
-* sort results
-* paginate results
-* return minimal product data (optimized)
-
----
-
-## Validation Rules
-
-* page
-
-> - integer ≥ 1
-
-* min_price / max_price
-
-> - numeric
-> - min ≤ max
-
-* gender
-
-> - one of: male, female, unisex
+## Current Behavior
+- Query-string input is normalized before any repository call.
+- Free-text search is split into tokens, and every token must match one of the searchable product fields.
+- Brand, fragrance type, and gender filters are applied only when they hold allowed values.
+- Advanced note filters use separate groups for top, middle, and base notes.
+- Within one note group, selected ids are matched with `IN (...)`; across groups, conditions are combined with `AND`.
+- Results are paginated at `12` products per page.
+- If the requested page is greater than the last available page, the controller clamps it to the final page.
+- Product cards show `In stock` when at least one variant has stock; otherwise they show `Unavailable`.
+- The advanced note picker is enhanced on the client by `public/assets/js/products/catalog.js`.
 
 ---
 
-## Database Actions
+## Persistence
+The catalogue query joins:
+- `products`
+- `brands`
+- `fragrance_types`
+- `product_variants`
+- `product_images`
 
-### Base query
-
-```sql
-SELECT 
-    p.id,
-    p.name,
-    p.slug,
-    b.name AS brand_name,
-    MIN(pv.price) AS lowest_price
-FROM products p
-JOIN brands b ON p.brand_id = b.id
-JOIN product_variants pv ON pv.product_id = p.id
-WHERE p.deleted_at IS NULL
-```
+It returns:
+- the minimum variant price for each product
+- variant counts
+- whether any variant is in stock
+- the primary product image
 
 ---
 
-### Search (optional)
-
-```sql
-AND MATCH(p.name, p.description) AGAINST (? IN BOOLEAN MODE)
-```
-
----
-
-### Filters (optional)
-
-```sql
-AND p.brand_id = ?
-AND p.gender = ?
-AND pv.price BETWEEN ? AND ?
-```
-
----
-
-### Grouping
-
-```sql
-GROUP BY p.id
-```
-
----
-
-### Sorting
-
-```sql
-ORDER BY lowest_price ASC | DESC
-```
-
----
-
-### Pagination
-
-```sql
-LIMIT ? OFFSET ?
-```
-
----
-
-## Images Handling
-
-### Get main image (position = 0)
-
-```sql
-LEFT JOIN product_images pi 
-ON pi.product_id = p.id AND pi.position = 0
-```
-
----
-
-## Response
-
-### Success
-
-* render product list with:
-
-  * products
-  * filters
-  * pagination
+## Responses
+- Success: render `products/index`
+- No results: render the page with the current filters and an empty-state message
 
 ---
 
 ## Security
-
-* sanitize query parameters
-* prevent SQL injection (PDO prepared statements)
-
----
-
-## Performance Considerations
-
-* use indexes:
-
-  * `products(brand_id)`
-  * `products(gender)`
-  * `product_variants(product_id, price)`
-* avoid N+1 queries (use joins)
-* limit selected columns
-
----
-
-## Future Extensions
-
-* faceted filters (counts per filter)
-* sorting by popularity
-* caching results
-* infinite scroll
-
----
-
-## View Requirements
-
-* product grid
-* filter sidebar
-* search bar
-* sorting options
-* pagination controls
+- sorting is whitelisted before becoming SQL
+- filters are normalized before querying
+- repository queries use prepared statements for dynamic values
