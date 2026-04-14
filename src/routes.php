@@ -14,6 +14,7 @@ use App\Controllers\StripeWebhookController;
 use App\Controllers\AdminAuthController;
 use App\Controllers\AdminOrderController;
 use App\Controllers\AdminProductController;
+use App\Controllers\AdminNoteController;
 use App\Controllers\ReviewController;
 
 // The router consumes a flat route table of `[method, path, [controller, action]]`
@@ -86,5 +87,11 @@ return [
     ['POST', '/admin/products/{id}', [AdminProductController::class, 'update']],
     ['POST', '/admin/products/{id}/image', [AdminProductController::class, 'uploadImage']],
 
-    ['POST', '/admin/variants/{id}/image', [AdminProductController::class, 'uploadVariantImage']]
+    ['POST', '/admin/variants/{id}/image', [AdminProductController::class, 'uploadVariantImage']],
+
+    // Admin notes
+    ['GET', '/admin/notes', [AdminNoteController::class, 'index']],
+    ['POST', '/admin/notes', [AdminNoteController::class, 'store']],
+    ['POST', '/admin/notes/{id}', [AdminNoteController::class, 'update']],
+    ['POST', '/admin/notes/{id}/delete', [AdminNoteController::class, 'delete']],
 ];

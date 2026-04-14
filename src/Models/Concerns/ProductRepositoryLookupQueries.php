@@ -109,4 +109,31 @@ trait ProductRepositoryLookupQueries
 
         return $mapped;
     }
+
+    /**
+     * Returns the subset of note ids that currently exist.
+     *
+     * @param int[] $noteIds
+     * @return int[]
+     */
+    public function findExistingNoteIds(array $noteIds): array
+    {
+        $noteIds = array_values(array_unique(array_filter(array_map('intval', $noteIds), static fn (int $id): bool => $id > 0)));
+
+        if ($noteIds === []) {
+            return [];
+        }
+
+        $placeholders = implode(',', array_fill(0, count($noteIds), '?'));
+
+        $stmt = $this->pdo->prepare("
+            SELECT id
+            FROM notes
+            WHERE id IN ($placeholders)
+        ");
+
+        $stmt->execute($noteIds);
+
+        return array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
+    }
 }

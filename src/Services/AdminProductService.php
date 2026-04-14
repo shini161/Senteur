@@ -12,6 +12,8 @@ use RuntimeException;
  */
 class AdminProductService
 {
+    private const PER_PAGE = 12;
+
     public function __construct(
         private ProductRepository $productRepository
     ) {}
@@ -23,9 +25,24 @@ class AdminProductService
     /**
      * Returns all products visible in the admin catalogue table.
      */
-    public function getProducts(): array
+    public function getProductListData(array $rawFilters): array
     {
-        return $this->productRepository->findAllForAdmin();
+        $filters = $this->normalizeListFilters($rawFilters);
+        $totalProducts = $this->productRepository->countForAdmin($filters);
+        $totalPages = max(1, (int) ceil($totalProducts / self::PER_PAGE));
+        $currentPage = min($filters['page'], $totalPages);
+
+        return [
+            'products' => $this->productRepository->findPageForAdmin(
+                $filters,
+                self::PER_PAGE,
+                ($currentPage - 1) * self::PER_PAGE
+            ),
+            'filters' => $filters,
+            'currentPage' => $currentPage,
+            'totalPages' => $totalPages,
+            'totalProducts' => $totalProducts,
+        ];
     }
 
     /**
@@ -44,6 +61,7 @@ class AdminProductService
         return [
             'brands' => $this->productRepository->getBrands(),
             'fragranceTypes' => $this->productRepository->getFragranceTypes(),
+            'notes' => $this->productRepository->getNotes(),
             'genders' => ['male', 'female', 'unisex'],
         ];
     }
@@ -65,7 +83,8 @@ class AdminProductService
 
         return $this->productRepository->createForAdmin(
             $normalized['product'],
-            $normalized['variants']
+            $normalized['variants'],
+            $normalized['noteAssignments']
         );
     }
 
@@ -89,7 +108,8 @@ class AdminProductService
         $this->productRepository->updateForAdmin(
             $id,
             $normalized['product'],
-            $normalized['variants']
+            $normalized['variants'],
+            $normalized['noteAssignments']
         );
     }
 
@@ -136,7 +156,8 @@ class AdminProductService
      *
      * @return array{
      *   product: array<string, mixed>,
-     *   variants: array<int, array<string, int|float>>
+     *   variants: array<int, array<string, int|float|null>>,
+     *   noteAssignments: array{top: int[], middle: int[], base: int[]}
      * }
      */
     private function normalizeAndValidate(array $data): array
@@ -178,6 +199,7 @@ class AdminProductService
         $variants = [];
 
         foreach (($data['variants'] ?? []) as $variant) {
+            $variantId = trim((string) ($variant['id'] ?? ''));
             $size = trim((string) ($variant['size_ml'] ?? ''));
             $price = trim((string) ($variant['price'] ?? ''));
             $stock = trim((string) ($variant['stock'] ?? ''));
@@ -187,6 +209,7 @@ class AdminProductService
             }
 
             $variants[] = [
+                'id' => $variantId !== '' ? (int) $variantId : null,
                 'size_ml' => (int) $size,
                 'price' => (float) $price,
                 'stock' => (int) $stock,
@@ -197,9 +220,61 @@ class AdminProductService
             throw new RuntimeException('At least one variant is required.');
         }
 
+        $noteAssignments = [
+            'top' => $this->normalizeNoteIds((array) (($data['note_ids']['top'] ?? []))),
+            'middle' => $this->normalizeNoteIds((array) (($data['note_ids']['middle'] ?? []))),
+            'base' => $this->normalizeNoteIds((array) (($data['note_ids']['base'] ?? []))),
+        ];
+
+        $submittedNoteIds = array_values(array_unique(array_merge(
+            $noteAssignments['top'],
+            $noteAssignments['middle'],
+            $noteAssignments['base']
+        )));
+
+        $existingNoteIds = $this->productRepository->findExistingNoteIds($submittedNoteIds);
+
+        if (count($existingNoteIds) !== count($submittedNoteIds)) {
+            throw new RuntimeException('One or more selected notes are no longer available.');
+        }
+
         return [
             'product' => $product,
             'variants' => $variants,
+            'noteAssignments' => $noteAssignments,
+        ];
+    }
+
+    /**
+     * Returns unique positive note ids from raw checkbox input.
+     *
+     * @param mixed[] $noteIds
+     * @return int[]
+     */
+    private function normalizeNoteIds(array $noteIds): array
+    {
+        return array_values(array_unique(array_filter(
+            array_map('intval', $noteIds),
+            static fn (int $id): bool => $id > 0
+        )));
+    }
+
+    /**
+     * Normalizes admin product list filters from the query string.
+     *
+     * @param array<string, mixed> $rawFilters
+     * @return array{q: string, gender: string, inventory: string, page: int}
+     */
+    private function normalizeListFilters(array $rawFilters): array
+    {
+        $gender = trim((string) ($rawFilters['gender'] ?? ''));
+        $inventory = trim((string) ($rawFilters['inventory'] ?? ''));
+
+        return [
+            'q' => trim((string) ($rawFilters['q'] ?? '')),
+            'gender' => in_array($gender, ['male', 'female', 'unisex'], true) ? $gender : '',
+            'inventory' => in_array($inventory, ['in_stock', 'low_stock', 'out_of_stock'], true) ? $inventory : '',
+            'page' => max(1, (int) ($rawFilters['page'] ?? 1)),
         ];
     }
 

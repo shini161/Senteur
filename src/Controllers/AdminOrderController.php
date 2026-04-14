@@ -26,11 +26,15 @@ class AdminOrderController extends Controller
     {
         Auth::requireAdmin();
 
-        $orders = $this->adminOrderService->getOrders();
+        $listData = $this->adminOrderService->getOrderListData($_GET);
 
         $this->render('admin/orders/index', [
             'title' => 'Admin Orders',
-            'orders' => $orders,
+            'orders' => $listData['orders'],
+            'filters' => $listData['filters'],
+            'currentPage' => $listData['currentPage'],
+            'totalPages' => $listData['totalPages'],
+            'totalOrders' => $listData['totalOrders'],
             'error' => null,
         ]);
     }

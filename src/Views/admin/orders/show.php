@@ -90,25 +90,32 @@ $timeline = [
 ?>
 <section class="admin-order-page">
     <div class="admin-order-shell">
-        <div class="card admin-order-header">
-            <div class="admin-order-header-copy">
-                <p class="section-kicker">Admin / Orders</p>
-                <h1>Order <?= htmlspecialchars((string) $order['public_id']) ?></h1>
-                <p class="lead admin-order-lead">
-                    <?= htmlspecialchars((string) $order['username']) ?>
-                    ·
-                    <?= htmlspecialchars((string) $order['user_email']) ?>
-                    · placed <?= htmlspecialchars($formatDateTime((string) ($order['created_at'] ?? ''))) ?>
-                </p>
-            </div>
+        <?php
+        $adminHeaderTitle = 'Order ' . (string) $order['public_id'];
+        $adminHeaderLead = (string) $order['username']
+            . ' · '
+            . (string) $order['user_email']
+            . ' · placed '
+            . $formatDateTime((string) ($order['created_at'] ?? ''));
+        $adminHeaderKicker = 'Admin / Orders';
+        $adminHeaderSection = 'orders';
+        $adminHeaderClass = 'admin-order-header';
+        $adminHeaderActions = [
+            [
+                'type' => 'link',
+                'href' => '/admin/orders',
+                'label' => 'Back to orders',
+                'class' => 'button-secondary',
+            ],
+            [
+                'type' => 'badge',
+                'label' => $statusLabel($currentStatus),
+                'class' => 'order-status ' . $statusClass . ' admin-order-header-status',
+            ],
+        ];
 
-            <div class="admin-order-header-actions">
-                <a href="/admin/orders" class="button-secondary">Back to orders</a>
-                <span class="order-status <?= $statusClass ?> admin-order-header-status">
-                    <?= htmlspecialchars($statusLabel($currentStatus)) ?>
-                </span>
-            </div>
-        </div>
+        require __DIR__ . '/../_header.php';
+        ?>
 
         <?php if (! empty($error)): ?>
             <div class="message message-error">

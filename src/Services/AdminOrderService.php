@@ -11,6 +11,8 @@ use App\Models\OrderRepository;
  */
 class AdminOrderService
 {
+    private const PER_PAGE = 10;
+
     public function __construct(
         private OrderRepository $orderRepository
     ) {}
@@ -18,9 +20,24 @@ class AdminOrderService
     /**
      * Returns the order list used by the admin dashboard.
      */
-    public function getOrders(): array
+    public function getOrderListData(array $rawFilters): array
     {
-        return $this->orderRepository->findAllForAdmin();
+        $filters = $this->normalizeListFilters($rawFilters);
+        $totalOrders = $this->orderRepository->countForAdmin($filters);
+        $totalPages = max(1, (int) ceil($totalOrders / self::PER_PAGE));
+        $currentPage = min($filters['page'], $totalPages);
+
+        return [
+            'orders' => $this->orderRepository->findPageForAdmin(
+                $filters,
+                self::PER_PAGE,
+                ($currentPage - 1) * self::PER_PAGE
+            ),
+            'filters' => $filters,
+            'currentPage' => $currentPage,
+            'totalPages' => $totalPages,
+            'totalOrders' => $totalOrders,
+        ];
     }
 
     /**
@@ -53,5 +70,23 @@ class AdminOrderService
     public function updateStatus(string $publicId, string $status): void
     {
         $this->orderRepository->updateStatusByPublicId($publicId, $status);
+    }
+
+    /**
+     * Normalizes admin order list filters from the query string.
+     *
+     * @param array<string, mixed> $rawFilters
+     * @return array{q: string, status: string, page: int}
+     */
+    private function normalizeListFilters(array $rawFilters): array
+    {
+        $status = trim((string) ($rawFilters['status'] ?? ''));
+        $allowedStatuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
+
+        return [
+            'q' => trim((string) ($rawFilters['q'] ?? '')),
+            'status' => in_array($status, $allowedStatuses, true) ? $status : '',
+            'page' => max(1, (int) ($rawFilters['page'] ?? 1)),
+        ];
     }
 }

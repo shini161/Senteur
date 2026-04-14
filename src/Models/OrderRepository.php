@@ -385,6 +385,77 @@ class OrderRepository
     }
 
     /**
+     * Returns a filtered admin order page.
+     *
+     * @param array{q?: string, status?: string} $filters
+     */
+    public function findPageForAdmin(array $filters, int $limit, int $offset): array
+    {
+        $params = [];
+        $whereSql = $this->buildAdminOrderWhereClause($filters, $params);
+
+        $sql = "
+            SELECT
+                o.id,
+                o.public_id,
+                o.status,
+                o.total_amount,
+                o.created_at,
+                u.email AS user_email,
+                u.username,
+                COALESCE(SUM(oi.quantity), 0) AS items_count
+            FROM orders o
+            INNER JOIN users u ON u.id = o.user_id
+            LEFT JOIN order_items oi ON oi.order_id = o.id
+            {$whereSql}
+            GROUP BY
+                o.id,
+                o.public_id,
+                o.status,
+                o.total_amount,
+                o.created_at,
+                u.email,
+                u.username
+            ORDER BY o.created_at DESC
+            LIMIT :limit OFFSET :offset
+        ";
+
+        $stmt = $this->pdo->prepare($sql);
+
+        foreach ($params as $name => $value) {
+            $stmt->bindValue(':' . $name, $value, is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR);
+        }
+
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Counts filtered admin orders for pagination.
+     *
+     * @param array{q?: string, status?: string} $filters
+     */
+    public function countForAdmin(array $filters): int
+    {
+        $params = [];
+        $whereSql = $this->buildAdminOrderWhereClause($filters, $params);
+
+        $stmt = $this->pdo->prepare("
+            SELECT COUNT(*)
+            FROM orders o
+            INNER JOIN users u ON u.id = o.user_id
+            {$whereSql}
+        ");
+
+        $stmt->execute($params);
+
+        return (int) $stmt->fetchColumn();
+    }
+
+    /**
      * Returns one order with customer and address context for admins.
      */
     public function findByPublicIdForAdmin(string $publicId): ?array
@@ -468,6 +539,43 @@ class OrderRepository
         if ($stmt->rowCount() !== 1) {
             throw new RuntimeException('Order not found or unchanged.');
         }
+    }
+
+    /**
+     * Builds the reusable admin order list WHERE clause.
+     *
+     * @param array{q?: string, status?: string} $filters
+     * @param array<string, string> $params
+     */
+    private function buildAdminOrderWhereClause(array $filters, array &$params): string
+    {
+        $conditions = [];
+        $query = trim((string) ($filters['q'] ?? ''));
+        $status = trim((string) ($filters['status'] ?? ''));
+
+        if ($query !== '') {
+            $tokens = preg_split('/\s+/', mb_strtolower($query), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+
+            foreach ($tokens as $index => $token) {
+                $paramKey = 'search_' . $index;
+                $params[$paramKey] = '%' . $token . '%';
+                $conditions[] = "
+                    (
+                        LOWER(o.public_id) LIKE :{$paramKey}
+                        OR LOWER(u.username) LIKE :{$paramKey}
+                        OR LOWER(u.email) LIKE :{$paramKey}
+                        OR CAST(o.id AS CHAR) LIKE :{$paramKey}
+                    )
+                ";
+            }
+        }
+
+        if ($status !== '') {
+            $params['status'] = $status;
+            $conditions[] = "o.status = :status";
+        }
+
+        return $conditions === [] ? '' : 'WHERE ' . implode(' AND ', $conditions);
     }
 
     // ---------------------------------------------------------------------

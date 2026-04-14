@@ -64,34 +64,72 @@ foreach ($orders as $adminOrder) {
 }
 
 $needsAttention = $summary['pending'] + $summary['processing'];
+
+$buildPageUrl = static function (int $pageNumber) use ($filters): string {
+    $params = $filters;
+    $params['page'] = $pageNumber;
+
+    return '/admin/orders?' . http_build_query(array_filter(
+        $params,
+        static fn ($value) => $value !== '' && $value !== null
+    ));
+};
+$hasActiveFilters = ($filters['q'] ?? '') !== '' || ($filters['status'] ?? '') !== '';
 ?>
 <section class="admin-orders-page">
     <div class="admin-orders-shell">
-        <div class="card admin-orders-hero">
-            <div class="admin-orders-hero-copy">
-                <p class="section-kicker">Admin</p>
-                <h1>Orders</h1>
-                <p class="lead admin-orders-lead">
-                    Monitor customer purchases, fulfillment progress, and order value without digging through raw rows.
-                </p>
-            </div>
+        <?php
+        $adminHeaderTitle = 'Orders';
+        $adminHeaderLead = 'Monitor customer purchases, fulfillment progress, and order value without digging through raw rows.';
+        $adminHeaderSection = 'orders';
+        $adminHeaderClass = 'admin-orders-hero';
+        $adminHeaderActions = [];
 
-            <div class="admin-orders-actions">
-                <a href="/admin/products" class="button-secondary">Manage products</a>
+        require __DIR__ . '/../_header.php';
+        ?>
 
-                <form method="POST" action="/admin/logout" class="admin-orders-logout-form">
-                    <?= \App\Core\Csrf::input() ?>
-                    <button type="submit" class="button-secondary">Logout</button>
-                </form>
-            </div>
-        </div>
+        <section class="panel admin-filter-panel">
+            <form method="GET" action="/admin/orders" class="auth-form admin-filter-form">
+                <div class="admin-filter-grid">
+                    <div class="form-group admin-filter-search">
+                        <label for="order-q">Search</label>
+                        <input
+                            id="order-q"
+                            type="text"
+                            name="q"
+                            placeholder="Order ID, customer name, email, or reference"
+                            value="<?= htmlspecialchars((string) ($filters['q'] ?? '')) ?>">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="order-status">Status</label>
+                        <select id="order-status" name="status">
+                            <option value="">All statuses</option>
+                            <?php foreach (array_keys($statusClasses) as $statusOption): ?>
+                                <option
+                                    value="<?= htmlspecialchars($statusOption) ?>"
+                                    <?= (string) ($filters['status'] ?? '') === $statusOption ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars($statusLabel($statusOption)) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="admin-filter-actions">
+                    <button type="submit" class="auth-button">Apply filters</button>
+                    <a href="/admin/orders" class="button-secondary">Reset</a>
+                    <span class="muted admin-results-count"><?= number_format((int) $totalOrders) ?> matching orders</span>
+                </div>
+            </form>
+        </section>
 
         <div class="admin-orders-stats">
             <div class="card admin-orders-stat">
-                <span class="admin-orders-stat-label">Total orders</span>
-                <strong><?= number_format($summary['orders']) ?></strong>
+                <span class="admin-orders-stat-label">Matching orders</span>
+                <strong><?= number_format((int) $totalOrders) ?></strong>
                 <span class="admin-orders-stat-note">
-                    <?= number_format($summary['units']) ?> units across the full queue
+                    <?= number_format($summary['orders']) ?> shown on this page
                 </span>
             </div>
 
@@ -99,7 +137,7 @@ $needsAttention = $summary['pending'] + $summary['processing'];
                 <span class="admin-orders-stat-label">Needs attention</span>
                 <strong><?= number_format($needsAttention) ?></strong>
                 <span class="admin-orders-stat-note">
-                    <?= number_format($summary['pending']) ?> pending, <?= number_format($summary['processing']) ?> processing
+                    <?= number_format($summary['pending']) ?> pending, <?= number_format($summary['processing']) ?> processing on this page
                 </span>
             </div>
 
@@ -107,7 +145,7 @@ $needsAttention = $summary['pending'] + $summary['processing'];
                 <span class="admin-orders-stat-label">Delivered</span>
                 <strong><?= number_format($summary['delivered']) ?></strong>
                 <span class="admin-orders-stat-note">
-                    <?= number_format($summary['shipped']) ?> still in transit
+                    <?= number_format($summary['shipped']) ?> still in transit on this page
                 </span>
             </div>
 
@@ -115,15 +153,19 @@ $needsAttention = $summary['pending'] + $summary['processing'];
                 <span class="admin-orders-stat-label">Order value</span>
                 <strong>€<?= number_format($summary['revenue'], 2) ?></strong>
                 <span class="admin-orders-stat-note">
-                    <?= number_format($summary['cancelled']) ?> cancelled orders excluded
+                    <?= number_format($summary['cancelled']) ?> cancelled orders excluded on this page
                 </span>
             </div>
         </div>
 
         <?php if ($orders === []): ?>
             <div class="empty-state admin-orders-empty">
-                <h2>No orders yet</h2>
-                <p>New customer purchases will appear here once checkout activity starts flowing in.</p>
+                <h2><?= $hasActiveFilters ? 'No matching orders' : 'No orders yet' ?></h2>
+                <p>
+                    <?= $hasActiveFilters
+                        ? 'Try a broader search or clear the current filters to bring more orders back into view.'
+                        : 'New customer purchases will appear here once checkout activity starts flowing in.' ?>
+                </p>
             </div>
         <?php else: ?>
             <div class="card admin-orders-table-card">
@@ -134,7 +176,7 @@ $needsAttention = $summary['pending'] + $summary['processing'];
                     </div>
 
                     <span class="badge">
-                        <?= number_format($summary['orders']) ?> total
+                        Page <?= (int) $currentPage ?> of <?= (int) $totalPages ?>
                     </span>
                 </div>
 
@@ -222,6 +264,26 @@ $needsAttention = $summary['pending'] + $summary['processing'];
                     </table>
                 </div>
             </div>
+
+            <?php if (($totalPages ?? 1) > 1): ?>
+                <nav class="admin-pagination">
+                    <?php if (($currentPage ?? 1) > 1): ?>
+                        <a href="<?= htmlspecialchars($buildPageUrl($currentPage - 1)) ?>" class="button-secondary">Previous</a>
+                    <?php else: ?>
+                        <span class="button-secondary pagination-disabled">Previous</span>
+                    <?php endif; ?>
+
+                    <span class="muted admin-results-count">
+                        Page <?= (int) $currentPage ?> of <?= (int) $totalPages ?>
+                    </span>
+
+                    <?php if (($currentPage ?? 1) < ($totalPages ?? 1)): ?>
+                        <a href="<?= htmlspecialchars($buildPageUrl($currentPage + 1)) ?>" class="button-secondary">Next</a>
+                    <?php else: ?>
+                        <span class="button-secondary pagination-disabled">Next</span>
+                    <?php endif; ?>
+                </nav>
+            <?php endif; ?>
         <?php endif; ?>
     </div>
 </section>

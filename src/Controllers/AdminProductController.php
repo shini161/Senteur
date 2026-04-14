@@ -30,9 +30,16 @@ class AdminProductController extends Controller
     {
         Auth::requireAdmin();
 
+        $listData = $this->adminProductService->getProductListData($_GET);
+
         $this->render('admin/products/index', [
             'title' => 'Admin Products',
-            'products' => $this->adminProductService->getProducts(),
+            'products' => $listData['products'],
+            'filters' => $listData['filters'],
+            'currentPage' => $listData['currentPage'],
+            'totalPages' => $listData['totalPages'],
+            'totalProducts' => $listData['totalProducts'],
+            'genders' => ['male', 'female', 'unisex'],
         ]);
     }
 
@@ -45,19 +52,23 @@ class AdminProductController extends Controller
 
         $meta = $this->adminProductService->getFormMeta();
 
-        $this->render('admin/products/create', [
+        $this->render('admin/products/create', $this->withProductFormEnhancements([
             'title' => 'Create Product',
-            'error' => null,
             'old' => [
+                'note_ids' => [
+                    'top' => [],
+                    'middle' => [],
+                    'base' => [],
+                ],
                 'variants' => [
-                    ['size_ml' => '', 'price' => '', 'stock' => ''],
-                    ['size_ml' => '', 'price' => '', 'stock' => ''],
+                    ['id' => '', 'size_ml' => '', 'price' => '', 'stock' => ''],
                 ],
             ],
             'brands' => $meta['brands'],
             'fragranceTypes' => $meta['fragranceTypes'],
+            'notes' => $meta['notes'],
             'genders' => $meta['genders'],
-        ]);
+        ]));
     }
 
     // ---------------------------------------------------------------------
@@ -85,14 +96,15 @@ class AdminProductController extends Controller
         } catch (RuntimeException $e) {
             $meta = $this->adminProductService->getFormMeta();
 
-            $this->render('admin/products/create', [
+            $this->render('admin/products/create', $this->withProductFormEnhancements([
                 'title' => 'Create Product',
                 'error' => $e->getMessage(),
                 'old' => $_POST,
                 'brands' => $meta['brands'],
                 'fragranceTypes' => $meta['fragranceTypes'],
+                'notes' => $meta['notes'],
                 'genders' => $meta['genders'],
-            ]);
+            ]));
         }
     }
 
@@ -113,15 +125,14 @@ class AdminProductController extends Controller
 
         $meta = $this->adminProductService->getFormMeta();
 
-        $this->render('admin/products/edit', [
+        $this->render('admin/products/edit', $this->withProductFormEnhancements([
             'title' => 'Edit Product',
-            'error' => null,
-            'imageError' => null,
             'product' => $product,
             'brands' => $meta['brands'],
             'fragranceTypes' => $meta['fragranceTypes'],
+            'notes' => $meta['notes'],
             'genders' => $meta['genders'],
-        ]);
+        ]));
     }
 
     /**
@@ -147,30 +158,40 @@ class AdminProductController extends Controller
         } catch (RuntimeException $e) {
             $product = $this->adminProductService->getProductById($productId);
             $meta = $this->adminProductService->getFormMeta();
+            $fallbackVariants = $this->mergePostedVariantsWithExistingImages(
+                (array) ($_POST['variants'] ?? []),
+                $product
+            );
 
-            $fallbackProduct = $product ?? [
+            $fallbackProduct = [
                 'id' => $productId,
-                'brand_id' => $_POST['brand_id'] ?? '',
-                'fragrance_type_id' => $_POST['fragrance_type_id'] ?? '',
-                'family_name' => $_POST['family_name'] ?? '',
-                'name' => $_POST['name'] ?? '',
-                'concentration_label' => $_POST['concentration_label'] ?? '',
-                'slug' => $_POST['slug'] ?? '',
-                'description' => $_POST['description'] ?? '',
-                'gender' => $_POST['gender'] ?? '',
+                'brand_id' => $_POST['brand_id'] ?? ($product['brand_id'] ?? ''),
+                'fragrance_type_id' => $_POST['fragrance_type_id'] ?? ($product['fragrance_type_id'] ?? ''),
+                'family_name' => $_POST['family_name'] ?? ($product['family_name'] ?? ''),
+                'name' => $_POST['name'] ?? ($product['name'] ?? ''),
+                'concentration_label' => $_POST['concentration_label'] ?? ($product['concentration_label'] ?? ''),
+                'slug' => $_POST['slug'] ?? ($product['slug'] ?? ''),
+                'description' => $_POST['description'] ?? ($product['description'] ?? ''),
+                'gender' => $_POST['gender'] ?? ($product['gender'] ?? ''),
                 'image_url' => $product['image_url'] ?? null,
-                'variants' => $_POST['variants'] ?? [],
+                'note_ids' => [
+                    'top' => (array) ($_POST['note_ids']['top'] ?? ($product['note_ids']['top'] ?? [])),
+                    'middle' => (array) ($_POST['note_ids']['middle'] ?? ($product['note_ids']['middle'] ?? [])),
+                    'base' => (array) ($_POST['note_ids']['base'] ?? ($product['note_ids']['base'] ?? [])),
+                ],
+                'notes' => $product['notes'] ?? ['top' => [], 'middle' => [], 'base' => []],
+                'variants' => $fallbackVariants,
             ];
 
-            $this->render('admin/products/edit', [
+            $this->render('admin/products/edit', $this->withProductFormEnhancements([
                 'title' => 'Edit Product',
                 'error' => $e->getMessage(),
-                'imageError' => null,
                 'product' => $fallbackProduct,
                 'brands' => $meta['brands'],
                 'fragranceTypes' => $meta['fragranceTypes'],
+                'notes' => $meta['notes'],
                 'genders' => $meta['genders'],
-            ]);
+            ]));
         }
     }
 
@@ -208,15 +229,15 @@ class AdminProductController extends Controller
                 return;
             }
 
-            $this->render('admin/products/edit', [
+            $this->render('admin/products/edit', $this->withProductFormEnhancements([
                 'title' => 'Edit Product',
-                'error' => null,
                 'imageError' => $e->getMessage(),
                 'product' => $product,
                 'brands' => $meta['brands'],
                 'fragranceTypes' => $meta['fragranceTypes'],
+                'notes' => $meta['notes'],
                 'genders' => $meta['genders'],
-            ]);
+            ]));
         }
     }
 
@@ -251,16 +272,66 @@ class AdminProductController extends Controller
                 return;
             }
 
-            $this->render('admin/products/edit', [
+            $this->render('admin/products/edit', $this->withProductFormEnhancements([
                 'title' => 'Edit Product',
-                'error' => null,
-                'imageError' => null,
                 'variantImageError' => $e->getMessage(),
                 'product' => $product,
                 'brands' => $meta['brands'],
                 'fragranceTypes' => $meta['fragranceTypes'],
+                'notes' => $meta['notes'],
                 'genders' => $meta['genders'],
-            ]);
+            ]));
         }
+    }
+
+    /**
+     * Provides common defaults and enhancement assets for product form pages.
+     *
+     * @param array<string, mixed> $data
+     * @return array<string, mixed>
+     */
+    private function withProductFormEnhancements(array $data): array
+    {
+        return $data + [
+            'error' => null,
+            'imageError' => null,
+            'variantImageError' => null,
+            'scripts' => ['/assets/js/admin/products-form.js'],
+        ];
+    }
+
+    /**
+     * Keeps existing variant images attached when validation fails and the edit
+     * form needs to re-render user-submitted variant rows.
+     *
+     * @param array<int, array<string, mixed>> $submittedVariants
+     * @param array<string, mixed>|null $product
+     * @return array<int, array<string, mixed>>
+     */
+    private function mergePostedVariantsWithExistingImages(array $submittedVariants, ?array $product): array
+    {
+        if ($product === null || empty($product['variants'])) {
+            return $submittedVariants;
+        }
+
+        $existingById = [];
+
+        foreach ($product['variants'] as $variant) {
+            $variantId = (int) ($variant['id'] ?? 0);
+
+            if ($variantId > 0) {
+                $existingById[$variantId] = $variant;
+            }
+        }
+
+        foreach ($submittedVariants as $index => $variant) {
+            $variantId = (int) ($variant['id'] ?? 0);
+
+            if ($variantId > 0 && isset($existingById[$variantId])) {
+                $submittedVariants[$index]['images'] = $existingById[$variantId]['images'] ?? [];
+            }
+        }
+
+        return $submittedVariants;
     }
 }
