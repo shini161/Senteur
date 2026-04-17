@@ -21,8 +21,8 @@ foreach ($notes as $note) {
     }
 }
 
-$adminHeaderTitle = 'Notes';
-$adminHeaderLead = 'Build the note library once, attach imagery, then assign top, middle, and base notes directly inside each perfume.';
+$adminHeaderTitle = 'Fragrance Notes';
+$adminHeaderLead = 'Build the note library once, attach imagery, then assign Fragrance Notes as either a flat list or a full pyramid inside each perfume.';
 $adminHeaderSection = 'notes';
 $adminHeaderClass = 'admin-notes-header';
 $adminHeaderActions = [];
@@ -73,7 +73,7 @@ $hasActiveFilters = ($filters['q'] ?? '') !== '' || ($filters['usage'] ?? '') !=
                 <section class="panel admin-notes-list-panel">
                     <div class="admin-product-panel-heading">
                         <div>
-                            <h2>Note library</h2>
+                            <h2>Fragrance note library</h2>
                             <p class="muted">Use this as the source of truth for the notes you want available inside perfume editing.</p>
                         </div>
 
@@ -153,7 +153,7 @@ $hasActiveFilters = ($filters['q'] ?? '') !== '' || ($filters['usage'] ?? '') !=
 
                                         <p class="muted admin-note-card-copy">
                                             <?= $productCount > 0
-                                                ? 'Available now inside product editing and already linked in the catalog.'
+                                                ? 'Available now inside product editing and already linked to one or more perfume note lists.'
                                                 : 'Created and ready to be assigned from the product form.' ?>
                                         </p>
 
@@ -304,7 +304,7 @@ $hasActiveFilters = ($filters['q'] ?? '') !== '' || ($filters['usage'] ?? '') !=
                 <section class="panel admin-notes-sidebar-panel">
                     <h2>Using notes in perfumes</h2>
                     <p class="muted">
-                        After a note exists here, open any product and assign it under top, middle, or base notes inside the product form.
+                        After a note exists here, open any product and assign it to Fragrance Notes or into top, heart, and base pyramid stages.
                     </p>
                 </section>
             </aside>

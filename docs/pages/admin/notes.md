@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Allow administrators to manage fragrance notes used in products (e.g., top, middle, base notes).
+Allow administrators to manage fragrance notes used in products, whether they appear in a flat note list or inside top, heart, and base pyramid stages.
 
 ---
 

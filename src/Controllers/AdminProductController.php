@@ -8,6 +8,7 @@ use App\Core\Auth;
 use App\Core\Controller;
 use App\Core\Csrf;
 use App\Services\AdminProductService;
+use App\Support\ProductNotes;
 use RuntimeException;
 
 /**
@@ -55,11 +56,7 @@ class AdminProductController extends Controller
         $this->render('admin/products/create', $this->withProductFormEnhancements([
             'title' => 'Create Product',
             'old' => [
-                'note_ids' => [
-                    'top' => [],
-                    'middle' => [],
-                    'base' => [],
-                ],
+                'note_ids' => ProductNotes::emptyBuckets(),
                 'variants' => [
                     ['id' => '', 'size_ml' => '', 'price' => '', 'stock' => ''],
                 ],
@@ -162,6 +159,7 @@ class AdminProductController extends Controller
                 (array) ($_POST['variants'] ?? []),
                 $product
             );
+            $postedNoteIds = (array) ($_POST['note_ids'] ?? []);
 
             $fallbackProduct = [
                 'id' => $productId,
@@ -174,12 +172,20 @@ class AdminProductController extends Controller
                 'description' => $_POST['description'] ?? ($product['description'] ?? ''),
                 'gender' => $_POST['gender'] ?? ($product['gender'] ?? ''),
                 'image_url' => $product['image_url'] ?? null,
-                'note_ids' => [
-                    'top' => (array) ($_POST['note_ids']['top'] ?? ($product['note_ids']['top'] ?? [])),
-                    'middle' => (array) ($_POST['note_ids']['middle'] ?? ($product['note_ids']['middle'] ?? [])),
-                    'base' => (array) ($_POST['note_ids']['base'] ?? ($product['note_ids']['base'] ?? [])),
-                ],
-                'notes' => $product['notes'] ?? ['top' => [], 'middle' => [], 'base' => []],
+                'note_ids' => array_reduce(
+                    ProductNotes::ORDER,
+                    static function (array $carry, string $type) use ($postedNoteIds, $product): array {
+                        $fallbackPostedValue = $type === ProductNotes::HEART
+                            ? ($postedNoteIds[ProductNotes::LEGACY_MIDDLE] ?? ($product['note_ids'][$type] ?? []))
+                            : ($product['note_ids'][$type] ?? []);
+
+                        $carry[$type] = (array) ($postedNoteIds[$type] ?? $fallbackPostedValue);
+
+                        return $carry;
+                    },
+                    []
+                ),
+                'notes' => $product['notes'] ?? ProductNotes::emptyBuckets(),
                 'variants' => $fallbackVariants,
             ];
 

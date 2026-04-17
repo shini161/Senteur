@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models\Concerns;
 
+use App\Support\ProductNotes;
 use PDO;
 
 trait ProductRepositoryCatalogueQueries
@@ -185,7 +186,7 @@ trait ProductRepositoryCatalogueQueries
             INNER JOIN notes n ON n.id = pn.note_id
             WHERE pn.product_id = :product_id
             ORDER BY
-                FIELD(pn.note_type, 'top', 'middle', 'base'),
+                FIELD(pn.note_type, 'general', 'top', 'heart', 'middle', 'base'),
                 n.name ASC
         ");
 
@@ -195,14 +196,10 @@ trait ProductRepositoryCatalogueQueries
 
         $notes = $noteStmt->fetchAll(PDO::FETCH_ASSOC);
 
-        $product['notes'] = [
-            'top' => [],
-            'middle' => [],
-            'base' => [],
-        ];
+        $product['notes'] = ProductNotes::emptyBuckets();
 
         foreach ($notes as $note) {
-            $type = $note['note_type'];
+            $type = ProductNotes::normalizeType((string) ($note['note_type'] ?? ''));
 
             if (isset($product['notes'][$type])) {
                 $product['notes'][$type][] = $note;
@@ -404,14 +401,14 @@ trait ProductRepositoryCatalogueQueries
             [
                 'title' => 'Dark Seductive',
                 'description' => 'Richer vanilla, musk, spice, and amber profiles with more presence.',
-                'query' => '?middle_note_ids[]=' . ($noteIds['vanilla'] ?? 0)
+                'query' => '?heart_note_ids[]=' . ($noteIds['vanilla'] ?? 0)
                     . '&base_note_ids[]=' . ($noteIds['musk'] ?? 0)
                     . '&sort=price_desc',
             ],
             [
                 'title' => 'Woody Luxury',
                 'description' => 'Structured woody compositions with cedar, patchouli, and upscale depth.',
-                'query' => '?middle_note_ids[]=' . ($noteIds['cedarwood'] ?? 0)
+                'query' => '?heart_note_ids[]=' . ($noteIds['cedarwood'] ?? 0)
                     . '&base_note_ids[]=' . ($noteIds['patchouli'] ?? 0)
                     . '&sort=price_desc',
             ],
@@ -419,7 +416,7 @@ trait ProductRepositoryCatalogueQueries
                 'title' => 'Soft Floral',
                 'description' => 'Lavender and jasmine compositions with a smoother elegant character.',
                 'query' => '?top_note_ids[]=' . ($noteIds['lavender'] ?? 0)
-                    . '&middle_note_ids[]=' . ($noteIds['jasmine'] ?? 0)
+                    . '&heart_note_ids[]=' . ($noteIds['jasmine'] ?? 0)
                     . '&sort=newest',
             ],
         ];
@@ -484,8 +481,8 @@ trait ProductRepositoryCatalogueQueries
             static fn(int $id): bool => $id > 0
         ));
 
-        $middleNoteIds = array_values(array_filter(
-            array_map('intval', (array) ($filters['middle_note_ids'] ?? [])),
+        $heartNoteIds = array_values(array_filter(
+            array_map('intval', (array) ($filters['heart_note_ids'] ?? ($filters['middle_note_ids'] ?? []))),
             static fn(int $id): bool => $id > 0
         ));
 
@@ -533,7 +530,7 @@ trait ProductRepositoryCatalogueQueries
         }
 
         $this->appendNoteFilterCondition($conditions, $params, 'top', $topNoteIds);
-        $this->appendNoteFilterCondition($conditions, $params, 'middle', $middleNoteIds);
+        $this->appendNoteFilterCondition($conditions, $params, ProductNotes::HEART, $heartNoteIds);
         $this->appendNoteFilterCondition($conditions, $params, 'base', $baseNoteIds);
 
         return [
@@ -551,7 +548,7 @@ trait ProductRepositoryCatalogueQueries
      */
     private function appendNoteFilterCondition(array &$conditions, array &$params, string $type, array $noteIds): void
     {
-        if ($noteIds === []) {
+        if ($noteIds === [] || ! in_array($type, ProductNotes::PYRAMID_ORDER, true)) {
             return;
         }
 
@@ -563,15 +560,23 @@ trait ProductRepositoryCatalogueQueries
             $params[$paramKey] = $noteId;
         }
 
-        $conditions[] = "
+        $databaseTypesSql = implode(', ', array_map(
+            static fn(string $dbType): string => "'" . $dbType . "'",
+            ProductNotes::databaseTypesForFilter($type)
+        ));
+
+        $conditions[] = sprintf(
+            "
             EXISTS (
                 SELECT 1
                 FROM product_notes pn_{$type}
                 WHERE pn_{$type}.product_id = p.id
-                  AND pn_{$type}.note_type = '{$type}'
+                  AND pn_{$type}.note_type IN (%s)
                   AND pn_{$type}.note_id IN (" . implode(', ', $placeholders) . ")
             )
-        ";
+        ",
+            $databaseTypesSql
+        );
     }
 
     /**

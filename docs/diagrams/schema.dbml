@@ -13,8 +13,9 @@ Enum payments_status_enum {
 }
 
 Enum product_notes_note_type_enum {
+  general
   top
-  middle
+  heart
   base
 }
 

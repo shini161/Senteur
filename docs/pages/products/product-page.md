@@ -79,7 +79,7 @@ ReviewService::saveByProductSlug(int $userId, string $slug, array $data): void
 - Variants are ordered by price and the first variant is selected when the page loads.
 - Variant buttons carry price, stock, and image data so the page can swap gallery state client-side without another request.
 - The add-to-cart form posts the selected `variant_id` and `quantity` to `/cart/add`.
-- The scent profile section renders categories plus notes grouped into top, middle, and base accords.
+- The scent profile section renders categories plus either `Fragrance Notes` or a staged top/heart/base pyramid, depending on the data available for the perfume.
 - Review summary shows the average rating and total review count when reviews exist.
 - Review submission is an upsert, so one user can create or update one review per product.
 - The current user's review can be edited inline from the reviews list.

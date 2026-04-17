@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models\Concerns;
 
+use App\Support\ProductNotes;
 use PDO;
 use RuntimeException;
 use Throwable;
@@ -195,16 +196,8 @@ trait ProductRepositoryAdminQueries
         ]);
 
         $product['variants'] = $variantStmt->fetchAll(PDO::FETCH_ASSOC);
-        $product['notes'] = [
-            'top' => [],
-            'middle' => [],
-            'base' => [],
-        ];
-        $product['note_ids'] = [
-            'top' => [],
-            'middle' => [],
-            'base' => [],
-        ];
+        $product['notes'] = ProductNotes::emptyBuckets();
+        $product['note_ids'] = ProductNotes::emptyBuckets();
 
         $noteStmt = $this->pdo->prepare("
             SELECT
@@ -217,7 +210,7 @@ trait ProductRepositoryAdminQueries
             INNER JOIN notes n ON n.id = pn.note_id
             WHERE pn.product_id = :product_id
             ORDER BY
-                FIELD(pn.note_type, 'top', 'middle', 'base'),
+                FIELD(pn.note_type, 'general', 'top', 'heart', 'middle', 'base'),
                 n.name ASC
         ");
 
@@ -226,7 +219,7 @@ trait ProductRepositoryAdminQueries
         ]);
 
         foreach ($noteStmt->fetchAll(PDO::FETCH_ASSOC) as $note) {
-            $type = (string) ($note['note_type'] ?? '');
+            $type = ProductNotes::normalizeType((string) ($note['note_type'] ?? ''));
 
             if (! isset($product['notes'][$type], $product['note_ids'][$type])) {
                 continue;
@@ -703,7 +696,7 @@ trait ProductRepositoryAdminQueries
     /**
      * Replaces the note assignments for a product in one pass.
      *
-     * @param array{top?: int[], middle?: int[], base?: int[]} $noteAssignments
+     * @param array{general?: int[], top?: int[], heart?: int[], base?: int[]} $noteAssignments
      */
     private function syncProductNotes(int $productId, array $noteAssignments): void
     {
@@ -728,7 +721,7 @@ trait ProductRepositoryAdminQueries
             )
         ");
 
-        foreach (['top', 'middle', 'base'] as $type) {
+        foreach (ProductNotes::ORDER as $type) {
             foreach (($noteAssignments[$type] ?? []) as $noteId) {
                 $insertStmt->execute([
                     'product_id' => $productId,

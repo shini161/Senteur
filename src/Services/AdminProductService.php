@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\ProductRepository;
+use App\Support\ProductNotes;
 use RuntimeException;
 
 /**
@@ -157,7 +158,7 @@ class AdminProductService
      * @return array{
      *   product: array<string, mixed>,
      *   variants: array<int, array<string, int|float|null>>,
-     *   noteAssignments: array{top: int[], middle: int[], base: int[]}
+     *   noteAssignments: array{general: int[], top: int[], heart: int[], base: int[]}
      * }
      */
     private function normalizeAndValidate(array $data): array
@@ -220,17 +221,25 @@ class AdminProductService
             throw new RuntimeException('At least one variant is required.');
         }
 
-        $noteAssignments = [
-            'top' => $this->normalizeNoteIds((array) (($data['note_ids']['top'] ?? []))),
-            'middle' => $this->normalizeNoteIds((array) (($data['note_ids']['middle'] ?? []))),
-            'base' => $this->normalizeNoteIds((array) (($data['note_ids']['base'] ?? []))),
-        ];
+        $noteAssignments = [];
 
-        $submittedNoteIds = array_values(array_unique(array_merge(
-            $noteAssignments['top'],
-            $noteAssignments['middle'],
-            $noteAssignments['base']
-        )));
+        foreach (ProductNotes::ORDER as $type) {
+            $rawNoteIds = (array) ($data['note_ids'][$type] ?? []);
+
+            if ($type === ProductNotes::HEART && $rawNoteIds === []) {
+                $rawNoteIds = (array) ($data['note_ids'][ProductNotes::LEGACY_MIDDLE] ?? []);
+            }
+
+            $noteAssignments[$type] = $this->normalizeNoteIds($rawNoteIds);
+        }
+
+        $submittedNoteIds = [];
+
+        foreach (ProductNotes::ORDER as $type) {
+            $submittedNoteIds = array_merge($submittedNoteIds, $noteAssignments[$type]);
+        }
+
+        $submittedNoteIds = array_values(array_unique($submittedNoteIds));
 
         $existingNoteIds = $this->productRepository->findExistingNoteIds($submittedNoteIds);
 

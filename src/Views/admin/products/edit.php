@@ -1,13 +1,17 @@
 <?php
+use App\Support\ProductNotes;
+
 // Admin product editing workspace with preserved variant identities, media
 // upload controls, and a clearer overview of catalog health.
 
 $variantCount = count($product['variants'] ?? []);
 $totalStock = 0;
 $prices = [];
-$noteCount = count($product['note_ids']['top'] ?? [])
-    + count($product['note_ids']['middle'] ?? [])
-    + count($product['note_ids']['base'] ?? []);
+$noteCount = 0;
+
+foreach (ProductNotes::ORDER as $type) {
+    $noteCount += count($product['note_ids'][$type] ?? []);
+}
 
 foreach (($product['variants'] ?? []) as $variant) {
     $totalStock += (int) ($variant['stock'] ?? 0);
@@ -78,7 +82,7 @@ if ($prices !== []) {
             <div class="card admin-product-summary-card">
                 <span class="admin-products-stat-label">Notes</span>
                 <strong><?= number_format($noteCount) ?></strong>
-                <span class="admin-products-stat-note">Top, middle, and base profile selections</span>
+                <span class="admin-products-stat-note">General and staged note selections</span>
             </div>
         </div>
 
@@ -142,7 +146,7 @@ if ($prices !== []) {
                 <section class="panel admin-product-sidebar-panel">
                     <h2>Editing notes</h2>
                     <p class="muted">
-                        Assign fragrance notes directly in the product form, and use the media section below whenever you need a size-specific image override.
+                        Use Fragrance Notes when you only know the flat list, or fill the pyramid stages when you have verified top, heart, and base accords.
                     </p>
                 </section>
             </aside>

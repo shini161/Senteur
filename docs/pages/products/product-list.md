@@ -20,9 +20,9 @@ GET /products
 | fragrance_type_id   | int         | ❌       | `0` means all types |
 | gender              | string      | ❌       | `male`, `female`, or `unisex` |
 | sort                | string      | ❌       | `newest`, `name_asc`, `price_asc`, `price_desc` |
-| top_note_ids[]      | int[]       | ❌       | advanced top-note filter |
-| middle_note_ids[]   | int[]       | ❌       | advanced middle-note filter |
-| base_note_ids[]     | int[]       | ❌       | advanced base-note filter |
+| top_note_ids[]      | int[]       | ❌       | advanced top-note filter; also matches products that only have general notes |
+| heart_note_ids[]    | int[]       | ❌       | advanced heart-note filter; also matches products that only have general notes |
+| base_note_ids[]     | int[]       | ❌       | advanced base-note filter; also matches products that only have general notes |
 | page                | int         | ❌       | 1-based page number |
 
 ---
@@ -75,7 +75,7 @@ ProductService::getAll(array $filters = [], int $limit = 12, int $offset = 0): a
 - Query-string input is normalized before any repository call.
 - Free-text search is split into tokens, and every token must match one of the searchable product fields.
 - Brand, fragrance type, and gender filters are applied only when they hold allowed values.
-- Advanced note filters use separate groups for top, middle, and base notes.
+- Advanced note filters use separate groups for top, heart, and base notes, while still matching products that only store a general notes list.
 - Within one note group, selected ids are matched with `IN (...)`; across groups, conditions are combined with `AND`.
 - Results are paginated at `12` products per page.
 - If the requested page is greater than the last available page, the controller clamps it to the final page.

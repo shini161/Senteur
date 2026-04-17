@@ -1,4 +1,6 @@
 <?php
+use App\Support\ProductNotes;
+
 // Shared admin product form partial used by both create and edit screens.
 $formData = $product ?? $old ?? [];
 $variants = $formData['variants'] ?? [
@@ -13,25 +15,19 @@ if ($variants === []) {
 
 $nextVariantIndex = count($variants);
 $isEditing = isset($product['id']);
-$selectedNoteIds = [
-    'top' => array_map('intval', (array) ($formData['note_ids']['top'] ?? [])),
-    'middle' => array_map('intval', (array) ($formData['note_ids']['middle'] ?? [])),
-    'base' => array_map('intval', (array) ($formData['note_ids']['base'] ?? [])),
-];
-$noteStages = [
-    'top' => [
-        'label' => 'Top notes',
-        'description' => 'The first impression and lift that hits immediately.',
-    ],
-    'middle' => [
-        'label' => 'Middle notes',
-        'description' => 'The heart of the perfume once the opening settles.',
-    ],
-    'base' => [
-        'label' => 'Base notes',
-        'description' => 'The lasting trail and depth left behind on skin.',
-    ],
-];
+$selectedNoteIds = [];
+
+foreach (ProductNotes::ORDER as $type) {
+    $rawSelectedNoteIds = (array) ($formData['note_ids'][$type] ?? []);
+
+    if ($type === ProductNotes::HEART && $rawSelectedNoteIds === []) {
+        $rawSelectedNoteIds = (array) ($formData['note_ids'][ProductNotes::LEGACY_MIDDLE] ?? []);
+    }
+
+    $selectedNoteIds[$type] = array_map('intval', $rawSelectedNoteIds);
+}
+
+$noteStages = ProductNotes::adminStageMeta();
 $allNotesJson = htmlspecialchars(json_encode(array_map(
     static fn (array $note): array => [
         'id' => (int) $note['id'],
@@ -181,8 +177,8 @@ $findNoteById = static function (int $noteId) use ($notes): ?array {
     <section class="panel admin-product-form-panel">
         <div class="admin-product-panel-heading">
             <div>
-                <h2>Notes</h2>
-                <p class="muted">Assign the fragrance profile here. Create or refine note assets from the Notes section in the admin nav.</p>
+                <h2>Fragrance notes</h2>
+                <p class="muted">Assign Fragrance Notes, a full top/heart/base pyramid, or both. The storefront shows the pyramid when staged notes exist and falls back to Fragrance Notes otherwise.</p>
             </div>
 
             <a href="/admin/notes" class="button-secondary">Manage notes</a>
@@ -191,7 +187,7 @@ $findNoteById = static function (int $noteId) use ($notes): ?array {
         <?php if ($notes === []): ?>
             <div class="empty-state">
                 <h3>No notes in the library yet</h3>
-                <p>Create notes first, then come back here to attach them as top, middle, and base notes.</p>
+                <p>Create notes first, then come back here to attach them as Fragrance Notes or as staged top, heart, and base notes.</p>
             </div>
         <?php else: ?>
             <div class="admin-product-note-stage-grid">

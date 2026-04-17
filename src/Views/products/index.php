@@ -90,7 +90,7 @@ $scripts[] = '/assets/js/products/catalog.js';
                 type="button"
                 class="button-secondary"
                 id="toggle-note-filters"
-                aria-expanded="<?= !empty($filters['top_note_ids']) || !empty($filters['middle_note_ids']) || !empty($filters['base_note_ids']) ? 'true' : 'false' ?>">
+                aria-expanded="<?= !empty($filters['top_note_ids']) || !empty($filters['heart_note_ids']) || !empty($filters['base_note_ids']) ? 'true' : 'false' ?>">
                 Advanced note filters
             </button>
             <span class="muted"><?= (int) $totalProducts ?> result(s)</span>
@@ -99,7 +99,7 @@ $scripts[] = '/assets/js/products/catalog.js';
         <?php
         // The note picker JavaScript reads a serialized copy of the note list so
         // advanced filters can stay interactive without another API endpoint.
-        $showNoteFilters = !empty($filters['top_note_ids']) || !empty($filters['middle_note_ids']) || !empty($filters['base_note_ids']);
+        $showNoteFilters = !empty($filters['top_note_ids']) || !empty($filters['heart_note_ids']) || !empty($filters['base_note_ids']);
         $allNotesJson = htmlspecialchars(json_encode(array_map(
             static fn(array $note): array => [
                 'id' => (int) $note['id'],
@@ -112,7 +112,7 @@ $scripts[] = '/assets/js/products/catalog.js';
         <div class="catalog-note-filters <?= $showNoteFilters ? 'is-open' : '' ?>" id="catalog-note-filters">
             <div class="catalog-note-filters-header">
                 <h3>Advanced note filters</h3>
-                <p class="muted">Add notes by accord stage. Click a selected note again to remove it.</p>
+                <p class="muted">Add notes by accord stage. Fragrance Notes lists also match any selected top, heart, or base filter.</p>
             </div>
 
             <?php
@@ -124,10 +124,10 @@ $scripts[] = '/assets/js/products/catalog.js';
                     'input_name' => 'top_note_ids[]',
                     'selected' => $filters['top_note_ids'] ?? [],
                 ],
-                'middle' => [
-                    'label' => 'Middle notes',
-                    'input_name' => 'middle_note_ids[]',
-                    'selected' => $filters['middle_note_ids'] ?? [],
+                'heart' => [
+                    'label' => 'Heart notes',
+                    'input_name' => 'heart_note_ids[]',
+                    'selected' => $filters['heart_note_ids'] ?? [],
                 ],
                 'base' => [
                     'label' => 'Base notes',

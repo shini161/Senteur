@@ -33,7 +33,7 @@ POST /admin/products
 * notes (selection):
 
   * note_id
-  * note_type (top, middle, base)
+  * note_type (general, top, heart, base)
 * images (upload, ordered)
 
 ---
@@ -188,7 +188,7 @@ VALUES (?, ?, ?);
 * dynamic variant fields
 * image preview + ordering
 * slug auto-generation from name
-* grouped notes selection (top/middle/base)
+* grouped notes selection (top/heart/base)
 
 ---
 

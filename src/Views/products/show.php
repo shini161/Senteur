@@ -1,4 +1,6 @@
 <?php
+use App\Support\ProductNotes;
+
 // Product detail page with variant switching, gallery updates, purchase actions,
 // scent breakdown, reviews, and related-product recommendations.
 
@@ -60,6 +62,15 @@ $renderAverageStars = static function (float $rating): string {
     return $html;
 };
 
+$renderNotes = static function (array $notes): string {
+    return implode(', ', array_map(
+        static fn(array $note): string => htmlspecialchars((string) $note['name']),
+        $notes
+    ));
+};
+
+$productNotes = is_array($product['notes'] ?? null) ? $product['notes'] : ProductNotes::emptyBuckets();
+$visibleNoteTypes = ProductNotes::preferredStorefrontTypes($productNotes);
 $variants = $product['variants'] ?? [];
 $selectedVariant = $variants[0] ?? null;
 $selectedVariantImages = $selectedVariant['images'] ?? [];
@@ -233,44 +244,16 @@ $scripts[] = '/assets/js/products/show.js';
             </div>
         <?php endif; ?>
 
-        <?php if (
-            !empty($product['notes']['top']) ||
-            !empty($product['notes']['middle']) ||
-            !empty($product['notes']['base'])
-        ): ?>
+        <?php if ($visibleNoteTypes !== []): ?>
             <div class="scent-profile-grid">
-                <?php if (!empty($product['notes']['top'])): ?>
-                    <div>
-                        <h3>Top notes</h3>
-                        <p>
-                            <?php foreach ($product['notes']['top'] as $index => $note): ?>
-                                <?= $index > 0 ? ', ' : '' ?><?= htmlspecialchars($note['name']) ?>
-                            <?php endforeach; ?>
-                        </p>
-                    </div>
-                <?php endif; ?>
-
-                <?php if (!empty($product['notes']['middle'])): ?>
-                    <div>
-                        <h3>Middle notes</h3>
-                        <p>
-                            <?php foreach ($product['notes']['middle'] as $index => $note): ?>
-                                <?= $index > 0 ? ', ' : '' ?><?= htmlspecialchars($note['name']) ?>
-                            <?php endforeach; ?>
-                        </p>
-                    </div>
-                <?php endif; ?>
-
-                <?php if (!empty($product['notes']['base'])): ?>
-                    <div>
-                        <h3>Base notes</h3>
-                        <p>
-                            <?php foreach ($product['notes']['base'] as $index => $note): ?>
-                                <?= $index > 0 ? ', ' : '' ?><?= htmlspecialchars($note['name']) ?>
-                            <?php endforeach; ?>
-                        </p>
-                    </div>
-                <?php endif; ?>
+                <?php foreach ($visibleNoteTypes as $noteType): ?>
+                    <?php if (!empty($productNotes[$noteType])): ?>
+                        <div>
+                            <h3><?= htmlspecialchars(ProductNotes::displayLabel($noteType)) ?></h3>
+                            <p><?= $renderNotes($productNotes[$noteType]) ?></p>
+                        </div>
+                    <?php endif; ?>
+                <?php endforeach; ?>
             </div>
         <?php else: ?>
             <div class="empty-state">

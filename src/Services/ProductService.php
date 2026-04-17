@@ -70,8 +70,8 @@ class ProductService
                 array_map('intval', (array) ($input['top_note_ids'] ?? [])),
                 static fn(int $id): bool => $id > 0
             )),
-            'middle_note_ids' => array_values(array_filter(
-                array_map('intval', (array) ($input['middle_note_ids'] ?? [])),
+            'heart_note_ids' => array_values(array_filter(
+                array_map('intval', (array) ($input['heart_note_ids'] ?? ($input['middle_note_ids'] ?? []))),
                 static fn(int $id): bool => $id > 0
             )),
             'base_note_ids' => array_values(array_filter(

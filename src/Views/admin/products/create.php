@@ -43,7 +43,7 @@
                 <section class="panel admin-product-sidebar-panel">
                     <h2>Before you save</h2>
                     <p class="muted">
-                        Keep the base name clean, use a URL-safe slug, and make variant sizes unique so the storefront can render a tidy product page.
+                        Keep the base name clean, use a URL-safe slug, choose either Fragrance Notes or a full top/heart/base pyramid when possible, and make variant sizes unique so the storefront can render a tidy product page.
                     </p>
                 </section>
 

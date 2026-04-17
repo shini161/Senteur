@@ -130,7 +130,7 @@ CREATE TABLE product_categories (
 CREATE TABLE product_notes (
     product_id INT NOT NULL,
     note_id INT NOT NULL,
-    note_type ENUM('top', 'middle', 'base') NOT NULL,
+    note_type ENUM('general', 'top', 'heart', 'base') NOT NULL,
 
     PRIMARY KEY (product_id, note_id, note_type),
 
