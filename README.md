@@ -60,6 +60,38 @@ Prerequisites: Docker with Compose, plus ports `8080` and `3306` available unles
    docker compose down
    ```
 
+## Optional Cloudflare Quick Tunnel
+
+You can make the app publicly reachable through a free temporary Cloudflare Quick Tunnel without changing the normal `docker compose up --build` command.
+
+1. Open `.env`.
+2. Set:
+
+   ```env
+   COMPOSE_PROFILES=cloudflare
+   ```
+
+3. Start the stack as usual:
+
+   ```bash
+   docker compose up --build
+   ```
+
+4. Watch the `cloudflared` logs in the compose output, or in a second terminal:
+
+   ```bash
+   docker compose logs -f cloudflared
+   ```
+
+5. Open the generated `https://...trycloudflare.com` URL shown in those logs.
+
+Notes:
+
+- The tunnel is ephemeral, so the public URL changes each time the service starts.
+- To disable it again, clear `COMPOSE_PROFILES` in `.env`.
+- The tunnel forwards to `CLOUDFLARE_TUNNEL_ORIGIN`, which defaults to the internal Nginx service at `http://nginx:80`.
+- Features that rely on absolute URLs from `APP_URL` such as Stripe Checkout redirects will still use whatever `APP_URL` is set to. For a temporary tunnel, update `APP_URL` manually after the tunnel URL appears if you want those external redirects to point at the tunnel instead of `localhost`.
+
 ## Demo accounts
 
 The seed file includes development accounts from `docker/mysql/seed.sql`:
@@ -98,6 +130,8 @@ Recommended local workflow:
 
 4. Copy the returned `whsec_...` value into `STRIPE_WEBHOOK_SECRET` in `.env`.
 
+If you are testing through a temporary Cloudflare tunnel, set `APP_URL` to the current `trycloudflare.com` address before starting a Stripe Checkout session so the redirect URLs match the public tunnel.
+
 Stripe test card:
 
 ```text
@@ -123,6 +157,7 @@ See `.env.example` for the full template. The app currently expects:
 - `APP_ENV`, `APP_DEBUG`, `APP_URL`
 - `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`
 - `STRIPE_SECRET_KEY`, `STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET`
+- Optional Compose/tunnel settings: `COMPOSE_PROFILES`, `CLOUDFLARE_TUNNEL_ORIGIN`
 
 ## Database
 

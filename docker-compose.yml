@@ -22,6 +22,18 @@ services:
     depends_on:
       - app
 
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: senteur_cloudflared
+    profiles:
+      - cloudflare
+    command:
+      - tunnel
+      - --url
+      - ${CLOUDFLARE_TUNNEL_ORIGIN:-http://nginx:80}
+    depends_on:
+      - nginx
+
   mysql:
     image: mysql:8.0
     container_name: senteur_mysql
