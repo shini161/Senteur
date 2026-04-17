@@ -153,8 +153,8 @@ INSERT INTO notes (id, name, slug, image_url) VALUES
 (82, 'Rum', 'rum', 'uploads/notes/rum.png'),
 (83, 'Cypriol Oil', 'cypriol-oil', 'uploads/notes/cypriol-oil.png'),
 (84, 'Rose', 'rose', 'uploads/notes/rose.png'),
-(85, 'Moroccan Jasmine', 'moroccan-jasmine', 'uploads/notes/moroccan-jasmine.png');
-(86, 'Sugar Cane', 'sugar-cane', 'uploads/notes/sugar-cane.png'),
+(85, 'Moroccan Jasmine', 'moroccan-jasmine', 'uploads/notes/moroccan-jasmine.png'),
+(86, 'Sugar Cane', 'sugar-cane', 'uploads/notes/sugar-cane.png');
 
 -- ======================
 -- USERS
