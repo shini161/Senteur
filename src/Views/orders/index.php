@@ -1,6 +1,3 @@
-<?php
-// Paginated order history for the signed-in user, with optional status filters.
-?>
 <section class="orders-page">
     <div class="orders-container">
         <h1>My Orders</h1>
@@ -44,7 +41,6 @@
             </div>
 
             <?php if (($totalPages ?? 1) > 1): ?>
-                <?php // Preserve the selected status filter while paging. ?>
                 <div class="orders-pagination">
                     <?php
                     $baseQuery = [];

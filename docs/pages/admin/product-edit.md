@@ -1,233 +1,33 @@
-# Admin - Product Edit
+# Admin Product Edit
 
 ## Purpose
 
-Allow administrators to update an existing product, including its variants, images, and notes.
+Update a saved product, preserve variant identity, and manage product-level or variant-level imagery.
 
----
-
-## Route
+## Routes
 
 ```bash
-GET   /admin/products/{id}/edit
-PATCH /admin/products/{id}
+GET  /admin/products/{id}/edit
+POST /admin/products/{id}
+POST /admin/products/{id}/image
+POST /admin/variants/{id}/image
 ```
 
----
+## Current Behavior
 
-## Parameters
+- The edit screen adds summary cards for variants, stock, price range, primary image state, and note count.
+- The main form reuses the same identity, notes, and variants sections as create.
+- Product-level image upload is handled in the sidebar.
+- Variant-level primary image uploads are listed in a dedicated section below the form.
+- When validation fails, existing variant images are preserved while the form re-renders.
 
-| Param | Type | Required | Notes      |
-| ----- | ---- | -------- | ---------- |
-| id    | int  | ✅        | product ID |
+## Media Rules
 
----
+- product images are uploaded after the product already exists
+- variant image uploads are scoped to one variant at a time
+- image upload errors are shown inline without leaving the edit screen
 
-## Page Data
+## Visual Reference
 
-* product:
-
-  * name
-  * slug
-  * brand_id
-  * fragrance_type_id
-  * gender
-  * description
-* variants:
-
-  * id
-  * size_ml
-  * price
-  * stock
-* notes:
-
-  * note_id
-  * note_type
-* images:
-
-  * id
-  * image_url
-  * position
-
----
-
-## Request Flow
-
-### Update Product
-
-![Update Product Flow](../../flows/admin/product-update.png)
-
----
-
-## Controller
-
-```php
-Admin\\ProductController::edit(int $id)
-Admin\\ProductController::update(int $id)
-```
-
----
-
-## Service Layer
-
-```php
-ProductService::update(int $id, array $data): void
-```
-
----
-
-## Responsibilities
-
-* retrieve product data
-* validate updates
-* ensure slug uniqueness
-* sync related entities (variants, notes, images)
-* handle transaction
-
----
-
-## Validation Rules
-
-* name
-
-> - required
-> - max: 150
-
-* brand_id
-
-> - required
-> - exists in `brands`
-
-* gender
-
-> - required
-> - one of: male, female, unisex
-
-* variants
-
-> - at least one required
-> - size_ml > 0
-> - price > 0
-> - stock ≥ 0
-
----
-
-## Database Actions (Transactional)
-
-### Update product
-
-```sql
-UPDATE products
-SET name = ?, slug = ?, brand_id = ?, fragrance_type_id = ?, gender = ?, description = ?
-WHERE id = ?;
-```
-
----
-
-### Variants sync
-
-```sql
--- update existing
-UPDATE product_variants
-SET size_ml = ?, price = ?, stock = ?
-WHERE id = ? AND product_id = ?;
-
--- insert new
-INSERT INTO product_variants (product_id, size_ml, price, stock)
-VALUES (?, ?, ?, ?);
-
--- delete removed
-DELETE FROM product_variants
-WHERE id = ? AND product_id = ?;
-```
-
----
-
-### Notes sync
-
-```sql
-DELETE FROM product_notes
-WHERE product_id = ?;
-
-INSERT INTO product_notes (product_id, note_id, note_type)
-VALUES (?, ?, ?);
-```
-
----
-
-### Images handling
-
-```sql
--- delete removed
-DELETE FROM product_images
-WHERE id = ? AND product_id = ?;
-
--- insert new
-INSERT INTO product_images (product_id, image_url, position)
-VALUES (?, ?, ?);
-
--- update positions
-UPDATE product_images
-SET position = ?
-WHERE id = ? AND product_id = ?;
-```
-
----
-
-## Image Handling
-
-* store in `public/uploads/products/`
-* delete files when removed
-* maintain ordering via `position`
-
----
-
-## Response
-
-### Success
-
-```text
-302 Redirect → /admin/products
-```
-
----
-
-### Errors
-
-* validation errors
-* duplicate slug
-* transaction failure
-
----
-
-## Security
-
-* admin authentication required
-* role-based access (admin only)
-* CSRF protection required
-
----
-
-## UX Notes
-
-* pre-filled form
-* dynamic variants editing
-* image preview and reorder
-* ability to remove images and variants
-
----
-
-## Future Extensions
-
-* versioning / history
-* draft updates
-* audit log
-
----
-
-## View Requirements
-
-* edit form
-* variants editor
-* notes selector
-* image management UI
+Add image here: edit product screen with summary cards, main form, and image upload panels.
+Suggested path: `docs/screenshots/admin/product-edit.png`

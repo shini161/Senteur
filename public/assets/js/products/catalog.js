@@ -1,12 +1,32 @@
 // Catalogue note filters live in a dedicated asset so the PHP template stays
 // focused on markup while the picker remains progressively enhanced.
 document.addEventListener('DOMContentLoaded', function () {
+  const filtersToggle = document.getElementById('toggle-catalog-filters');
+  const filtersBody = document.getElementById('catalog-filters-body');
   const toggleButton = document.getElementById('toggle-note-filters');
   const noteFilters = document.getElementById('catalog-note-filters');
 
+  if (filtersToggle && filtersBody) {
+    const updateFiltersToggle = () => {
+      const isOpen = filtersBody.classList.contains('is-open');
+      filtersToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      filtersToggle.classList.toggle('is-active', isOpen);
+    };
+
+    filtersToggle.addEventListener('click', function () {
+      filtersBody.classList.toggle('is-open');
+      updateFiltersToggle();
+    });
+
+    updateFiltersToggle();
+  }
+
   if (toggleButton && noteFilters) {
+    toggleButton.classList.toggle('is-active', noteFilters.classList.contains('is-open'));
+
     toggleButton.addEventListener('click', function () {
       noteFilters.classList.toggle('is-open');
+      toggleButton.classList.toggle('is-active', noteFilters.classList.contains('is-open'));
       toggleButton.setAttribute(
         'aria-expanded',
         noteFilters.classList.contains('is-open') ? 'true' : 'false'

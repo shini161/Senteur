@@ -8,6 +8,7 @@ use App\Core\Database;
 use App\Models\Concerns\ProductRepositoryAdminQueries;
 use App\Models\Concerns\ProductRepositoryCatalogueQueries;
 use App\Models\Concerns\ProductRepositoryLookupQueries;
+use App\Models\Concerns\ProductRepositoryTaxonomyQueries;
 use PDO;
 
 /**
@@ -19,6 +20,7 @@ class ProductRepository
     use ProductRepositoryCatalogueQueries;
     use ProductRepositoryAdminQueries;
     use ProductRepositoryLookupQueries;
+    use ProductRepositoryTaxonomyQueries;
 
     public function __construct(
         private ?PDO $pdo = null

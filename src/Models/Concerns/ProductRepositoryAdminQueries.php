@@ -64,6 +64,8 @@ trait ProductRepositoryAdminQueries
         $params = [];
         ['where' => $whereSql, 'having' => $havingSql] = $this->buildAdminProductFilterSql($filters, $params);
 
+        $orderBy = $this->resolveAdminProductSort((string) ($filters['sort'] ?? 'newest'));
+
         $sql = "
             SELECT
                 p.id,
@@ -98,7 +100,7 @@ trait ProductRepositoryAdminQueries
                 ft.name,
                 pi.image_url
             {$havingSql}
-            ORDER BY p.id DESC
+            ORDER BY {$orderBy}
             LIMIT :limit OFFSET :offset
         ";
 
@@ -743,7 +745,10 @@ trait ProductRepositoryAdminQueries
     {
         $where = [];
         $having = [];
+
         $query = trim((string) ($filters['q'] ?? ''));
+        $brandId = (int) ($filters['brand_id'] ?? 0);
+        $fragranceTypeId = (int) ($filters['fragrance_type_id'] ?? 0);
         $gender = trim((string) ($filters['gender'] ?? ''));
         $inventory = trim((string) ($filters['inventory'] ?? ''));
 
@@ -753,6 +758,7 @@ trait ProductRepositoryAdminQueries
             foreach ($tokens as $index => $token) {
                 $paramKey = 'search_' . $index;
                 $params[$paramKey] = '%' . $token . '%';
+
                 $where[] = "
                     (
                         LOWER(p.name) LIKE :{$paramKey}
@@ -762,10 +768,28 @@ trait ProductRepositoryAdminQueries
                         OR LOWER(COALESCE(p.description, '')) LIKE :{$paramKey}
                         OR LOWER(b.name) LIKE :{$paramKey}
                         OR LOWER(COALESCE(ft.name, '')) LIKE :{$paramKey}
+                        OR LOWER(p.gender) LIKE :{$paramKey}
                         OR CAST(p.id AS CHAR) LIKE :{$paramKey}
+                        OR EXISTS (
+                            SELECT 1
+                            FROM product_notes pn_search
+                            INNER JOIN notes n_search ON n_search.id = pn_search.note_id
+                            WHERE pn_search.product_id = p.id
+                              AND LOWER(n_search.name) LIKE :{$paramKey}
+                        )
                     )
                 ";
             }
+        }
+
+        if ($brandId > 0) {
+            $params['brand_id'] = $brandId;
+            $where[] = 'p.brand_id = :brand_id';
+        }
+
+        if ($fragranceTypeId > 0) {
+            $params['fragrance_type_id'] = $fragranceTypeId;
+            $where[] = 'p.fragrance_type_id = :fragrance_type_id';
         }
 
         if ($gender !== '') {
@@ -785,5 +809,17 @@ trait ProductRepositoryAdminQueries
             'where' => $where === [] ? '' : 'WHERE ' . implode(' AND ', $where),
             'having' => $having === [] ? '' : 'HAVING ' . implode(' AND ', $having),
         ];
+    }
+
+    private function resolveAdminProductSort(string $sort): string
+    {
+        return match ($sort) {
+            'name_asc' => 'p.name ASC',
+            'price_asc' => 'min_price ASC, p.id DESC',
+            'price_desc' => 'min_price DESC, p.id DESC',
+            'stock_asc' => 'total_stock ASC, p.id DESC',
+            'stock_desc' => 'total_stock DESC, p.id DESC',
+            default => 'p.id DESC',
+        };
     }
 }

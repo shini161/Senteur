@@ -56,12 +56,6 @@ class NoteService
             'currentPage' => $currentPage,
             'totalPages' => $totalPages,
             'totalNotes' => $totalNotes,
-            'linkedProductsByNote' => $this->noteRepository->findProductsForNotes(
-                array_map(
-                    static fn (array $note): int => (int) ($note['id'] ?? 0),
-                    $pageNotes
-                )
-            ),
         ];
     }
 
@@ -71,6 +65,16 @@ class NoteService
     public function getById(int $id): ?array
     {
         return $this->noteRepository->findById($id);
+    }
+
+    /**
+     * Returns every product currently linked to the given note.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function getLinkedProducts(int $id): array
+    {
+        return $this->noteRepository->findProductsForNotes([$id], 1000)[$id] ?? [];
     }
 
     /**

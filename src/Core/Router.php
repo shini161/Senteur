@@ -15,6 +15,7 @@ use App\Controllers\OrderController;
 use App\Controllers\ReviewController;
 use App\Controllers\StripeWebhookController;
 use App\Controllers\AdminAuthController;
+use App\Controllers\AdminCatalogController;
 use App\Controllers\AdminNoteController;
 use App\Controllers\AdminOrderController;
 use App\Controllers\AdminProductController;
@@ -34,6 +35,7 @@ use App\Services\CheckoutService;
 use App\Services\OrderService;
 use App\Services\PaymentService;
 use App\Services\AdminOrderService;
+use App\Services\AdminCatalogService;
 use App\Services\AdminProductService;
 use App\Services\NoteService;
 use App\Services\ReviewService;
@@ -231,6 +233,12 @@ class Router
 			AdminNoteController::class => new AdminNoteController(
 				new NoteService(
 					new NoteRepository()
+				)
+			),
+
+			AdminCatalogController::class => new AdminCatalogController(
+				new AdminCatalogService(
+					new ProductRepository()
 				)
 			),
 

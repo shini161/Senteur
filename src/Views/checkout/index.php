@@ -1,12 +1,7 @@
-<?php
-// Checkout review page combining the cart snapshot with the user's saved
-// shipping addresses before redirecting into Stripe Checkout.
-?>
 <section class="checkout-page">
     <div class="checkout-grid">
 
         <div class="checkout-card">
-            <?php // Left column: immutable order snapshot shown before payment. ?>
             <h1>Checkout</h1>
             <p class="checkout-subtitle">Review your order and choose a shipping address.</p>
 
@@ -56,7 +51,7 @@
 
                             <div class="checkout-item-side">
                                 <div class="checkout-item-price">
-                                    €<?= number_format((float) $item['subtotal'], 2) ?>
+                                    €<?= number_format((float) $item['price'], 2) ?>
                                 </div>
 
                                 <div class="checkout-item-qty muted">
@@ -75,7 +70,6 @@
         </div>
 
         <div class="checkout-card">
-            <?php // Right column: choose or create the shipping destination. ?>
             <h2>Shipping address</h2>
 
             <?php if (! empty($items) && ! empty($addresses)): ?>

@@ -1,7 +1,3 @@
-<?php
-// Order detail page built from stored order snapshots so historical orders stay
-// stable even if product catalogue data changes later.
-?>
 <section class="order-page">
     <div class="order-container">
 
@@ -19,8 +15,8 @@
         </div>
 
         <div class="order-actions">
-            <button type="button" class="button-secondary">Download receipt</button>
-            <button type="button" class="button-secondary">Track order</button>
+            <a href="/orders" class="button-link">Back to orders</a>
+            <a href="/products" class="button-link">Continue shopping</a>
         </div>
 
         <div class="order-grid">
@@ -87,7 +83,6 @@
             </div>
 
             <aside class="order-sidebar">
-                <?php // Summary and shipping info are separated from the item list for scannability. ?>
                 <div class="order-card">
                     <h2>Summary</h2>
 
@@ -124,7 +119,5 @@
                 </div>
             </aside>
         </div>
-
-        <a href="/orders" class="back-link">← Back to orders</a>
     </div>
 </section>

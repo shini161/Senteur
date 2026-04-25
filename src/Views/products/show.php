@@ -1,11 +1,5 @@
 <?php
 use App\Support\ProductNotes;
-
-// Product detail page with variant switching, gallery updates, purchase actions,
-// scent breakdown, reviews, and related-product recommendations.
-
-// Review dates use relative wording for recent entries and fall back to an
-// absolute date for older reviews.
 $formatReviewDate = static function (string $date): string {
     $reviewDate = new DateTime($date);
     $now = new DateTime();
@@ -30,8 +24,6 @@ $formatReviewDate = static function (string $date): string {
     return (new DateTime($date))->format('d M Y');
 };
 
-// Filled and empty star markup are generated server-side so review lists render
-// correctly before any JavaScript enhancements run.
 $renderStars = static function (int $rating): string {
     $rating = max(0, min(5, $rating));
 
@@ -44,7 +36,6 @@ $renderStars = static function (int $rating): string {
     return $html;
 };
 
-// Average ratings support half-star display for a slightly richer summary UI.
 $renderAverageStars = static function (float $rating): string {
     $rating = max(0, min(5, $rating));
     $html = '';
@@ -73,6 +64,7 @@ $productNotes = is_array($product['notes'] ?? null) ? $product['notes'] : Produc
 $visibleNoteTypes = ProductNotes::preferredStorefrontTypes($productNotes);
 $variants = $product['variants'] ?? [];
 $selectedVariant = $variants[0] ?? null;
+$selectedVariantInStock = $selectedVariant !== null && (int) ($selectedVariant['stock'] ?? 0) > 0;
 $selectedVariantImages = $selectedVariant['images'] ?? [];
 $selectedImage = $selectedVariantImages[0]['image_url'] ?? $selectedVariant['image_url'] ?? $product['image_url'] ?? null;
 
@@ -81,7 +73,6 @@ $scripts[] = '/assets/js/products/show.js';
 ?>
 
 <section class="product-show">
-    <?php // Left column: initial gallery state for the first selectable variant. ?>
     <div class="product-show-gallery">
         <div class="product-show-image-wrap">
             <?php if ($selectedImage): ?>
@@ -111,7 +102,6 @@ $scripts[] = '/assets/js/products/show.js';
     </div>
 
     <div class="product-show-panel">
-        <?php // Right column: product metadata plus the add-to-cart form. ?>
         <div class="product-show-header">
             <div class="product-show-brand">
                 <?= htmlspecialchars($product['brand_name']) ?>
@@ -159,8 +149,6 @@ $scripts[] = '/assets/js/products/show.js';
                 <div class="variant-selector" id="variant-selector">
                     <?php foreach ($variants as $index => $variant): ?>
                         <?php
-                        // Each variant button carries the data needed for client-side
-                        // switching so the page does not need round-trips for size changes.
                         $variantImageSet = $variant['images'] ?? [];
                         $variantPrimaryImage = $variantImageSet[0]['image_url'] ?? $variant['image_url'] ?? $product['image_url'] ?? '';
                         ?>
@@ -209,21 +197,43 @@ $scripts[] = '/assets/js/products/show.js';
 
                     <div class="product-purchase-actions">
                         <div class="qty-stepper">
-                            <button type="button" class="qty-btn" data-qty-action="decrease" aria-label="Decrease quantity">−</button>
+                            <button
+                                type="button"
+                                class="qty-btn"
+                                data-qty-action="decrease"
+                                aria-label="Decrease quantity"
+                                <?= $selectedVariantInStock ? '' : 'disabled' ?>>
+                                −
+                            </button>
 
                             <input
                                 type="number"
                                 name="quantity"
                                 value="1"
                                 min="1"
-                                max="<?= min((int) $selectedVariant['stock'], 5) ?>"
+                                max="<?= max(1, min((int) $selectedVariant['stock'], 5)) ?>"
                                 class="qty-input"
-                                inputmode="numeric">
+                                inputmode="numeric"
+                                <?= $selectedVariantInStock ? '' : 'disabled' ?>>
 
-                            <button type="button" class="qty-btn" data-qty-action="increase" aria-label="Increase quantity">+</button>
+                            <button
+                                type="button"
+                                class="qty-btn"
+                                data-qty-action="increase"
+                                aria-label="Increase quantity"
+                                <?= $selectedVariantInStock ? '' : 'disabled' ?>>
+                                +
+                            </button>
                         </div>
 
-                        <button type="submit" class="auth-button">Add to cart</button>
+                        <button
+                            type="submit"
+                            class="auth-button"
+                            id="product-submit-button"
+                            data-default-label="Add to cart"
+                            <?= $selectedVariantInStock ? '' : 'disabled' ?>>
+                            <?= $selectedVariantInStock ? 'Add to cart' : 'Out of stock' ?>
+                        </button>
                     </div>
                 </form>
             </div>
@@ -233,7 +243,6 @@ $scripts[] = '/assets/js/products/show.js';
 
 <section class="product-detail-sections">
     <div class="panel">
-        <?php // Categories and notes explain the fragrance profile beneath the purchase area. ?>
         <h2>Scent profile</h2>
 
         <?php if (!empty($product['categories'])): ?>

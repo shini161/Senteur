@@ -1,6 +1,6 @@
 <?php
-// Admin catalogue overview focused on stock, merchandising data, and quick
-// access to product editing.
+$scripts ??= [];
+$scripts[] = '/assets/js/admin/filters.js';
 
 $formatPriceRange = static function ($minPrice, $maxPrice): string {
     if ($minPrice === null || $maxPrice === null) {
@@ -44,21 +44,35 @@ $buildPageUrl = static function (int $pageNumber) use ($filters): string {
 
     return '/admin/products?' . http_build_query(array_filter(
         $params,
-        static fn ($value) => $value !== '' && $value !== null
+        static fn($value) => $value !== '' && $value !== null
     ));
 };
+
 $hasActiveFilters = ($filters['q'] ?? '') !== ''
+    || (int) ($filters['brand_id'] ?? 0) > 0
+    || (int) ($filters['fragrance_type_id'] ?? 0) > 0
     || ($filters['gender'] ?? '') !== ''
-    || ($filters['inventory'] ?? '') !== '';
+    || ($filters['inventory'] ?? '') !== ''
+    || ($filters['sort'] ?? 'newest') !== 'newest';
+
+$activeFilterCount = (($filters['q'] ?? '') !== '' ? 1 : 0)
+    + ((int) ($filters['brand_id'] ?? 0) > 0 ? 1 : 0)
+    + ((int) ($filters['fragrance_type_id'] ?? 0) > 0 ? 1 : 0)
+    + (($filters['gender'] ?? '') !== '' ? 1 : 0)
+    + (($filters['inventory'] ?? '') !== '' ? 1 : 0)
+    + (($filters['sort'] ?? 'newest') !== 'newest' ? 1 : 0);
+
+$filtersOpen = $activeFilterCount > 0;
 $normalizeTagValue = static function (?string $value): string {
     return strtolower(trim(preg_replace('/[^a-z0-9]+/i', ' ', (string) $value) ?? ''));
 };
 ?>
+
 <section class="admin-products-page">
     <div class="admin-products-shell">
         <?php
         $adminHeaderTitle = 'Products';
-        $adminHeaderLead = 'Manage merchandising details, note profiles, stock coverage, and catalog presentation from one cleaner workspace.';
+        $adminHeaderLead = 'Manage product details, note profiles, stock, pricing, and catalog presentation.';
         $adminHeaderSection = 'products';
         $adminHeaderClass = 'admin-products-hero';
         $adminHeaderActions = [
@@ -73,23 +87,50 @@ $normalizeTagValue = static function (?string $value): string {
         require __DIR__ . '/../_header.php';
         ?>
 
-        <section class="panel admin-filter-panel">
-            <form method="GET" action="/admin/products" class="auth-form admin-filter-form">
-                <div class="admin-filter-grid">
-                    <div class="form-group admin-filter-search">
-                        <label for="product-q">Search</label>
+        <section class="panel admin-filter-panel admin-products-search-panel" data-filter-panel>
+            <div class="admin-filter-header">
+                <div>
+                    <h2>Search</h2>
+                    <p class="muted admin-filter-summary">
+                        <?= number_format((int) $totalProducts) ?> matching products
+                        <?php if ($activeFilterCount > 0): ?>
+                            <?= number_format($activeFilterCount) ?> active filter<?= $activeFilterCount === 1 ? '' : 's' ?>.
+                        <?php endif; ?>
+                    </p>
+                </div>
+
+                <button
+                    type="button"
+                    class="button-secondary admin-filter-toggle filter-toggle-button filter-toggle-button-icon-only"
+                    data-filter-toggle
+                    aria-expanded="<?= $filtersOpen ? 'true' : 'false' ?>"
+                    aria-label="Toggle product filters"
+                    title="Toggle product filters">
+                    <span class="filter-toggle-icon" aria-hidden="true"></span>
+                    <span class="sr-only">Toggle product filters</span>
+                </button>
+            </div>
+
+            <form
+                method="GET"
+                action="/admin/products"
+                class="auth-form admin-filter-form admin-filter-body <?= $filtersOpen ? 'is-open' : '' ?>"
+                data-filter-body>
+                <div class="admin-filter-grid admin-products-filter-grid">
+                    <div class="form-group admin-products-search-main">
+                        <label for="product-q">Search catalogue</label>
                         <input
                             id="product-q"
                             type="text"
                             name="q"
-                            placeholder="Product name, slug, brand, or ID"
+                            placeholder="Try: Dior sauvage elixir, extrait, unisex, #12..."
                             value="<?= htmlspecialchars((string) ($filters['q'] ?? '')) ?>">
                     </div>
 
                     <div class="form-group">
                         <label for="product-gender">Gender</label>
                         <select id="product-gender" name="gender">
-                            <option value="">All</option>
+                            <option value="">All genders</option>
                             <?php foreach ($genders as $gender): ?>
                                 <option
                                     value="<?= htmlspecialchars((string) $gender) ?>"
@@ -114,7 +155,7 @@ $normalizeTagValue = static function (?string $value): string {
                 <div class="admin-filter-actions">
                     <button type="submit" class="auth-button">Apply filters</button>
                     <a href="/admin/products" class="button-secondary">Reset</a>
-                    <span class="muted admin-results-count"><?= number_format((int) $totalProducts) ?> matching products</span>
+                    <span class="muted admin-results-count"><?= number_format((int) $totalProducts) ?> results</span>
                 </div>
             </form>
         </section>

@@ -1,26 +1,21 @@
-<?php
-// Home page view combining hero messaging, featured products, and curated
-// collection shortcuts derived from repository-backed note filters.
-?>
-<section class="home-hero panel" style="padding: 2rem; margin-bottom: 1.5rem;">
+<section class="home-hero panel">
     <p class="section-kicker">Senteur</p>
     <h1>Discover your next fragrance</h1>
-    <p class="lead" style="max-width: 640px;">
+    <p class="lead home-hero-lead">
         Explore a curated perfume catalogue with elegant product pages,
         structured scent profiles, secure checkout, and a clean buying flow.
     </p>
 
-    <div style="display:flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1.25rem;">
+    <div class="home-hero-actions">
         <a href="/products" class="auth-button">Shop now</a>
-        <a href="/products?sort=price_desc" class="button-secondary">Explore premium picks</a>
+        <a href="/products?sort=price_desc" class="button-secondary">Premium picks</a>
     </div>
 </section>
 
-<section style="margin-bottom: 2rem;">
-    <?php // Featured catalogue entries surfaced on the landing page. ?>
+<section class="home-section">
     <div class="section-heading">
         <p class="section-kicker">Featured</p>
-        <h2 style="margin-top: 0;">Featured products</h2>
+        <h2 class="home-section-title">Featured products</h2>
     </div>
 
     <?php if (empty($featuredProducts)): ?>
@@ -74,17 +69,16 @@
     <?php endif; ?>
 </section>
 
-<section style="margin-bottom: 2rem;">
-    <?php // Collection cards link into the catalogue with pre-filled queries. ?>
+<section class="home-section">
     <div class="section-heading">
         <p class="section-kicker">Explore</p>
-        <h2 style="margin-top: 0;">Shop by style</h2>
+        <h2 class="home-section-title">Shop by style</h2>
     </div>
 
     <div class="home-collections-grid">
         <?php foreach ($collections as $collection): ?>
             <article class="panel">
-                <h2 style="margin-top: 0;"><?= htmlspecialchars($collection['title']) ?></h2>
+                <h2 class="home-section-title"><?= htmlspecialchars($collection['title']) ?></h2>
                 <p class="muted"><?= htmlspecialchars($collection['description']) ?></p>
                 <a href="/products<?= htmlspecialchars($collection['query']) ?>" class="button-link">Browse selection</a>
             </article>
@@ -92,26 +86,25 @@
     </div>
 </section>
 
-<section class="panel" style="padding: 1.5rem;">
-    <?php // Closing value proposition block for the storefront landing page. ?>
-    <div class="section-heading" style="margin-bottom: 1rem;">
+<section class="panel home-value-panel">
+    <div class="section-heading home-value-heading">
         <p class="section-kicker">Why Senteur</p>
-        <h2 style="margin-top: 0;">Fragrance shopping, made more intuitive</h2>
+        <h2 class="home-section-title">Fragrance shopping, made more intuitive</h2>
     </div>
 
     <div class="home-why-grid">
         <div>
-            <h2 style="margin-top: 0;">Clear product discovery</h2>
+            <h2 class="home-section-title">Clear product discovery</h2>
             <p class="muted">Browse by brand, concentration, notes, and style without getting lost in clutter.</p>
         </div>
 
         <div>
-            <h2 style="margin-top: 0;">Meaningful perfume details</h2>
+            <h2 class="home-section-title">Meaningful perfume details</h2>
             <p class="muted">See concentrations, variants, scent profiles, and related fragrances in a cleaner format.</p>
         </div>
 
         <div>
-            <h2 style="margin-top: 0;">Smooth buying flow</h2>
+            <h2 class="home-section-title">Smooth buying flow</h2>
             <p class="muted">From discovery to checkout, everything is designed to stay simple, fast, and elegant.</p>
         </div>
     </div>

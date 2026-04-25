@@ -15,6 +15,15 @@ class AdminProductService
 {
     private const PER_PAGE = 12;
 
+    private const SORT_OPTIONS = [
+        'newest' => 'Newest',
+        'name_asc' => 'Name A-Z',
+        'price_asc' => 'Price low-high',
+        'price_desc' => 'Price high-low',
+        'stock_asc' => 'Stock low-high',
+        'stock_desc' => 'Stock high-low',
+    ];
+
     public function __construct(
         private ProductRepository $productRepository
     ) {}
@@ -43,6 +52,7 @@ class AdminProductService
             'currentPage' => $currentPage,
             'totalPages' => $totalPages,
             'totalProducts' => $totalProducts,
+            'sortOptions' => self::SORT_OPTIONS,
         ];
     }
 
@@ -178,6 +188,10 @@ class AdminProductService
             throw new RuntimeException('Brand is required.');
         }
 
+        if (! $this->productRepository->brandExists($product['brand_id'])) {
+            throw new RuntimeException('Selected brand is no longer available.');
+        }
+
         if ($product['name'] === '') {
             throw new RuntimeException('Product name is required.');
         }
@@ -192,6 +206,13 @@ class AdminProductService
 
         if (! in_array($product['gender'], ['male', 'female', 'unisex'], true)) {
             throw new RuntimeException('Invalid gender.');
+        }
+
+        if (
+            $product['fragrance_type_id'] !== null
+            && ! $this->productRepository->fragranceTypeExists((int) $product['fragrance_type_id'])
+        ) {
+            throw new RuntimeException('Selected fragrance type is no longer available.');
         }
 
         $product['family_name'] = $product['family_name'] !== '' ? $product['family_name'] : null;
@@ -264,7 +285,7 @@ class AdminProductService
     {
         return array_values(array_unique(array_filter(
             array_map('intval', $noteIds),
-            static fn (int $id): bool => $id > 0
+            static fn(int $id): bool => $id > 0
         )));
     }
 
@@ -278,11 +299,15 @@ class AdminProductService
     {
         $gender = trim((string) ($rawFilters['gender'] ?? ''));
         $inventory = trim((string) ($rawFilters['inventory'] ?? ''));
+        $sort = trim((string) ($rawFilters['sort'] ?? 'newest'));
 
         return [
             'q' => trim((string) ($rawFilters['q'] ?? '')),
+            'brand_id' => max(0, (int) ($rawFilters['brand_id'] ?? 0)),
+            'fragrance_type_id' => max(0, (int) ($rawFilters['fragrance_type_id'] ?? 0)),
             'gender' => in_array($gender, ['male', 'female', 'unisex'], true) ? $gender : '',
             'inventory' => in_array($inventory, ['in_stock', 'low_stock', 'out_of_stock'], true) ? $inventory : '',
+            'sort' => array_key_exists($sort, self::SORT_OPTIONS) ? $sort : 'newest',
             'page' => max(1, (int) ($rawFilters['page'] ?? 1)),
         ];
     }

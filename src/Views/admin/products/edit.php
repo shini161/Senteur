@@ -1,8 +1,6 @@
 <?php
-use App\Support\ProductNotes;
 
-// Admin product editing workspace with preserved variant identities, media
-// upload controls, and a clearer overview of catalog health.
+use App\Support\ProductNotes;
 
 $variantCount = count($product['variants'] ?? []);
 $totalStock = 0;
@@ -37,13 +35,11 @@ if ($prices !== []) {
         $adminHeaderKicker = 'Admin / Products';
         $adminHeaderSection = 'products';
         $adminHeaderClass = 'admin-product-header';
+        $adminHeaderBackLink = [
+            'href' => '/admin/products',
+            'label' => 'Back to products',
+        ];
         $adminHeaderActions = [
-            [
-                'type' => 'link',
-                'href' => '/admin/products',
-                'label' => 'Back to products',
-                'class' => 'button-secondary',
-            ],
             [
                 'type' => 'badge',
                 'label' => 'ID #' . (int) $product['id'],
@@ -139,16 +135,10 @@ if ($prices !== []) {
                             <input id="image" name="image" type="file" accept=".jpg,.jpeg,.png,.webp" required>
                         </div>
 
-                        <button type="submit" class="button-secondary">Upload primary image</button>
+                        <button type="submit" class="button-secondary">Upload</button>
                     </form>
                 </section>
 
-                <section class="panel admin-product-sidebar-panel">
-                    <h2>Editing notes</h2>
-                    <p class="muted">
-                        Use Fragrance Notes when you only know the flat list, or fill the pyramid stages when you have verified top, heart, and base accords.
-                    </p>
-                </section>
             </aside>
         </div>
 
@@ -209,7 +199,7 @@ if ($prices !== []) {
                                         required>
                                 </div>
 
-                                <button type="submit" class="button-secondary">Upload variant image</button>
+                                <button type="submit" class="button-secondary">Upload</button>
                             </form>
                         </article>
                     <?php endforeach; ?>

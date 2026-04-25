@@ -144,6 +144,8 @@ class AdminNoteController extends Controller
     private function renderIndex(array $data = []): void
     {
         $listData = $this->noteService->getAdminListData($_GET);
+        $editingNote = is_array($data['editingNote'] ?? null) ? $data['editingNote'] : null;
+        $editingNoteId = (int) ($editingNote['id'] ?? 0);
 
         $this->render('admin/notes/index', $data + [
             'title' => 'Admin Notes',
@@ -152,7 +154,7 @@ class AdminNoteController extends Controller
             'currentPage' => $listData['currentPage'],
             'totalPages' => $listData['totalPages'],
             'totalNotes' => $listData['totalNotes'],
-            'linkedProductsByNote' => $listData['linkedProductsByNote'],
+            'editingLinkedProducts' => $editingNoteId > 0 ? $this->noteService->getLinkedProducts($editingNoteId) : [],
             'editingNote' => null,
             'formNote' => [
                 'name' => '',

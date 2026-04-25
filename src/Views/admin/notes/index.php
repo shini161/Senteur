@@ -1,6 +1,9 @@
 <?php
-// Admin note library with creation/editing on the same workspace.
+$scripts ??= [];
+$scripts[] = '/assets/js/admin/filters.js';
+
 $editingId = (int) ($editingNote['id'] ?? 0);
+$editingLinkedProducts = is_array($editingLinkedProducts ?? null) ? $editingLinkedProducts : [];
 $formNote = is_array($formNote ?? null) ? $formNote : [];
 
 $summary = [
@@ -33,14 +36,74 @@ $buildPageUrl = static function (int $pageNumber) use ($filters): string {
 
     return '/admin/notes?' . http_build_query(array_filter(
         $params,
-        static fn ($value) => $value !== '' && $value !== null
+        static fn($value) => $value !== '' && $value !== null
     ));
 };
 $hasActiveFilters = ($filters['q'] ?? '') !== '' || ($filters['usage'] ?? '') !== '';
+$activeFilterCount = (($filters['q'] ?? '') !== '' ? 1 : 0) + (($filters['usage'] ?? '') !== '' ? 1 : 0);
+$filtersOpen = $activeFilterCount > 0;
 ?>
-<section class="admin-notes-page">
+<section class="admin-notes-page<?= $editingId > 0 ? ' is-editing-note' : '' ?>">
     <div class="admin-notes-shell">
         <?php require __DIR__ . '/../_header.php'; ?>
+
+        <section class="panel admin-filter-panel" data-filter-panel>
+            <div class="admin-filter-header">
+                <div>
+                    <h2>Search</h2>
+                    <p class="muted admin-filter-summary">
+                        <?= number_format((int) $totalNotes) ?> matching notes
+                        <?php if ($activeFilterCount > 0): ?>
+                            · <?= number_format($activeFilterCount) ?> active
+                        <?php endif; ?>
+                    </p>
+                </div>
+
+                <button
+                    type="button"
+                    class="button-secondary admin-filter-toggle filter-toggle-button filter-toggle-button-icon-only"
+                    data-filter-toggle
+                    aria-expanded="<?= $filtersOpen ? 'true' : 'false' ?>"
+                    aria-label="Toggle note filters"
+                    title="Toggle note filters">
+                    <span class="filter-toggle-icon" aria-hidden="true"></span>
+                    <span class="sr-only">Toggle note filters</span>
+                </button>
+            </div>
+
+            <form
+                method="GET"
+                action="/admin/notes"
+                class="auth-form admin-filter-form admin-filter-body <?= $filtersOpen ? 'is-open' : '' ?>"
+                data-filter-body>
+                <div class="admin-filter-grid">
+                    <div class="form-group admin-filter-search">
+                        <label for="note-q">Search</label>
+                        <input
+                            id="note-q"
+                            type="text"
+                            name="q"
+                            placeholder="Note name, slug, or ID"
+                            value="<?= htmlspecialchars((string) ($filters['q'] ?? '')) ?>">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="note-usage">Usage</label>
+                        <select id="note-usage" name="usage">
+                            <option value="">All notes</option>
+                            <option value="used" <?= ($filters['usage'] ?? '') === 'used' ? 'selected' : '' ?>>In use</option>
+                            <option value="unused" <?= ($filters['usage'] ?? '') === 'unused' ? 'selected' : '' ?>>Unused</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="admin-filter-actions">
+                    <button type="submit" class="auth-button">Apply filters</button>
+                    <a href="/admin/notes" class="button-secondary">Reset</a>
+                    <span class="muted admin-results-count"><?= number_format((int) $totalNotes) ?> matching notes</span>
+                </div>
+            </form>
+        </section>
 
         <div class="admin-notes-stats">
             <div class="card admin-notes-stat">
@@ -70,7 +133,7 @@ $hasActiveFilters = ($filters['q'] ?? '') !== '' || ($filters['usage'] ?? '') !=
 
         <div class="admin-notes-workspace">
             <div class="admin-notes-main">
-                <section class="panel admin-notes-list-panel">
+                <section class="panel admin-notes-list-panel" data-filter-panel>
                     <div class="admin-product-panel-heading">
                         <div>
                             <h2>Fragrance note library</h2>
@@ -80,7 +143,11 @@ $hasActiveFilters = ($filters['q'] ?? '') !== '' || ($filters['usage'] ?? '') !=
                         <span class="badge">Page <?= (int) $currentPage ?> of <?= (int) $totalPages ?></span>
                     </div>
 
-                    <form method="GET" action="/admin/notes" class="auth-form admin-filter-form admin-note-list-toolbar">
+                    <form
+                        method="GET"
+                        action="/admin/notes"
+                        class="auth-form admin-filter-form admin-filter-body <?= $filtersOpen ? 'is-open' : '' ?>"
+                        data-filter-body>
                         <div class="admin-filter-grid">
                             <div class="form-group admin-filter-search">
                                 <label for="note-q">Search</label>
@@ -114,8 +181,8 @@ $hasActiveFilters = ($filters['q'] ?? '') !== '' || ($filters['usage'] ?? '') !=
                             <h3><?= $hasActiveFilters ? 'No matching notes' : 'No notes yet' ?></h3>
                             <p>
                                 <?= $hasActiveFilters
-                                    ? 'Try a broader search, switch the usage filter, or create a new note on the right.'
-                                    : 'Create the first note on the right, then return to product editing to assign it to perfumes.' ?>
+                                    ? 'Try a broader search, switch the usage filter, or create a new note in the editor.'
+                                    : 'Create the first note in the editor, then return to product editing to assign it to perfumes.' ?>
                             </p>
                         </div>
                     <?php else: ?>
@@ -125,7 +192,6 @@ $hasActiveFilters = ($filters['q'] ?? '') !== '' || ($filters['usage'] ?? '') !=
                                 $noteId = (int) $note['id'];
                                 $productCount = (int) ($note['product_count'] ?? 0);
                                 $isActive = $editingId === $noteId;
-                                $linkedProducts = $linkedProductsByNote[$noteId] ?? [];
                                 ?>
                                 <article class="admin-note-card <?= $isActive ? 'is-active' : '' ?>">
                                     <div class="admin-note-card-media">
@@ -146,40 +212,25 @@ $hasActiveFilters = ($filters['q'] ?? '') !== '' || ($filters['usage'] ?? '') !=
                                                 </div>
                                             </div>
 
-                                            <span class="badge">
-                                                <?= $productCount === 1 ? '1 perfume' : number_format($productCount) . ' perfumes' ?>
-                                            </span>
+                                            <?php if ($productCount > 0): ?>
+                                                <a
+                                                    href="/admin/notes?edit=<?= $noteId ?>#used-products"
+                                                    class="badge admin-note-product-count">
+                                                    <?= $productCount === 1 ? '1 perfume' : number_format($productCount) . ' perfumes' ?>
+                                                </a>
+                                            <?php else: ?>
+                                                <span class="badge">Unused</span>
+                                            <?php endif; ?>
                                         </div>
 
                                         <p class="muted admin-note-card-copy">
                                             <?= $productCount > 0
-                                                ? 'Available now inside product editing and already linked to one or more perfume note lists.'
-                                                : 'Created and ready to be assigned from the product form.' ?>
+                                                ? 'In use across one or more perfume note lists.'
+                                                : 'Ready to be assigned from product editing.' ?>
                                         </p>
 
-                                        <?php if ($linkedProducts !== []): ?>
-                                            <div class="admin-note-linked-products">
-                                                <span class="admin-note-linked-label">Used by</span>
-                                                <div class="admin-note-linked-list">
-                                                    <?php foreach ($linkedProducts as $linkedProduct): ?>
-                                                        <a
-                                                            href="/admin/products/<?= (int) $linkedProduct['id'] ?>/edit"
-                                                            class="admin-note-linked-link">
-                                                            <?= htmlspecialchars((string) $linkedProduct['name']) ?>
-                                                        </a>
-                                                    <?php endforeach; ?>
-
-                                                    <?php if ($productCount > count($linkedProducts)): ?>
-                                                        <span class="admin-note-linked-more">
-                                                            +<?= number_format($productCount - count($linkedProducts)) ?> more
-                                                        </span>
-                                                    <?php endif; ?>
-                                                </div>
-                                            </div>
-                                        <?php endif; ?>
-
                                         <div class="admin-note-card-actions">
-                                            <a href="/admin/notes?edit=<?= $noteId ?>" class="button-secondary">Edit</a>
+                                            <a href="/admin/notes?edit=<?= $noteId ?>#note-editor" class="button-secondary">Edit</a>
 
                                             <form
                                                 method="POST"
@@ -241,7 +292,7 @@ $hasActiveFilters = ($filters['q'] ?? '') !== '' || ($filters['usage'] ?? '') !=
                         </div>
 
                         <?php if ($editingId > 0): ?>
-                            <a href="/admin/notes" class="button-secondary">New note</a>
+                            <a href="/admin/notes" class="button-secondary admin-note-back-link">Back to notes</a>
                         <?php endif; ?>
                     </div>
 
@@ -301,12 +352,48 @@ $hasActiveFilters = ($filters['q'] ?? '') !== '' || ($filters['usage'] ?? '') !=
                     </form>
                 </section>
 
-                <section class="panel admin-notes-sidebar-panel">
-                    <h2>Using notes in perfumes</h2>
-                    <p class="muted">
-                        After a note exists here, open any product and assign it to Fragrance Notes or into top, heart, and base pyramid stages.
-                    </p>
-                </section>
+                <?php if ($editingId > 0 && $editingLinkedProducts !== []): ?>
+                    <section class="panel admin-notes-sidebar-panel" id="used-products">
+                        <h2>Used by <?= number_format(count($editingLinkedProducts)) ?> perfume<?= count($editingLinkedProducts) === 1 ? '' : 's' ?></h2>
+                        <p class="muted">Open a product directly to update where this note is attached.</p>
+
+                        <div class="admin-note-linked-products">
+                            <div class="admin-note-linked-list">
+                                <?php foreach ($editingLinkedProducts as $linkedProduct): ?>
+                                    <a
+                                        href="/admin/products/<?= (int) $linkedProduct['id'] ?>/edit"
+                                        class="admin-note-linked-product-card">
+                                        <div class="admin-note-linked-product-media">
+                                            <?php if (! empty($linkedProduct['image_url'])): ?>
+                                                <img
+                                                    src="/<?= htmlspecialchars((string) $linkedProduct['image_url']) ?>"
+                                                    alt="<?= htmlspecialchars((string) $linkedProduct['name']) ?>">
+                                            <?php else: ?>
+                                                <span>S</span>
+                                            <?php endif; ?>
+                                        </div>
+
+                                        <div class="admin-note-linked-product-copy">
+                                            <span class="admin-note-linked-product-brand">
+                                                <?= htmlspecialchars((string) ($linkedProduct['brand_name'] ?? '')) ?>
+                                            </span>
+
+                                            <strong>
+                                                <?= htmlspecialchars((string) $linkedProduct['name']) ?>
+                                            </strong>
+
+                                            <?php if (! empty($linkedProduct['concentration_label'])): ?>
+                                                <span class="admin-note-linked-product-meta">
+                                                    <?= htmlspecialchars((string) $linkedProduct['concentration_label']) ?>
+                                                </span>
+                                            <?php endif; ?>
+                                        </div>
+                                    </a>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                    </section>
+                <?php endif; ?>
             </aside>
         </div>
     </div>

@@ -1,21 +1,14 @@
 # Senteur
 
-**Senteur** is a perfume-focused e-commerce portfolio project built with plain PHP, MySQL, and Docker. It uses a lightweight MVC structure with custom routing, service and repository layers, and a Stripe test-mode checkout flow.
+Senteur is a perfume-focused e-commerce portfolio application built with plain PHP, MySQL, Stripe test-mode checkout, and Docker. The codebase uses a lightweight MVC structure with custom routing, service and repository layers, and server-rendered PHP views.
 
-The repo is designed to be easy to review: application code lives in `src/`, the public entrypoint is `public/index.php`, and the local environment is fully defined in Docker.
+## Highlights
 
-## Features
-
-- Customer registration, login, logout, and profile pages
-- Product catalogue with search, sorting, and advanced note filters
-- Product detail pages with variants, scent notes, reviews, and related products
-- Session-based cart and address book
-- Checkout flow with Stripe Checkout integration
-- Order history and order detail pages
-- Admin authentication
-- Admin order management
-- Admin product management with product and variant image uploads
-- Dockerized local environment with Nginx, PHP-FPM, and MySQL
+- Public storefront with catalogue search, filters, scent-note filtering, and product detail pages
+- Session cart, saved addresses, checkout flow, and Stripe test payments
+- Customer profile, order history, and order detail pages
+- Admin workspaces for orders, products, fragrance notes, and catalog metadata
+- Dockerized local setup with Nginx, PHP-FPM, and MySQL
 
 ## Stack
 
@@ -23,22 +16,39 @@ The repo is designed to be easy to review: application code lives in `src/`, the
 | --- | --- |
 | Language | PHP 8.3 |
 | Web server | Nginx |
-| App runtime | PHP-FPM |
+| Runtime | PHP-FPM |
 | Database | MySQL 8 |
-| Payments | Stripe PHP SDK + Stripe Checkout |
-| Containers | Docker Compose |
+| Payments | Stripe Checkout + `stripe/stripe-php` |
+| Local environment | Docker Compose |
+
+## Portfolio Visuals
+
+Add image here: storefront home page hero.
+Suggested path: `docs/screenshots/storefront/home-desktop.png`
+
+Add image here: product detail page with gallery and reviews.
+Suggested path: `docs/screenshots/storefront/product-detail.png`
+
+Add image here: admin workspace such as product editing or catalog data management.
+Suggested path: `docs/screenshots/admin/product-editor.png`
+
+For the full screenshot checklist, see `docs/PORTFOLIO_ASSETS.md`.
 
 ## Architecture
 
-- Request flow: Nginx -> `public/index.php` -> `src/bootstrap.php` -> router -> controller -> service -> repository
-- Controllers stay thin and focus on HTTP concerns
-- Services own validation and business rules
+- Request flow: Nginx -> `public/index.php` -> `src/bootstrap.php` -> router -> controller -> service -> repository -> view
+- Controllers stay focused on HTTP concerns
+- Services own validation, orchestration, and business rules
 - Repositories encapsulate PDO queries and transactions
-- Views are plain PHP templates rendered through `App\Core\Controller`
+- Views are plain PHP templates rendered through the shared controller base class
 
-## Getting started
+## Run Locally
 
-Prerequisites: Docker with Compose, plus ports `8080` and `3306` available unless you change the mappings in `docker-compose.yml`.
+Prerequisites:
+
+- Docker with Compose support
+- Port `8080` available for the app
+- Port `3306` available for MySQL unless you change the mapping
 
 1. Copy the environment template:
 
@@ -46,7 +56,7 @@ Prerequisites: Docker with Compose, plus ports `8080` and `3306` available unles
    cp .env.example .env
    ```
 
-2. Build and start the stack:
+2. Start the stack:
 
    ```bash
    docker compose up --build
@@ -54,57 +64,23 @@ Prerequisites: Docker with Compose, plus ports `8080` and `3306` available unles
 
 3. Open `http://localhost:8080`
 
-4. Stop the stack when finished:
+4. Stop the stack when you are done:
 
    ```bash
    docker compose down
    ```
 
-## Optional Cloudflare Quick Tunnel
+## Demo Accounts
 
-You can make the app publicly reachable through a free temporary Cloudflare Quick Tunnel without changing the normal `docker compose up --build` command.
-
-1. Open `.env`.
-2. Set:
-
-   ```env
-   COMPOSE_PROFILES=cloudflare
-   ```
-
-3. Start the stack as usual:
-
-   ```bash
-   docker compose up --build
-   ```
-
-4. Watch the `cloudflared` logs in the compose output, or in a second terminal:
-
-   ```bash
-   docker compose logs -f cloudflared
-   ```
-
-5. Open the generated `https://...trycloudflare.com` URL shown in those logs.
-
-Notes:
-
-- The tunnel is ephemeral, so the public URL changes each time the service starts.
-- To disable it again, clear `COMPOSE_PROFILES` in `.env`.
-- The tunnel forwards to `CLOUDFLARE_TUNNEL_ORIGIN`, which defaults to the internal Nginx service at `http://nginx:80`.
-- Features that rely on absolute URLs from `APP_URL` such as Stripe Checkout redirects will still use whatever `APP_URL` is set to. For a temporary tunnel, update `APP_URL` manually after the tunnel URL appears if you want those external redirects to point at the tunnel instead of `localhost`.
-
-## Demo accounts
-
-The seed file includes development accounts from `docker/mysql/seed.sql`:
+Seed data in `docker/mysql/seed.sql` includes:
 
 - Customer: `mario@example.com` / `password123`
 - Customer: `giulia@example.com` / `password123`
 - Admin: `admin@example.com` / `password123`
 
-## Stripe test setup
+## Stripe Test Setup
 
-Stripe is configured for development usage through `.env`.
-
-Required variables:
+Required `.env` values:
 
 ```env
 APP_URL=http://localhost:8080
@@ -113,24 +89,22 @@ STRIPE_PUBLISHABLE_KEY=pk_test_...
 STRIPE_WEBHOOK_SECRET=whsec_...
 ```
 
-Recommended local workflow:
+Recommended local webhook workflow:
 
-1. Install the Stripe CLI from Stripe's official releases for your platform.
+1. Install the Stripe CLI.
 2. Authenticate:
 
    ```bash
    stripe login
    ```
 
-3. Start the webhook forwarder while the app is running:
+3. Forward webhook events to the app:
 
    ```bash
    stripe listen --forward-to localhost:8080/webhooks/stripe
    ```
 
-4. Copy the returned `whsec_...` value into `STRIPE_WEBHOOK_SECRET` in `.env`.
-
-If you are testing through a temporary Cloudflare tunnel, set `APP_URL` to the current `trycloudflare.com` address before starting a Stripe Checkout session so the redirect URLs match the public tunnel.
+4. Copy the returned `whsec_...` value into `.env`.
 
 Stripe test card:
 
@@ -140,48 +114,38 @@ any future date
 any CVC
 ```
 
-## Fedora / SELinux note
+## Optional Cloudflare Quick Tunnel
 
-If bind mounts fail with permission errors on Fedora or another SELinux-enabled system, create a local override file from `docker-compose.override.example.yml`:
+To expose the app temporarily without changing the normal Docker workflow:
 
-```bash
-cp docker-compose.override.example.yml docker-compose.override.yml
-```
+1. Set `COMPOSE_PROFILES=cloudflare` in `.env`
+2. Start the stack with `docker compose up --build`
+3. Read the public `trycloudflare.com` URL from the `cloudflared` logs
+4. If you want Stripe redirects to use that URL, update `APP_URL` after the tunnel starts
 
-Then start the stack normally with `docker compose up --build`.
-
-## Environment variables
-
-See `.env.example` for the full template. The app currently expects:
-
-- `APP_ENV`, `APP_DEBUG`, `APP_URL`
-- `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`
-- `STRIPE_SECRET_KEY`, `STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET`
-- Optional Compose/tunnel settings: `COMPOSE_PROFILES`, `CLOUDFLARE_TUNNEL_ORIGIN`
-
-## Database
-
-- Schema: `docker/mysql/init.sql`
-- Demo data: `docker/mysql/seed.sql`
-- Interactive diagram: https://dbdiagram.io/d/SenteurSQLDiagram-69c288c3fb2db18e3bf07cf6
-
-## Project layout
+## Project Layout
 
 ```text
 senteur/
-├── docker/      # Dockerfiles, Nginx config, MySQL schema and seed files
-├── docs/        # Structure docs, flow diagrams, page notes
-├── public/      # Web root and compiled/static assets
-├── resources/   # Demo upload assets copied into public/uploads by the container
-├── src/         # Application source (Core, Controllers, Models, Services, Views)
-├── .env.example
+├── docker/        # PHP, Nginx, and MySQL container setup
+├── docs/          # Architecture notes, page docs, screenshots, and diagrams
+├── public/        # Web root, CSS, JS, and runtime uploads
+├── resources/     # Demo image assets copied into public/uploads
+├── src/           # Core app code: Controllers, Services, Models, Views
 ├── composer.json
 ├── docker-compose.yml
 └── README.md
 ```
 
-For a more detailed walkthrough of the repository tree, see `docs/PROJECT_STRUCTURE.md`.
+## Documentation
 
-## License
+- Repository map: `docs/PROJECT_STRUCTURE.md`
+- Screenshot checklist: `docs/PORTFOLIO_ASSETS.md`
+- Page docs: `docs/pages/`
+- Architecture/schema diagrams: `docs/diagrams/`
 
-This project is provided for educational and portfolio purposes.
+## Notes
+
+- `docker/php/entrypoint.sh` copies demo assets into `public/uploads/` when containers start.
+- `docker-compose.override.example.yml` is included for SELinux-friendly local setups.
+- This repository is presented as a finished portfolio project and reference build.

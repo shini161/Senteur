@@ -15,6 +15,7 @@ use App\Controllers\AdminAuthController;
 use App\Controllers\AdminOrderController;
 use App\Controllers\AdminProductController;
 use App\Controllers\AdminNoteController;
+use App\Controllers\AdminCatalogController;
 use App\Controllers\ReviewController;
 
 // The router consumes a flat route table of `[method, path, [controller, action]]`
@@ -94,4 +95,13 @@ return [
     ['POST', '/admin/notes', [AdminNoteController::class, 'store']],
     ['POST', '/admin/notes/{id}', [AdminNoteController::class, 'update']],
     ['POST', '/admin/notes/{id}/delete', [AdminNoteController::class, 'delete']],
+
+    // Admin catalog data
+    ['GET', '/admin/catalog', [AdminCatalogController::class, 'index']],
+    ['POST', '/admin/catalog/brands', [AdminCatalogController::class, 'storeBrand']],
+    ['POST', '/admin/catalog/brands/{id}', [AdminCatalogController::class, 'updateBrand']],
+    ['POST', '/admin/catalog/brands/{id}/delete', [AdminCatalogController::class, 'deleteBrand']],
+    ['POST', '/admin/catalog/fragrance-types', [AdminCatalogController::class, 'storeFragranceType']],
+    ['POST', '/admin/catalog/fragrance-types/{id}', [AdminCatalogController::class, 'updateFragranceType']],
+    ['POST', '/admin/catalog/fragrance-types/{id}/delete', [AdminCatalogController::class, 'deleteFragranceType']],
 ];

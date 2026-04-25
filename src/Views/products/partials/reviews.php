@@ -15,7 +15,7 @@
     </div>
 
     <?php if ($canReview): ?>
-        <div class="review-form-wrap is-hidden" id="review-form">
+        <div class="review-form-wrap <?= $userReview ? 'is-hidden' : '' ?>" id="review-form">
             <h3><?= $userReview ? 'Update your review' : 'Write a review' ?></h3>
 
             <form method="POST" action="/products/<?= htmlspecialchars($product['slug']) ?>/reviews" class="auth-form">
@@ -116,7 +116,7 @@
                             <span class="muted review-card-date"><?= htmlspecialchars($formatReviewDate($review['created_at'])) ?></span>
 
                             <?php if ($userReview && (int) $review['id'] === (int) $userReview['id']): ?>
-                                <button type="button" class="button-link review-edit-toggle">Edit</button>
+                                <button type="button" class="button-link review-edit-toggle">Edit review</button>
                             <?php endif; ?>
                         </div>
                     </div>

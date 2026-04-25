@@ -1,6 +1,6 @@
 <?php
-// Admin order listing focused on quick operational scanning and recent order
-// health rather than raw tabular output.
+$scripts ??= [];
+$scripts[] = '/assets/js/admin/filters.js';
 
 $statusClasses = [
     'pending' => 'status-pending',
@@ -64,6 +64,8 @@ foreach ($orders as $adminOrder) {
 }
 
 $needsAttention = $summary['pending'] + $summary['processing'];
+$activeFilterCount = (($filters['q'] ?? '') !== '' ? 1 : 0) + (($filters['status'] ?? '') !== '' ? 1 : 0);
+$filtersOpen = $activeFilterCount > 0;
 
 $buildPageUrl = static function (int $pageNumber) use ($filters): string {
     $params = $filters;
@@ -88,8 +90,35 @@ $hasActiveFilters = ($filters['q'] ?? '') !== '' || ($filters['status'] ?? '') !
         require __DIR__ . '/../_header.php';
         ?>
 
-        <section class="panel admin-filter-panel">
-            <form method="GET" action="/admin/orders" class="auth-form admin-filter-form">
+        <section class="panel admin-filter-panel" data-filter-panel>
+            <div class="admin-filter-header">
+                <div>
+                    <h2>Search</h2>
+                    <p class="muted admin-filter-summary">
+                        <?= number_format((int) $totalOrders) ?> matching orders
+                        <?php if ($activeFilterCount > 0): ?>
+                            · <?= number_format($activeFilterCount) ?> active
+                        <?php endif; ?>
+                    </p>
+                </div>
+
+                <button
+                    type="button"
+                    class="button-secondary admin-filter-toggle filter-toggle-button filter-toggle-button-icon-only"
+                    data-filter-toggle
+                    aria-expanded="<?= $filtersOpen ? 'true' : 'false' ?>"
+                    aria-label="Toggle order filters"
+                    title="Toggle order filters">
+                    <span class="filter-toggle-icon" aria-hidden="true"></span>
+                    <span class="sr-only">Toggle order filters</span>
+                </button>
+            </div>
+
+            <form
+                method="GET"
+                action="/admin/orders"
+                class="auth-form admin-filter-form admin-filter-body <?= $filtersOpen ? 'is-open' : '' ?>"
+                data-filter-body>
                 <div class="admin-filter-grid">
                     <div class="form-group admin-filter-search">
                         <label for="order-q">Search</label>

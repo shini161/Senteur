@@ -1,7 +1,4 @@
 <?php
-// Admin order detail page with fulfillment controls, customer context, and
-// item snapshots presented in an operational layout.
-
 $statusClasses = [
     'pending' => 'status-pending',
     'processing' => 'status-processing',
@@ -100,13 +97,11 @@ $timeline = [
         $adminHeaderKicker = 'Admin / Orders';
         $adminHeaderSection = 'orders';
         $adminHeaderClass = 'admin-order-header';
+        $adminHeaderBackLink = [
+            'href' => '/admin/orders',
+            'label' => 'Back to orders',
+        ];
         $adminHeaderActions = [
-            [
-                'type' => 'link',
-                'href' => '/admin/orders',
-                'label' => 'Back to orders',
-                'class' => 'button-secondary',
-            ],
             [
                 'type' => 'badge',
                 'label' => $statusLabel($currentStatus),

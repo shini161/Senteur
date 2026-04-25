@@ -1,7 +1,4 @@
 <?php
-// Shared storefront layout. Feature templates render into `$content` while the
-// layout owns global navigation, search, and footer chrome.
-
 $publicDir = dirname(__DIR__, 3) . '/public';
 $assetUrl = static function (string $path) use ($publicDir): string {
     $normalizedPath = '/' . ltrim($path, '/');
@@ -13,6 +10,17 @@ $assetUrl = static function (string $path) use ($publicDir): string {
 
     return $normalizedPath . '?v=' . filemtime($filePath);
 };
+
+$layoutStyles = [
+    '/assets/css/app.css',
+    '/assets/css/pages/home.css',
+    '/assets/css/pages/account.css',
+    '/assets/css/pages/products.css',
+    '/assets/css/pages/cart.css',
+    '/assets/css/pages/orders.css',
+    '/assets/css/responsive.css',
+];
+$allStyles = array_values(array_unique(array_merge($layoutStyles, $styles ?? [])));
 ?>
 <!doctype html>
 <html lang="en">
@@ -21,16 +29,17 @@ $assetUrl = static function (string $path) use ($publicDir): string {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($title ?? 'Senteur', ENT_QUOTES, 'UTF-8') ?> · Senteur</title>
-    <link rel="stylesheet" href="<?= htmlspecialchars($assetUrl('/assets/css/app.css'), ENT_QUOTES, 'UTF-8') ?>">
-    <link rel="stylesheet" href="<?= htmlspecialchars($assetUrl('/assets/css/pages/products.css'), ENT_QUOTES, 'UTF-8') ?>">
-    <link rel="stylesheet" href="<?= htmlspecialchars($assetUrl('/assets/css/pages/cart.css'), ENT_QUOTES, 'UTF-8') ?>">
-    <link rel="stylesheet" href="<?= htmlspecialchars($assetUrl('/assets/css/pages/orders.css'), ENT_QUOTES, 'UTF-8') ?>">
-    <link rel="stylesheet" href="<?= htmlspecialchars($assetUrl('/assets/css/responsive.css'), ENT_QUOTES, 'UTF-8') ?>">
+    <?php foreach ($allStyles as $style): ?>
+        <link rel="stylesheet" href="<?= htmlspecialchars($assetUrl($style), ENT_QUOTES, 'UTF-8') ?>">
+    <?php endforeach; ?>
     <link rel="icon" href="/assets/images/logo-favicon.svg" type="image/svg+xml">
 </head>
 
 <body>
-    <!-- Global navigation stays consistent across storefront and admin-auth pages. -->
+    <?php
+    $layoutScripts = ['/assets/js/layout/navbar.js'];
+    $allScripts = array_values(array_unique(array_merge($layoutScripts, $scripts ?? [])));
+    ?>
     <header class="site-header">
         <nav class="navbar">
             <div class="nav-left">
@@ -48,10 +57,11 @@ $assetUrl = static function (string $path) use ($publicDir): string {
             </div>
 
             <div class="nav-right">
-                <form method="GET" action="/products" class="search-form">
+                <form method="GET" action="/products" class="search-form nav-search">
                     <input
                         type="text"
                         name="search"
+                        aria-label="Search perfumes"
                         placeholder="Search perfumes..."
                         value="<?= htmlspecialchars($_GET['search'] ?? '') ?>">
                 </form>
@@ -65,6 +75,47 @@ $assetUrl = static function (string $path) use ($publicDir): string {
                         <a href="/login" class="button-secondary">Login</a>
                     <?php endif; ?>
                 </div>
+
+                <div class="mobile-nav-controls">
+                    <a
+                        href="/products?show=search"
+                        class="mobile-search-link"
+                        aria-label="Search perfumes">
+                        <span class="mobile-search-icon" aria-hidden="true"></span>
+                    </a>
+
+                    <button
+                        type="button"
+                        class="mobile-nav-toggle"
+                        data-mobile-nav-toggle
+                        aria-expanded="false"
+                        aria-controls="mobile-nav-panel">
+                        <span class="mobile-nav-toggle-icon" aria-hidden="true"></span>
+                        <span class="sr-only">Open navigation menu</span>
+                    </button>
+                </div>
+
+                <div
+                    class="mobile-nav-panel"
+                    id="mobile-nav-panel"
+                    data-mobile-nav-panel
+                    hidden>
+                    <div class="mobile-nav-links">
+                        <a href="/products" class="mobile-nav-link">Shop</a>
+
+                        <?php if ($user && ($user['role'] ?? '') === 'admin'): ?>
+                            <a href="/admin/orders" class="mobile-nav-link">Admin</a>
+                        <?php endif; ?>
+
+                        <a href="/cart" class="mobile-nav-link">Cart</a>
+
+                        <?php if ($user): ?>
+                            <a href="/profile" class="mobile-nav-link mobile-nav-profile-link">Profile</a>
+                        <?php else: ?>
+                            <a href="/login" class="mobile-nav-link mobile-nav-profile-link">Login</a>
+                        <?php endif; ?>
+                    </div>
+                </div>
             </div>
         </nav>
     </header>
@@ -73,7 +124,6 @@ $assetUrl = static function (string $path) use ($publicDir): string {
         <?= $content ?? '' ?>
     </main>
 
-    <!-- Footer links intentionally stay lightweight and static. -->
     <footer class="site-footer">
         <div class="footer-inner">
             <div class="footer-left">
@@ -95,7 +145,7 @@ $assetUrl = static function (string $path) use ($publicDir): string {
         </div>
     </footer>
 
-    <?php foreach (($scripts ?? []) as $script): ?>
+    <?php foreach ($allScripts as $script): ?>
         <script src="<?= htmlspecialchars($assetUrl($script), ENT_QUOTES, 'UTF-8') ?>" defer></script>
     <?php endforeach; ?>
 </body>

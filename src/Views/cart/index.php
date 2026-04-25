@@ -1,6 +1,6 @@
 <?php
-// Session-cart view with quantity controls, removal actions, and a lightweight
-// summary card that funnels the user into checkout.
+$scripts ??= [];
+$scripts[] = '/assets/js/cart/index.js';
 ?>
 <section class="cart-page">
     <div class="cart-header">
@@ -18,7 +18,6 @@
         <div class="cart-layout">
             <div class="cart-items">
                 <?php foreach ($items as $item): ?>
-                    <?php // Each line renders the variant snapshot returned by the cart service. ?>
                     <article class="panel cart-item">
                         <div class="cart-item-media">
                             <?php if (!empty($item['image_url'])): ?>
@@ -103,7 +102,6 @@
             </div>
 
             <aside class="panel cart-summary">
-                <?php // Summary values are derived from the already-normalized cart items. ?>
                 <h2>Order summary</h2>
 
                 <div class="cart-summary-row">
@@ -127,50 +125,3 @@
         </div>
     <?php endif; ?>
 </section>
-
-<script>
-    // Keep the quantity stepper and manual input aligned with each variant's
-    // allowed min/max quantity without making another server request.
-    document.addEventListener('DOMContentLoaded', function() {
-        document.querySelectorAll('.cart-qty-form').forEach((form) => {
-            const input = form.querySelector('.qty-input');
-            const decreaseBtn = form.querySelector('[data-qty-action="decrease"]');
-            const increaseBtn = form.querySelector('[data-qty-action="increase"]');
-
-            if (!input || !decreaseBtn || !increaseBtn) {
-                return;
-            }
-
-            const clampQuantity = () => {
-                const min = Number(input.min || 0);
-                const max = Number(input.max || 0);
-                let value = Number(input.value || min);
-
-                if (Number.isNaN(value)) {
-                    value = min;
-                }
-
-                value = Math.max(min, Math.min(max, value));
-                input.value = String(value);
-
-                decreaseBtn.disabled = value <= min;
-                increaseBtn.disabled = value >= max;
-            };
-
-            decreaseBtn.addEventListener('click', () => {
-                input.stepDown();
-                clampQuantity();
-            });
-
-            increaseBtn.addEventListener('click', () => {
-                input.stepUp();
-                clampQuantity();
-            });
-
-            input.addEventListener('input', clampQuantity);
-            input.addEventListener('change', clampQuantity);
-
-            clampQuantity();
-        });
-    });
-</script>

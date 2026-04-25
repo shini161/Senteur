@@ -32,6 +32,7 @@ class AdminProductController extends Controller
         Auth::requireAdmin();
 
         $listData = $this->adminProductService->getProductListData($_GET);
+        $meta = $this->adminProductService->getFormMeta();
 
         $this->render('admin/products/index', [
             'title' => 'Admin Products',
@@ -40,7 +41,10 @@ class AdminProductController extends Controller
             'currentPage' => $listData['currentPage'],
             'totalPages' => $listData['totalPages'],
             'totalProducts' => $listData['totalProducts'],
-            'genders' => ['male', 'female', 'unisex'],
+            'brands' => $meta['brands'],
+            'fragranceTypes' => $meta['fragranceTypes'],
+            'genders' => $meta['genders'],
+            'sortOptions' => $listData['sortOptions'],
         ]);
     }
 

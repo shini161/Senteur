@@ -8,8 +8,27 @@ document.addEventListener('DOMContentLoaded', function () {
   const thumbnailsWrap = document.getElementById('product-thumbnails');
   const quantityInput = document.querySelector('.product-purchase-form input[name="quantity"]');
   const qtyStepper = document.querySelector('.qty-stepper');
+  const submitButton = document.getElementById('product-submit-button');
+  const defaultSubmitLabel = submitButton?.dataset.defaultLabel || 'Add to cart';
 
   let clampQuantity = null;
+
+  const updatePurchaseState = (stock) => {
+    const inStock = stock > 0;
+
+    if (quantityInput) {
+      quantityInput.disabled = !inStock;
+    }
+
+    if (submitButton) {
+      submitButton.disabled = !inStock;
+      submitButton.textContent = inStock ? defaultSubmitLabel : 'Out of stock';
+    }
+
+    if (typeof clampQuantity === 'function') {
+      clampQuantity();
+    }
+  };
 
   const renderThumbnails = (images) => {
     if (!thumbnailsWrap) {
@@ -120,13 +139,9 @@ document.addEventListener('DOMContentLoaded', function () {
         if (Number(quantityInput.value) < 1) {
           quantityInput.value = '1';
         }
-
-        quantityInput.disabled = stock <= 0;
-
-        if (typeof clampQuantity === 'function') {
-          clampQuantity();
-        }
       }
+
+      updatePurchaseState(stock);
 
       const images = JSON.parse(button.dataset.images || '[]');
 
@@ -158,6 +173,12 @@ document.addEventListener('DOMContentLoaded', function () {
         thumb.classList.add('is-active');
       });
     });
+  }
+
+  const selectedVariantButton = document.querySelector('.variant-option.is-selected');
+
+  if (selectedVariantButton) {
+    updatePurchaseState(Number(selectedVariantButton.dataset.stock));
   }
 
   const ratingWidget = document.querySelector('[data-rating-widget]');

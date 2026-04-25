@@ -121,7 +121,7 @@ class NoteRepository
      */
     public function findProductsForNotes(array $noteIds, int $limitPerNote = 4): array
     {
-        $noteIds = array_values(array_unique(array_filter(array_map('intval', $noteIds), static fn (int $id): bool => $id > 0)));
+        $noteIds = array_values(array_unique(array_filter(array_map('intval', $noteIds), static fn(int $id): bool => $id > 0)));
 
         if ($noteIds === []) {
             return [];
@@ -135,17 +135,27 @@ class NoteRepository
                 p.id,
                 p.name,
                 p.slug,
-                p.deleted_at
+                p.concentration_label,
+                p.deleted_at,
+                b.name AS brand_name,
+                pi.image_url
             FROM product_notes pn
             INNER JOIN products p ON p.id = pn.product_id
+            INNER JOIN brands b ON b.id = p.brand_id
+            LEFT JOIN product_images pi
+                ON pi.product_id = p.id
+                AND pi.position = 0
             WHERE pn.note_id IN ($placeholders)
             GROUP BY
                 pn.note_id,
                 p.id,
                 p.name,
                 p.slug,
-                p.deleted_at
-            ORDER BY pn.note_id ASC, p.name ASC
+                p.concentration_label,
+                p.deleted_at,
+                b.name,
+                pi.image_url
+            ORDER BY pn.note_id ASC, b.name ASC, p.name ASC
         ");
 
         $stmt->execute($noteIds);

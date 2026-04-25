@@ -1,6 +1,3 @@
-<?php
-// Post-payment confirmation page shown after Stripe redirects back to the app.
-?>
 <section class="auth-page">
     <div class="auth-card">
         <h1>Payment confirmation</h1>

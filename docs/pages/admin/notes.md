@@ -1,188 +1,44 @@
-# Admin - Notes
+# Admin Notes
 
 ## Purpose
 
-Allow administrators to manage fragrance notes used in products, whether they appear in a flat note list or inside top, heart, and base pyramid stages.
+Manage the reusable fragrance-note library used across product editing.
 
----
-
-## Route
+## Routes
 
 ```bash
-GET    /admin/notes
-POST   /admin/notes
-PATCH  /admin/notes/{id}
-DELETE /admin/notes/{id}
+GET  /admin/notes
+POST /admin/notes
+POST /admin/notes/{id}
+POST /admin/notes/{id}/delete
 ```
 
----
+## Current Behavior
 
-## Page Data
+- The page combines filtering, note browsing, editing, and creation in one workspace.
+- Search supports free-text note lookup plus a usage filter for `used` and `unused`.
+- Pagination is built into the notes list.
+- Creating a note requires a name and an uploaded image.
+- Editing a note keeps the existing image unless a replacement file is provided.
+- Notes that are still attached to products cannot be deleted.
+- When a note is selected for editing, the sidebar also shows the products currently linked to it.
 
-* list of notes:
+## Data Shown
 
-  * id
-  * name
-  * image_url (optional)
-  * created_at
+- Note name and slug
+- Usage count
+- Note image preview
+- Linked products for the active note
+- Current page / total pages
 
----
+## Validation And Rules
 
-## Request Flow
+- `name` is required and limited to 100 characters
+- slugs are generated from the name and must stay unique
+- note images must be JPG, PNG, or WEBP and 2MB or smaller
+- delete is blocked while the note is referenced by products
 
-### Create / Update Note
+## Visual Reference
 
-![Create or Update Note Flow](../../flows/admin/note-save.png)
-
----
-
-### Delete Note
-
-![Delete Note Flow](../../flows/admin/note-delete.png)
-
----
-
-## Controller
-
-```php
-Admin\\NoteController::index()
-Admin\\NoteController::store()
-Admin\\NoteController::update(int $id)
-Admin\\NoteController::delete(int $id)
-```
-
----
-
-## Service Layer
-
-```php
-NoteService::getAll(): array
-NoteService::create(array $data): void
-NoteService::update(int $id, array $data): void
-NoteService::delete(int $id): void
-```
-
----
-
-## Responsibilities
-
-* manage notes (CRUD)
-* ensure unique names
-* handle image uploads
-* prevent deletion if in use
-
----
-
-## Validation Rules
-
-* name
-
-> - required
-> - max: 100
-
-* image (optional)
-
-> - valid image file (jpg, png, webp)
-> - max size limit (e.g., 2MB)
-
----
-
-## Database Actions
-
-### Get notes
-
-```sql
-SELECT id, name, image_url, created_at
-FROM notes
-ORDER BY created_at DESC;
-```
-
----
-
-### Create note
-
-```sql
-INSERT INTO notes (name, image_url)
-VALUES (?, ?);
-```
-
----
-
-### Update note
-
-```sql
-UPDATE notes
-SET name = ?, image_url = ?
-WHERE id = ?;
-```
-
----
-
-### Delete note
-
-```sql
-DELETE FROM notes
-WHERE id = ?;
-```
-
----
-
-## Image Handling
-
-* store files in filesystem (e.g., `public/uploads/notes/`)
-* store only `image_url` in DB
-* validate file type and size
-* generate unique filename
-
----
-
-## Security
-
-* admin authentication required
-* role-based access (admin only)
-* CSRF protection required
-* validate file uploads
-
----
-
-## Response
-
-### Success
-
-```text
-302 Redirect → /admin/notes
-```
-
----
-
-### Errors
-
-* validation errors
-* duplicate name
-* note in use
-
----
-
-## UX Notes
-
-* list of notes with images
-* create/edit form
-* image preview
-* delete with confirmation
-
----
-
-## Future Extensions
-
-* categorize notes (citrus, woody, etc.)
-* search notes
-* drag & drop ordering
-
----
-
-## View Requirements
-
-* notes list
-* create/edit form
-* image upload input
-* delete action
+Add image here: notes library grid with one note selected in the sidebar.
+Suggested path: `docs/screenshots/admin/notes-library.png`

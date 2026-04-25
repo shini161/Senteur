@@ -1,7 +1,3 @@
-<?php
-// Admin product creation workspace with a structured form and onboarding notes
-// for the rest of the catalog setup flow.
-?>
 <section class="admin-product-page">
     <div class="admin-product-shell">
         <?php
@@ -10,14 +6,11 @@
         $adminHeaderKicker = 'Admin / Products';
         $adminHeaderSection = 'products';
         $adminHeaderClass = 'admin-product-header';
-        $adminHeaderActions = [
-            [
-                'type' => 'link',
-                'href' => '/admin/products',
-                'label' => 'Back to products',
-                'class' => 'button-secondary',
-            ],
+        $adminHeaderBackLink = [
+            'href' => '/admin/products',
+            'label' => 'Back to products',
         ];
+        $adminHeaderActions = [];
 
         require __DIR__ . '/../_header.php';
         ?>
