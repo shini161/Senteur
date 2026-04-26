@@ -42,7 +42,7 @@ Senteur is a specialized e-commerce engine for boutique fragrance retailers. Bui
 ## System Architecture
 The application implements a decoupled MVC pattern to separate concerns and improve testability:
 
-![MVC Request Flow](docs/diagrams/mvc-flow.png)
+![MVC Request Flow](docs/diagrams/mvc-flow.svg)
 
 - **Request Pipeline**: Nginx → `index.php` → Bootstrapper → Regex Router → Controller.
 - **Service Layer**: Controllers remain lean, delegating all domain logic and third-party integrations (like Stripe) to specialized Services.
