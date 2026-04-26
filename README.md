@@ -2,7 +2,7 @@
 
 Senteur is a specialized e-commerce engine for boutique fragrance retailers. Built with a custom PHP 8.3 MVC architecture, it provides a high-performance shopping experience paired with a robust administrative suite for managing complex fragrance metadata.
 
-![Senteur Hero Banner](docs/screenshots/storefront/home-desktop.png)
+![Senteur Hero Banner](docs/screenshots/storefront/home-desktop.webp)
 *A specialized storefront for fragrance discovery and seamless checkout.*
 
 ## Key Features
