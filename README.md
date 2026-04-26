@@ -22,7 +22,7 @@ Senteur is a specialized e-commerce engine for boutique fragrance retailers. Bui
 
 | Product Detail Page | Administrative Workspace |
 | :---: | :---: |
-| <img src="docs/screenshots/storefront/product-detail.png" width="400"> | <img src="docs/screenshots/admin/product-editor.png" width="400"> |
+| <img src="docs/screenshots/storefront/product-detail.webp" width="400"> | <img src="docs/screenshots/admin/product-editor.webp" width="400"> |
 | *Gallery, reviews, and scent notes* | *Managing inventory and metadata* |
 
 </details>
